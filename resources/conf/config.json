@@ -1,0 +1,20 @@
+{
+  "mqtt": {
+    "port": 1883,
+    "cmt": "holy shit"
+  },
+  "devices": [
+    {
+      "key": 0,
+      "name": "设备A",
+      "clientID": "clientA",
+      "password": "passAaaa"
+    },
+    {
+      "key": 1747634853669,
+      "name": "undefined",
+      "clientID": "undefined",
+      "password": "123456"
+    }
+  ]
+}

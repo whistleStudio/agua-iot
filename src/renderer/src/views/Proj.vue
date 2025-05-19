@@ -1,5 +1,6 @@
 <template>
   <ProjModal :open="isProjModalOpen" @ok="handleProjModalOk" @cancel="isProjModalOpen=false"/>
+  <SubscriptionModal :open="isSubModalOpen" @ok="handleSubModalOk" @cancel="isSubModalOpen=false" :form="form"/>
   <div class="container">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -28,8 +29,7 @@
       <div class="data-panel">
         <!-- Subscription Section -->
         <div class="left-panel subscription">
-          <a-button type="primary">+ New Subscription</a-button>
-
+          <a-button type="primary" @click="isSubModalOpen=true">+ New Subscription</a-button>
         </div>
         
         <div class="right-panel">
@@ -72,6 +72,7 @@
 <script setup>
 import { onMounted, onBeforeMount, reactive, ref } from 'vue'
 import ProjModal from '../components/ProjModal.vue'
+import SubscriptionModal from '../components/SubscriptionModal.vue';
 import bus from '../utils/bus'
 import { cloneDeep } from "lodash-es";
 
@@ -80,8 +81,14 @@ const topic = ref('wshwsh/1/Cmsg')
 const format = ref('plaintext')
 const qos = ref('0')
 const retain = ref(false)
-const isProjModalOpen = ref(false)
+const isProjModalOpen = ref(false), isSubModalOpen = ref(false)
 let projList = reactive([])
+const form = ref({
+  topic: 'testtopic/#',
+  qos: 0,
+  color: '#97CE54',
+  alias: ''
+})
 
 
 function getMenuIconPath(index) {
@@ -124,6 +131,23 @@ function handleDeleteProj(id) {
     projList.splice(index, 1)
     console.log(bus.projList)
     changeProjInfo()
+  }
+}
+
+// Subscription Modal OK
+function handleSubModalOk(newSub) {
+  isSubModalOpen.value = false
+  if (newSub.topic === '') return
+  const index = projList.findIndex((item) => item.id === newSub.projId)
+  if (index !== -1) {
+    projList[index].subTopics.push({
+      id: new Date().getTime(),
+      topic: newSub.topic,
+      qos: newSub.qos,
+      color: newSub.color,
+      alias: newSub.alias
+    })
+    // changeProjInfo()
   }
 }
 

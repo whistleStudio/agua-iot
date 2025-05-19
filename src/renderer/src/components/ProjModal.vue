@@ -1,6 +1,7 @@
 <template>
   <div>
-    <a-modal :open="open" :title="title" @ok="emit('ok', newProj)" @cancel="emit('cancel')">
+    <a-modal :open="open" :title="title" @ok="emit('ok', newProj)" @cancel="emit('cancel')"
+    :okText="'确定'" :cancelText="'取消'">
       名称： <a-input v-model:value="newProj.name" placeholder="Basic usage" />
     </a-modal>
   </div>

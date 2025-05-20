@@ -46,8 +46,8 @@
         
         <div class="right-panel">
           <!-- Messages List -->
-          <div class="messages">
-            <div v-for="(msg, index) in messages" :key="index" class="message" :class="{ 'sub-msg': msg.type === 0, 'pub-msg': msg.type === 1 }"
+          <div class="messages" ref="messagesRef">
+            <div v-for="(msg, index) in activeProj.cache" :key="index" class="message" :class="{ 'sub-msg': msg.type === 0, 'pub-msg': msg.type === 1 }"
             :style="{ borderColor: msg.type === 0 ? msg.color : '#fff' }">
               <div class="time">{{ msg.time }}</div>
               <div class="topic">
@@ -83,7 +83,7 @@
 
 
 <script setup>
-import { onMounted, onBeforeMount, reactive, ref, computed } from 'vue'
+import { onMounted, onBeforeMount, reactive, ref, computed, watch } from 'vue'
 import ProjModal from '../components/ProjModal.vue'
 import SubscriptionModal from '../components/SubscriptionModal.vue';
 import bus from '../utils/bus'
@@ -97,6 +97,7 @@ const format = ref('plaintext')
 const qos = ref('0')
 const retain = ref(false)
 
+const messagesRef = ref(null)
 
 const isProjModalOpen = ref(false), isSubModalOpen = ref(0), isReading = ref(false)
 const activeProjID = ref(-999)
@@ -109,14 +110,11 @@ const activeProj = computed(() => {
   return projList[activeProjIndex.value]
 })
 
-
-// type 0: 订阅消息，1: 发布消息
-const messages = reactive([
-  { type: 0, time: '2025-03-06 10:17:37:991', topic: 'cfun/public/CTime', content: '消息内容乱码或未解码', qos: 0, color: '#663456'},
-  { type: 0, time: '2025-03-06 10:17:40:992', topic: 'cfun/public/CTime', content: '消息内容乱码或未解码', qos: 0, color: '#123456'},
-  { type: 1, time: '2025-03-06 10:17:50:061', topic: 'cfun/public/CTime', content: '消息内容乱码或未解码', qos: 0, color: '#123456'},
-  { type: 0, time: '2025-03-06 10:20:26:016', topic: 'cfun/public/CTime', content: '消息内容乱码或未解码', qos: 0, color: '#123456'}
-])
+// // type 0: 订阅消息，1: 发布消息
+// const messages = reactive([
+//   { type: 0, time: '2025-03-06 10:17:37:991', topic: 'cfun/public/CTime', content: '消息内容乱码或未解码', qos: 0, color: '#663456'},
+//   { type: 1, time: '2025-03-06 10:17:50:061', topic: 'cfun/public/CTime', content: '消息内容乱码或未解码', qos: 0, color: '#123456'},
+// ])
 
 function handleSend() {
   // 实际发送逻辑可用 MQTT.js 实现
@@ -217,13 +215,23 @@ function changeMqttCache(topic) {
 let tim_reading = null 
 function clickReadingBtn() {
   isReading.value = !isReading.value
-
 }
+// 监听mqtt数据
 window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
-  console.log('mqttData ---', data)
+  const { topic, qos, payload, time } = data
+  if (activeProjID.value === -999) return
+  const index = activeProj.value.subTopics.findIndex((item) => item.topic === topic)
+  activeProj.value.cache.push({ type: 0, time, topic, qos, content: payload, color: activeProj.value.subTopics[index].color })
+  changeProjInfo()
 })
 
-/* -------------- */
+/* ---------------------------- */
+watch(() => activeProj.value.cache, (newVal) => {
+  if (messagesRef.value) {
+    messagesRef.value.scrollTop = messagesRef.value.scrollHeight
+  }
+}, { deep: true })
+
 onBeforeMount(() => {
   projList = reactive(bus.projList)
   if (projList.length > 0) {

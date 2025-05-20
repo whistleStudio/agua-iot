@@ -30,8 +30,9 @@ aedes.authenticate = function (client, username, password, callback) {
   callback(new Error('not authorized'), false)
 }
 
+const browserWindows = []
 /* 订阅主题 */
-function subscribeTopic(topic, browserWindows) {
+function subscribeTopic(topic) {
   // 多个项目订阅时，计数加1；确保unsubscribe时能正确删除
   if (mqttCache[topic]) mqttCache[topic].subCount++
   else {
@@ -97,4 +98,5 @@ export default {
   localIP: localIP,
   subscribeTopic,
   publishTopic,
+  browserWindows
 }

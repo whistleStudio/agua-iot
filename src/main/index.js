@@ -13,8 +13,8 @@ init() // 初始化
 function createWindow() {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    width: 1200,
+    height: 850,
     show: false,
     autoHideMenuBar: true,
     ...(process.platform === 'linux' ? { icon } : {}),
@@ -42,17 +42,8 @@ function createWindow() {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  projData.list.forEach(el => {
-    el.subTopics.forEach((item, index) => {
-      mqttServer.subscribeTopic(item.topic, [mainWindow]) 
-    })
-  });
-
-  /* 修改mqtt缓存 */
-  ipcMain.handle('r:changeMqttCache', (_, topic) => {
-    try {mqttServer.subscribeTopic(topic, [mainWindow]); return {err: 0}}
-    catch (err) { return {err: 1, msg: '订阅主题失败'} }
-  })
+  // 增加mqtt通讯的渲染进程窗口
+  mqttServer.browserWindows.push(mainWindow)
 
 }
 
@@ -93,6 +84,11 @@ app.whenReady().then(() => {
       return {err: 0}
     } catch (err) { return {err: 1, msg: '本地文件同步异常'} }
   })
+  /* 修改mqtt缓存 */
+  ipcMain.handle('r:changeMqttCache', (_, topic) => {
+    try {mqttServer.subscribeTopic(topic); return {err: 0}}
+    catch (err) { return {err: 1, msg: '订阅主题失败'} }
+  })
 
   createWindow()
 
@@ -111,11 +107,15 @@ app.on('window-all-closed', () => {
 })
 
 
-
 /* 初始化 */
 function init () {
   try {
     config = JSON.parse(fs.readFileSync(configUrl, 'utf8'))
     projData = JSON.parse(fs.readFileSync(projDataUrl, 'utf8'))
+    projData.list.forEach(el => {
+      el.subTopics.forEach((item, index) => {
+        mqttServer.subscribeTopic(item.topic) 
+      })
+    });
   } catch (err) { console.log('init error: ', err) }
 }

@@ -30,7 +30,48 @@
         }
       ],
       "pubTopics": [],
-      "cache": []
+      "cache": [
+        {
+          "type": 0,
+          "time": "2025-05-20 13:51:28.711",
+          "topic": "testtopic/num",
+          "qos": 0,
+          "content": "abccc",
+          "color": "#f2a145"
+        },
+        {
+          "type": 0,
+          "time": "2025-05-20 13:51:30.024",
+          "topic": "testtopic/num",
+          "qos": 0,
+          "content": "abccc",
+          "color": "#f2a145"
+        },
+        {
+          "type": 0,
+          "time": "2025-05-20 13:51:31.427",
+          "topic": "testtopic/num",
+          "qos": 0,
+          "content": "abccc",
+          "color": "#f2a145"
+        },
+        {
+          "type": 0,
+          "time": "2025-05-20 13:51:32.514",
+          "topic": "testtopic/num",
+          "qos": 0,
+          "content": "abccc",
+          "color": "#f2a145"
+        },
+        {
+          "type": 0,
+          "time": "2025-05-20 13:51:42.037",
+          "topic": "testtopic/num",
+          "qos": 0,
+          "content": "abccc",
+          "color": "#f2a145"
+        }
+      ]
     },
     {
       "id": 1747715044462,

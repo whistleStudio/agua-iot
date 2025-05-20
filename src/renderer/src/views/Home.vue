@@ -12,7 +12,7 @@
       </div>
       <div class="menu-item">
         <img v-for="(item, index) in menuListInfo" :src="getMenuIconPath(index)" :alt="item.name" :key="index"
-        @click="$router.push(item.href)" />
+        @click="() => $router.push(item.href)" />
       </div>
     </div> 
     <router-view @alert="showCustomAlert"/>
@@ -24,6 +24,9 @@
 import { reactive, ref } from 'vue'
 import ConnectionModal from '../components/ProjModal.vue'
 
+
+
+// const toHref = href => {$router.push(href)}
 const alertInfo = reactive({
   isShow: false,
   msg: '',

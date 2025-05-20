@@ -1,100 +1,59 @@
 <template>
-  <a-modal
-    :open="open" title="New Subscription"
-    @ok="emit('ok', form)" @cancel="handleCancel"
-    width="540px" class="subscription-modal"
-    :okText="'确定'" :cancelText="'取消'"
-  >
-    <a-form
-      :model="form"
-      :rules="rules"
-      ref="subscriptionForm"
-      layout="vertical"
-    >
+  <a-modal :open="Boolean(open)" title="New Subscription" @ok="emit('ok', newSub)" @cancel="emit('cancel')" width="540px" class="subscription-modal" :okText="'确定'" :cancelText="'取消'">
+    <a-form :model="newSub" :rules="rules" ref="subscriptionForm" layout="vertical">
       <!-- Topic -->
-      <a-form-item
-        label="Topic"
-        name="topic"
-        required
-        :rules="[{ required: true, message: 'Please input topic!' }]"
-      >
-        <a-input
-          v-model:value="form.topic"
-          placeholder="Enter topic"
-          suffix-icon="info-circle"
-        />
+      <a-form-item label="Topic" name="topic" required :rules="[{ required: true, message: 'Please input topic!' }]">
+        <a-input v-model:value.trim="newSub.topic" placeholder="Enter topic" suffix-icon="info-circle" />
       </a-form-item>
 
       <!-- QoS & Color -->
       <div class="row-flex">
-        <a-form-item
-          label="QoS"
-          name="qos"
-          required
-          :rules="[{ required: true, message: 'Please select QoS!' }]"
-          class="qos-item"
-        >
-          <a-select v-model:value="form.qos">
+        <a-form-item label="QoS" name="qos" required :rules="[{ required: true, message: 'Please select QoS!' }]" class="qos-item">
+          <a-select v-model:value="newSub.qos">
             <a-select-option :value="0">0 At most once</a-select-option>
             <a-select-option :value="1">1 At least once</a-select-option>
             <a-select-option :value="2">2 Exactly once</a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item
-          label="Color"
-          name="color"
-          class="color-item"
-        >
+        <a-form-item label="Color" name="color" class="color-item">
           <div class="color-inline-group">
-            <a-input v-model:value="form.color" class="color-input">
+            <a-input v-model:value.trim="newSub.color" class="color-input">
               <template #suffix><span @click="randomColor" style="cursor: pointer;">🎲</span></template>
             </a-input>
-            <input
-              type="color"
-              v-model="form.color"
-              class="color-picker"
-              aria-label="Pick color"
-            />
+            <input type="color" v-model="newSub.color" class="color-picker" aria-label="Pick color" />
           </div>
         </a-form-item>
       </div>
 
       <!-- Alias -->
-      <a-form-item
-        label="Alias"
-        name="alias"
-        :extra="aliasHint"
-      >
-        <a-input
-          v-model:value="form.alias"
-          placeholder="Enter alias (optional)"
-          suffix-icon="info-circle"
-        />
+      <a-form-item label="Alias" name="alias" :extra="aliasHint">
+        <a-input v-model:value="newSub.alias" placeholder="Enter alias (optional)" suffix-icon="info-circle" />
       </a-form-item>
     </a-form>
-
-    <!-- <template #footer>
-      <div class="modal-footer">
-        <a-button @click="handleCancel" class="footer-cancel">取消</a-button>
-        <a-button type="primary" @click="submitForm" class="footer-confirm">确定</a-button>
-      </div>
-    </template> -->
   </a-modal>
 </template>
 
 <script setup>
-import { ref, h } from 'vue'
-import { ReloadOutlined } from '@ant-design/icons-vue'
+import { ref, onBeforeMount, onMounted, watch } from 'vue'
 
 const emit = defineEmits(['ok', 'cancel'])
-defineProps('form', 'open')
-const visible = ref(true)
-// const form = ref({
-//   topic: 'testtopic/#',
-//   qos: 0,
-//   color: '#97CE54',
-//   alias: ''
-// })
+const props = defineProps({
+  open: { // 0关，1新建，2编辑
+    type: Number,
+    default: 0
+  },
+  passform: {
+    type: Object,
+    default: null
+  }
+})
+
+const newSub = ref({
+  topic: 'customtopic/#', // topic字段为唯一值
+  qos: 0,
+  color: '#97CE54',
+  alias: ''
+})
 
 const rules = {
   topic: [
@@ -107,22 +66,20 @@ const rules = {
 
 const aliasHint = ' '
 
-function handleCancel() {
-  visible.value = false
-}
-function handleOk() {
-  submitForm()
-}
-function submitForm() {
-  // Validate and submit form data here
-}
-
 function randomColor() {
-  form.value.color = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0').toUpperCase()
+  newSub.value.color = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0').toUpperCase()
 }
 
-// 用于 a-button 的 icon 属性
-const reloadIcon = () => h(ReloadOutlined)
+/* ------------------ */
+// 监听 props.open 的变化; 0表示关闭，1表示新建，2表示编辑
+watch( 
+  () => props.open,
+  (newVal) => {
+    console.log('SubscriptionModal props.open changed:', newVal)  
+    if (newVal === 1) { randomColor() }
+  }
+) 
+
 </script>
 
 <style lang="scss" scoped>

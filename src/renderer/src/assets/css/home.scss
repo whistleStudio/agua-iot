@@ -11,6 +11,7 @@
 /* 侧边栏背景色，边框右侧，内边距 */
 .menu {
   width: 64px;
+  min-width: 64px;
   background-color: #001529; // Ant Design 默认侧边栏背景色
   border-right: 1px solid #f0f0f0;
   padding: 16px 0;

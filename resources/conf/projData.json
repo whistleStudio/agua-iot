@@ -1,12 +1,43 @@
 {
   "list": [
     {
-      "id": 1747643992111,
-      "name": "xxxxx"
+      "id": 1747714729398,
+      "name": "aaaa",
+      "subTopics": [
+        {
+          "topic": "customtopic/#",
+          "qos": 0,
+          "color": "#023E5A",
+          "alias": ""
+        },
+        {
+          "topic": "customtopic/#ssss",
+          "qos": 0,
+          "color": "#C03D80",
+          "alias": ""
+        },
+        {
+          "topic": "testtopic/num",
+          "qos": 0,
+          "color": "#f2a145",
+          "alias": ""
+        },
+        {
+          "topic": "abc",
+          "qos": 0,
+          "color": "#A5280E",
+          "alias": ""
+        }
+      ],
+      "pubTopics": [],
+      "cache": []
     },
     {
-      "id": 1747645094678,
-      "name": "sadasdsadas"
+      "id": 1747715044462,
+      "name": "bbbb",
+      "subTopics": [],
+      "pubTopics": [],
+      "cache": []
     }
   ]
 }

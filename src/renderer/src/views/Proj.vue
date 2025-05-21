@@ -46,6 +46,7 @@
         
         <div class="right-panel">
           <!-- Messages List -->
+
           <div class="messages" ref="messagesRef">
             <div v-for="(msg, index) in activeProj.cache" :key="index" class="message" :class="{ 'sub-msg': msg.type === 0, 'pub-msg': msg.type === 1 }"
             :style="{ borderColor: msg.type === 0 ? msg.color : '#fff' }">
@@ -54,6 +55,7 @@
                 Topic: {{ msg.topic }} <span class="qos">QoS: {{ msg.qos }}</span>
               </div>
               <div class="content">{{ msg.content }}</div>
+              <div class="delete">❌</div>
             </div>
           </div>
 

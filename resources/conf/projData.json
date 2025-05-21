@@ -5,18 +5,6 @@
       "name": "aaaa",
       "subTopics": [
         {
-          "topic": "customtopic/#",
-          "qos": 0,
-          "color": "#023E5A",
-          "alias": ""
-        },
-        {
-          "topic": "customtopic/#ssss",
-          "qos": 0,
-          "color": "#C03D80",
-          "alias": ""
-        },
-        {
           "topic": "testtopic/num",
           "qos": 0,
           "color": "#f2a145",
@@ -29,47 +17,36 @@
           "alias": ""
         }
       ],
-      "pubTopics": [],
+      "pubTopics": [
+        {
+          "topic": "ssss",
+          "qos": 0,
+          "retain": false
+        },
+        {
+          "topic": "abc",
+          "qos": 0,
+          "retain": false
+        },
+        {
+          "topic": "avc",
+          "qos": 0,
+          "retain": false
+        },
+        {
+          "topic": "sfsdfsdfd/1",
+          "qos": 0,
+          "retain": false
+        }
+      ],
       "cache": [
         {
-          "type": 0,
-          "time": "2025-05-20 13:51:28.711",
-          "topic": "testtopic/num",
+          "type": 1,
+          "time": "2025-05-21 09:22:34.767",
+          "topic": "sfsdfsdfd/1",
           "qos": 0,
-          "content": "abccc",
-          "color": "#f2a145"
-        },
-        {
-          "type": 0,
-          "time": "2025-05-20 13:51:30.024",
-          "topic": "testtopic/num",
-          "qos": 0,
-          "content": "abccc",
-          "color": "#f2a145"
-        },
-        {
-          "type": 0,
-          "time": "2025-05-20 13:51:31.427",
-          "topic": "testtopic/num",
-          "qos": 0,
-          "content": "abccc",
-          "color": "#f2a145"
-        },
-        {
-          "type": 0,
-          "time": "2025-05-20 13:51:32.514",
-          "topic": "testtopic/num",
-          "qos": 0,
-          "content": "abccc",
-          "color": "#f2a145"
-        },
-        {
-          "type": 0,
-          "time": "2025-05-20 13:51:42.037",
-          "topic": "testtopic/num",
-          "qos": 0,
-          "content": "abccc",
-          "color": "#f2a145"
+          "content": "hello ha",
+          "color": "#fff"
         }
       ]
     },

@@ -84,10 +84,17 @@ app.whenReady().then(() => {
       return {err: 0}
     } catch (err) { return {err: 1, msg: '本地文件同步异常'} }
   })
-  /* 修改mqtt缓存 */
+  /* mqtt订阅+修改缓存 */
   ipcMain.handle('r:changeMqttCache', (_, topic) => {
     try {mqttServer.subscribeTopic(topic); return {err: 0}}
-    catch (err) { return {err: 1, msg: '订阅主题失败'} }
+    catch (err) { console.log(err); return {err: 1, msg: '订阅主题失败'} }
+  })
+  /* maqtt发布 */
+  ipcMain.handle('r:publishMqtt', (_, packet) => {
+    try {
+      mqttServer.publishTopic(packet)
+      return {err: 0}
+    } catch (err) { console.log(err); return {err: 1, msg: '发布主题失败'} }
   })
 
   createWindow()

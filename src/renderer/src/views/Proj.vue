@@ -1,7 +1,6 @@
 <!-- 
  1 未校验订阅本地化异常处理
 -->
-
 <template>
   <ProjModal :open="isProjModalOpen" @ok="handleProjModalOk" @cancel="isProjModalOpen=false"/>
   <SubscriptionModal :open="isSubModalOpen" @ok="handleSubModalOk" @cancel="isSubModalOpen=0" :passform="passform"/>
@@ -19,6 +18,7 @@
           <span class="delete-proj" @click.stop="handleDeleteProj(v.id)">-</span>
         </li>
       </ul>
+      <div class="localIP">{{ bus.mqttServer.localIP }}:{{ bus.mqttServer.port }}</div>
     </div>
 
     <!-- Main Panel -->
@@ -27,8 +27,11 @@
       <div class="header">
         <h1>{{ activeProjID==-999 ? "" : activeProj.name }}</h1>
         <div>
-          <a-button type="text" @click="clickReadingBtn">{{ isReading ? '⏸︎': '▶' }}</a-button>
-          <a-button type="text">⋯</a-button>
+          <div @click="clickReadingBtn" class="reading-btn">
+            <img v-if="isReading" :src="getImgPath('stop.svg')" alt="">
+            <img v-else :src="getImgPath('start.svg')" alt="">
+          </div>          
+          <!-- <a-button type="text">⋯</a-button> -->
         </div>
       </div>
       <div class="data-panel">
@@ -36,17 +39,18 @@
         <div class="left-panel subscription">
           <a-button type="primary" @click="clickAddSubscription">+ New Subscription</a-button>
           <ul>
-            <li v-for="v in activeProj.subTopics" :style="{backgroundColor: v.color + '15'}" :key="v.topic">
+            <li v-for="(v, i) in activeProj.subTopics" :style="{backgroundColor: v.color + '15'}" :key="v.topic"
+            @mouseover="hoverSubIndex = i" @mouseleave="hoverSubIndex = -1">
               <div :style="{backgroundColor: v.color}"></div>
               <div :style="{color: v.color}">{{ v.topic }}</div>
               <div>QoS {{ v.qos }}</div>
+              <div class="delete" :class="{display: i==hoverSubIndex}" @click.stop="clickDeleteSub(i)">❌</div>
             </li>
           </ul>
         </div>
         
         <div class="right-panel">
           <!-- Messages List -->
-
           <div class="messages" ref="messagesRef">
             <div v-for="(msg, index) in activeProj.cache" :key="index" class="message" :class="{ 'sub-msg': msg.type === 0, 'pub-msg': msg.type === 1 }"
             :style="{ borderColor: msg.type === 0 ? msg.color : '#fff' }">
@@ -55,26 +59,43 @@
                 Topic: {{ msg.topic }} <span class="qos">QoS: {{ msg.qos }}</span>
               </div>
               <div class="content">{{ msg.content }}</div>
-              <div class="delete">❌</div>
             </div>
+            <img class="trashbin" :src="getImgPath('trashbin.svg')" @click="emptyCache"/>
           </div>
 
           <!-- Message Publisher -->
           <div class="publisher" >
             <div class="options">
-              <a-select v-model:value="format">
+              <a-select v-model:value="pubMsg.format">
                 <a-select-option value="plaintext">Plaintext</a-select-option>
               </a-select>
-              <a-select v-model:value="qos">
-                <a-select-option value="0">QoS 0</a-select-option>
-                <a-select-option value="1">QoS 1</a-select-option>
-                <a-select-option value="2">QoS 2</a-select-option>
+              <a-select v-model:value="pubTopic.qos">
+                <a-select-option v-for="(v, i) in Array(3)" :value="i">QoS {{ i }}</a-select-option>
               </a-select>
-              <a-checkbox v-model:checked="retain" class="retain-checkbox">Retain</a-checkbox>
+              <a-checkbox v-model:checked="pubTopic.retain" class="retain-checkbox">Retain</a-checkbox>
               <a-button type="primary" @click="handleSend">Send</a-button>
             </div>        
-            <a-input v-model:value="topic" class="text-sm" />
-            <a-textarea class="publish-area" v-model:value="message" :bordered="false"
+            <a-input v-model:value.trim="pubTopic.topic" class="text-sm" placeholder="Enter topic..."
+            @blur="blurPubTopic">
+              <template #suffix >
+                <a-popover trigger="click" placement="topRight">
+                  <template #content>
+                    <template v-if="activeProj.pubTopics.length > 0">
+                      <p v-for="(v, i) in activeProj.pubTopics" class="pubhistory" @click="{pubTopic.topic = v.topic; pubHistoryBtnRef.click()}"
+                      @mouseover="hoverPubIndex = i" @mouseleave="hoverPubIndex = -1" :key="v.topic+v.qos+v.retain">
+                        <span>{{ v.topic }}</span>
+                        <span>QoS: {{ v.qos }} </span>
+                        <span>retain: {{ Number(v.retain) }}</span>
+                        <span class="delete" :class="{display: i==hoverPubIndex}" @click.stop="clickDeletePub(i)">❌</span>
+                      </p>
+                    </template> 
+                    <p v-else>暂无发布主题</p>
+                  </template>
+                  <img :src="getImgPath('pubhistory.svg')" alt="" class="pubhistory-btn" ref="pubHistoryBtnRef"/>
+                </a-popover>
+              </template>
+            </a-input>
+            <a-textarea class="publish-area" v-model:value.trim="pubMsg.payload" :bordered="false"
             :rows="3" placeholder="Enter message..." />
           </div>
         </div>
@@ -93,16 +114,22 @@ import { cloneDeep } from "lodash-es";
 
 const emit = defineEmits(['alert'])
 
-const message = ref('')
-const topic = ref('wshwsh/1/Cmsg')
-const format = ref('plaintext')
-const qos = ref('0')
-const retain = ref(false)
+const pubTopic = ref({
+  topic: '',
+  qos: 0,
+  retain: false
+})
+const pubMsg = ref({
+  payload: '',
+  time: '',
+  format: 'plaintext'
+})
 
-const messagesRef = ref(null)
+
+const messagesRef = ref(null), pubHistoryBtnRef = ref(null)
 
 const isProjModalOpen = ref(false), isSubModalOpen = ref(0), isReading = ref(false)
-const activeProjID = ref(-999)
+const activeProjID = ref(-999), hoverSubIndex = ref(-1), hoverPubIndex = ref(-1)
 let projList = reactive([])
 const passform = ref({})
 
@@ -112,17 +139,7 @@ const activeProj = computed(() => {
   return projList[activeProjIndex.value]
 })
 
-// // type 0: 订阅消息，1: 发布消息
-// const messages = reactive([
-//   { type: 0, time: '2025-03-06 10:17:37:991', topic: 'cfun/public/CTime', content: '消息内容乱码或未解码', qos: 0, color: '#663456'},
-//   { type: 1, time: '2025-03-06 10:17:50:061', topic: 'cfun/public/CTime', content: '消息内容乱码或未解码', qos: 0, color: '#123456'},
-// ])
 
-function handleSend() {
-  // 实际发送逻辑可用 MQTT.js 实现
-  console.log('Send:', message.value)
-  message.value = ''
-}
 
 /* 新增项目-确定 */
 function handleProjModalOk(newProj) {
@@ -191,6 +208,61 @@ function handleSubModalOk(newSub) {
   }
 }
 
+/* 删除订阅 */
+function clickDeleteSub(index) {
+  console.log('clickDeleteSub ---', index)
+  if (activeProjID.value === -999) return
+  activeProj.value.subTopics.splice(index, 1)
+  changeProjInfo()
+}
+
+/* 删除发布 */
+function clickDeletePub(index) {
+  console.log('clickDeletePub ---', index)
+  if (activeProjID.value === -999) return
+  activeProj.value.pubTopics.splice(index, 1)
+  changeProjInfo()
+}
+
+/* 发布主题输入框模糊 */
+function blurPubTopic() {
+  if (pubTopic.value.topic === '') return
+  // 相同发布主题不添加
+  const index = activeProj.value.pubTopics.findIndex((item) => item.topic === pubTopic.value.topic && item.qos === pubTopic.value.qos && item.retain === pubTopic.value.retain)
+  if (index === -1) {
+    if (activeProj.value.pubTopics.length > 9) {
+      activeProj.value.pubTopics.shift()
+    }
+    activeProj.value.pubTopics.push(cloneDeep(pubTopic.value))
+    changeProjInfo()
+  }
+}
+
+/* 发布消息 */
+function handleSend() {
+  if (pubTopic.value.topic === '' || pubMsg.value.payload === '' || activeProjID.value === -999) return
+  window.electron.ipcRenderer.invoke('r:publishMqtt', {
+    ...pubTopic.value,
+    payload: pubMsg.value.payload,
+  })
+  .then((res) => {
+    if (res.err) {
+      emit("alert", { type: "error", msg: res.msg })
+    } else {
+      const time = new Date().toISOString().replace('T', ' ').replace('Z', '')
+      activeProj.value.cache.push({ type: 1, time, topic: pubTopic.value.topic, qos: pubTopic.value.qos, content: pubMsg.value.payload, color: '#fff' })
+      changeProjInfo()
+    }
+  })
+}
+
+/* 清空缓存 */
+function emptyCache() {
+  if (activeProjID.value === -999) return
+  activeProj.value.cache = []
+  changeProjInfo()
+}
+
 // 数据本地化
 function changeProjInfo() {
   window.electron.ipcRenderer.invoke('r:changeProjList', bus.projList)
@@ -214,21 +286,26 @@ function changeMqttCache(topic) {
 }
 
 // 开始/暂停监听
-let tim_reading = null 
 function clickReadingBtn() {
   isReading.value = !isReading.value
 }
 // 监听mqtt数据
 window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
   const { topic, qos, payload, time } = data
-  if (activeProjID.value === -999) return
+  if (activeProjID.value === -999 || !isReading.value) return
   const index = activeProj.value.subTopics.findIndex((item) => item.topic === topic)
   activeProj.value.cache.push({ type: 0, time, topic, qos, content: payload, color: activeProj.value.subTopics[index].color })
   changeProjInfo()
 })
 
+// 获取图片路径
+function getImgPath(imgName) {
+  return new URL(`../assets/img/${imgName}`, import.meta.url).href
+}
+
 /* ---------------------------- */
 watch(() => activeProj.value.cache, (newVal) => {
+  console.log('activeProj.cache ---')
   if (messagesRef.value) {
     messagesRef.value.scrollTop = messagesRef.value.scrollHeight
   }

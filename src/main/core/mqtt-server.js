@@ -70,7 +70,7 @@ function publishTopic(packet) {
     qos: packet.qos,
     retain: packet.retain
     }, () => {
-    console.log('publish success: ', topic, payload)
+    console.log('publish success: ', packet.topic, packet.payload)
   })
 }
 

@@ -39,7 +39,9 @@
             :placeholder="`请输入${column.title}`"
             size="small"
           />
-          <template v-else>{{ text }}</template>
+          <template v-else >
+            <span style="user-select: text; cursor: text;">{{ text }}</span>
+          </template>
         </template>
         <template v-else-if="column.key === 'action'">
           <div class="device-action">

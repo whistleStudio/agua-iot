@@ -1,5 +1,5 @@
 <template>
-  <img alt="logo" class="logo" src="../assets/electron.svg" @click="$router.push('/home')"/>
+  <img alt="logo" class="logo" src="../assets/electron.svg" @click="$router.push('/home/device')"/>
   <p>AGUA-IOT</p>
   <p class="netInfo"><span></span>:<span></span></p>
 </template>

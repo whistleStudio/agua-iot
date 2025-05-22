@@ -26,7 +26,8 @@
       <!-- Header -->
       <div class="header">
         <h1>{{ activeProjID==-999 ? "" : activeProj.name }}</h1>
-        <div>
+        <div class="header-btns">
+          <img :src="getImgPath('chart.svg')" class="chart-btn">
           <div @click="clickReadingBtn" class="reading-btn">
             <img v-if="isReading" :src="getImgPath('stop.svg')" alt="">
             <img v-else :src="getImgPath('start.svg')" alt="">

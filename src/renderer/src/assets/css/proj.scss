@@ -105,11 +105,16 @@
       font-weight: 600;
       color: #000;
     }
-    .reading-btn {
-      margin-right: 20px;
-      cursor: pointer;
-      img {width: 20px;}
+    .header-btns {
+      display: flex;
+      align-items: flex-end;
+      img {
+        width: 23px;
+        cursor: pointer;
+        margin-right: 10px;
+      }
     }
+
   }
 
   .data-panel {

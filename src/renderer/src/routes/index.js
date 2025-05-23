@@ -14,6 +14,24 @@ const routes = [
       {
         path: 'proj',
         component: () => import('../views/Proj.vue'),
+      },
+      {
+        path: 'chart',
+        component: () => import('../views/Chart.vue'),
+        children: [
+          {
+            path: 'common',
+            component: () => import('../views/chart-views/Common.vue'),
+          },
+          {
+            path: 'pubtext',
+            component: () => import('../views/chart-views/Pubtext.vue'),
+          },
+          {
+            path: 'button',
+            component: () => import('../views/chart-views/Pubtext.vue'),
+          }
+        ]
       }
     ]
   }

@@ -54,7 +54,7 @@
               class="visual-editor__draggable"
               :class="{ 'visual-editor__draggable--dragging': isDragging && draggingIndex === idx }"
               :style="getDraggableStyle(comp, idx)"
-              @mousedown="startDrag($event, idx)"
+              @mousedown="startDrag($event, idx, comp)"
             >
               <component :is="comp.component" v-bind="comp.props" />
             </div>
@@ -72,12 +72,13 @@
 
 <script setup>
 import { ref, markRaw } from 'vue';
-import chartCfg from './cfg/chart-cfg';
+import { useRouter } from 'vue-router';
+import chartCfg from '../cfg/chart-cfg';
 
 // 引入所有可用的自定义组件
-import PubTextComp from '../src/components/chart-comps/PubTextComp.vue'
-import ButtonComp from '../src/components/chart-comps/ButtonComp.vue'
-import ChartPieComp from '../src/components/chart-comps/ChartPieComp.vue'
+import PubTextComp from '../components/chart-comps/PubTextComp.vue'
+import ButtonComp from '../components/chart-comps/ButtonComp.vue'
+import ChartPieComp from '../components/chart-comps/ChartPieComp.vue'
 
 // 组件映射，key要与chart-cfg配置一致
 const componentMap = {
@@ -104,7 +105,7 @@ const canvasRef = ref(null);
 // 每种类型的默认宽高
 const typeSizeMap = {
   pubtext: { width: 140, height: 45 },
-  button: { width: 120, height: 46 },
+  button: { width: 100, height: 46 },
   chartPie: { width: 80, height: 80 },
   // ...继续扩展
 };
@@ -124,9 +125,16 @@ function addComponent(type) {
     height: size.height,
   });
 }
+// 获取路由实例
+const router = useRouter();
 
 // 拖拽逻辑
-function startDrag(event, idx) {
+function startDrag(event, idx, comp) {
+  if (!isDragging.value) {
+    console.log(comp.type)
+    // 路由跳转
+    router.push({ path: '/home/chart/' + comp.type });
+  };
   isDragging.value = true;
   draggingIndex.value = idx;
   dragOffsetX = event.clientX - canvasComponents.value[idx].left;
@@ -134,6 +142,7 @@ function startDrag(event, idx) {
   document.addEventListener('mousemove', onDrag);
   document.addEventListener('mouseup', stopDrag);
 }
+
 function onDrag(event) {
   if (!isDragging.value || draggingIndex.value === null) return;
   const comp = canvasComponents.value[draggingIndex.value];
@@ -191,6 +200,8 @@ function getDraggableStyle(comp, idx) {
     cursor: 'move',
   };
 }
+
+
 </script>
 
 <style scoped lang="scss">

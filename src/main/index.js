@@ -102,6 +102,45 @@ app.whenReady().then(() => {
   app.on('activate', function () {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()
   })
+
+
+  /* 🪟创建新的chart窗口 */
+  let chartWindow = null;
+
+  ipcMain.handle('r:createChartWindow', (_, proj) => {
+    if (chartWindow && !chartWindow.isDestroyed()) {
+      chartWindow.focus();
+      return;
+    }
+
+    console.log('create chart window: ', proj);
+    chartWindow = new BrowserWindow({
+      width: 1300,
+      height: 900,
+      show: false,
+      autoHideMenuBar: true,
+      alwaysOnTop: true, // Ensure the window is always on top
+      ...(process.platform === 'linux' ? { icon } : {}),
+      webPreferences: {
+        preload: join(__dirname, '../preload/index.js'),
+        sandbox: false
+      }
+    });
+
+    chartWindow.on('ready-to-show', () => {
+      chartWindow.show();
+    });
+
+    chartWindow.on('closed', () => {
+      chartWindow = null;
+    });
+
+    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+      chartWindow.loadURL(process.env['ELECTRON_RENDERER_URL'] + '/windows/chart.html');
+    } else {
+      chartWindow.loadFile(join(__dirname, '../renderer/windows/chart.html'));
+    }
+  });
 })
 
 // Quit when all windows are closed, except on macOS. There, it's common

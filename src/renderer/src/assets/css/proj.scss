@@ -112,6 +112,12 @@
         width: 23px;
         cursor: pointer;
         margin-right: 10px;
+        &.chart-btn {
+          &:hover {
+            transition: filter 0.3s ease-in-out;
+            filter: brightness(0) saturate(100%) invert(80%) sepia(20%) saturate(500%) hue-rotate(180deg) brightness(95%) contrast(90%);
+          }
+        }
       }
     }
 

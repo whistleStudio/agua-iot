@@ -27,7 +27,7 @@
       <div class="header">
         <h1>{{ activeProjID==-999 ? "" : activeProj.name }}</h1>
         <div class="header-btns">
-          <img :src="getImgPath('chart.svg')" class="chart-btn">
+          <img :src="getImgPath('chart.svg')" class="chart-btn" @click="clickChartBtn"/>
           <div @click="clickReadingBtn" class="reading-btn">
             <img v-if="isReading" :src="getImgPath('stop.svg')" alt="">
             <img v-else :src="getImgPath('start.svg')" alt="">
@@ -286,7 +286,7 @@ function changeMqttCache(topic) {
     })
 }
 
-// 开始/暂停监听
+/* 开始/暂停监听 */
 function clickReadingBtn() {
   isReading.value = !isReading.value
 }
@@ -298,6 +298,19 @@ window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
   activeProj.value.cache.push({ type: 0, time, topic, qos, content: payload, color: activeProj.value.subTopics[index].color })
   changeProjInfo()
 })
+
+/* 打开图表窗口 */
+function clickChartBtn() {
+  console.log('clickChartBtn ---')
+  if (activeProjID.value === -999) { emit("alert", { type: "warning", msg: "请先创建一个项目" });return; }
+  window.electron.ipcRenderer.invoke('r:createChartWindow', cloneDeep(activeProj.value))
+    .then((res) => {
+      // console.log('openChartWindow---', res)
+    })
+    .catch((err) => {
+      console.error(err)
+    })
+}{}
 
 // 获取图片路径
 function getImgPath(imgName) {

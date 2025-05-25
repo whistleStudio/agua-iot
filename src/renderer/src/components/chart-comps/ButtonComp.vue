@@ -26,7 +26,7 @@
 }
 .comp__label {
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   color: #42506b;
   font-weight: 500;
   margin-bottom: 12px;

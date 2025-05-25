@@ -1,6 +1,6 @@
 <template>
   <div class="component-props">
-    <div class="component-props__title">组件属性</div>
+    <div class="component-props__title">组件属性 <span>输入框</span></div>
     <a-divider style="margin: 8px 0 16px 0" />
 
     <a-form :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" layout="horizontal">
@@ -13,13 +13,7 @@
           <a-select-option value="topic2">topic2</a-select-option>
         </a-select>
       </a-form-item>
-      <a-form-item label="隐藏底色">
-        <a-checkbox v-model:checked="propsData.hideBg" />
-      </a-form-item>
-      <a-divider style="margin: 16px 0" />
-      <a-form-item label="组件类型">
-        <a-input v-model:value="propsData.type" placeholder="输入框" />
-      </a-form-item>
+      <!-- <a-divider style="margin: 16px 0" /> -->
       <a-form-item label="组件大小">
         <a-select v-model:value="propsData.size" placeholder="请选择">
           <a-select-option value="small">小</a-select-option>
@@ -27,12 +21,15 @@
           <a-select-option value="large">大</a-select-option>
         </a-select>
       </a-form-item>
+      <a-form-item label="隐藏底色">
+        <a-checkbox v-model:checked="propsData.hideBg" />
+      </a-form-item>
     </a-form>
   </div>
 </template>
 
 <script setup>
-import { reactive, watch, toRefs } from 'vue'
+import { reactive, watch } from 'vue'
 
 // props: modelValue 双向绑定外部组件数据
 const props = defineProps({
@@ -42,7 +39,7 @@ const props = defineProps({
     default: () => ({})
   }
 })
-const emit = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:compValue'])
 
 const propsData = reactive({
   title: props.modelValue.title || '',
@@ -84,6 +81,10 @@ watch(
     font-size: 16px;
     font-weight: bold;
     margin-bottom: 2px;
+    span {
+      margin-left: 10px;
+      color: #aaa;
+    }
   }
   :deep(.ant-form-item) {
     margin-bottom: 16px;

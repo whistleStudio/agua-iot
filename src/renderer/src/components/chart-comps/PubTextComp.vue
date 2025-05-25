@@ -3,9 +3,9 @@
     <div class="input-comp__label">输入框</div>
     <div class="input-comp__box">
       <a-input v-model:value="inputValue" class="input-comp__input" :placeholder="placeholder" :style="inputStyle"/>
-      <a-button type="primary" class="input-comp__send-btn">
+      <a-button type="primary" class="input-comp__send-btn" :style="btnStyle" >
         <template #icon>
-          <img src="../../assets/img/pub.svg" width="20" height="20" />
+          <img src="../../assets/img/pub.svg" :style="iconStyle" />
         </template>
       </a-button>
     </div>
@@ -38,7 +38,17 @@ const inputStyle = computed(() => ({
   width: typeof props.width === 'number' ? (props.width - 45) + 'px'  : `calc(${props.width} - 45px)`,
   height: typeof props.height === 'number'  ? props.height + 'px'  : props.height,
   borderRadius: '8px 0 0 8px',
-  fontSize: '16px'
+  fontSize: '14px'
+}));
+const btnStyle = computed(() => ({
+  width: props.height + 'px',
+  height: typeof props.height === 'number'  ? props.height + 'px'  : props.height,
+  borderRadius: '0 8px 8px 0',
+}));
+const iconStyle = computed(() => ({
+  width: props.height / 2 + 'px',
+  // height: '20px',
+  textAlign: 'center',
 }));
 </script>
 
@@ -57,7 +67,7 @@ const inputStyle = computed(() => ({
 }
 .input-comp__label {
   text-align: center;
-  font-size: 18px;
+  font-size: 16px;
   color: #42506b;
   font-weight: 500;
   margin-bottom: 12px;
@@ -77,10 +87,10 @@ const inputStyle = computed(() => ({
   box-shadow: 4px 8px 18px 0 rgba(36,137,202,0.09); 
 }
 .input-comp__send-btn {
-  width: 45px;
+  /* width: 45px;
   height: 30px;
-  min-width: 45px;
-  border-radius: 0 8px 8px 0 !important;
+  min-width: 45px; */
+  /* border-radius: 0 8px 8px 0 !important; */
   display: flex;
   align-items: center;
   justify-content: center;

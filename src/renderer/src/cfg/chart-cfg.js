@@ -1,3 +1,5 @@
+import { booleanType } from "ant-design-vue/es/_util/type";
+
 export default {
   // type - 0发布; 1订阅; 2装饰
   menu: {
@@ -7,12 +9,20 @@ export default {
         pubtext: {
           type: 0,
           name: "输入框",
-          icon: ""
+          icon: "",
+          props: {
+            width: 140,
+            height: 30,
+            btnWidth: 30,
+            placeholder: "请输入发布内容", 
+          }                             
         },
         button: {
           type: 0,
           name: "按钮",
-          icon: ""
+          icon: "",
+          width: 100,
+          height: 45,
         }, 
         switch: {
           type: 0,

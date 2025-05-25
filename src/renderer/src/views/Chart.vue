@@ -71,26 +71,27 @@
 </template>
 
 <script setup>
-import { ref, markRaw } from 'vue';
+import { ref, markRaw, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import chartCfg from '../cfg/chart-cfg';
 
 // 引入所有可用的自定义组件
 import PubTextComp from '../components/chart-comps/PubTextComp.vue'
 import ButtonComp from '../components/chart-comps/ButtonComp.vue'
-import ChartPieComp from '../components/chart-comps/ChartPieComp.vue'
+import PieComp from '../components/chart-comps/PieComp.vue'
 
 // 组件映射，key要与chart-cfg配置一致
 const componentMap = {
   pubtext: markRaw(PubTextComp),
   button: markRaw(ButtonComp),
-  chartPie: markRaw(ChartPieComp),
+  chartPie: markRaw(PieComp),
   // ...可继续扩展其它组件
 };
 
 const menu = ref(chartCfg.menu);
 const canvasComponents = ref([]);
 
+const compProps = {...chartCfg.menu.pubComponents.parts, ...chartCfg.menu.subComponents.parts};
 // 拖拽相关
 const isDragging = ref(false);
 const draggingIndex = ref(null);
@@ -105,7 +106,7 @@ const canvasRef = ref(null);
 // 每种类型的默认宽高
 const typeSizeMap = {
   pubtext: { width: 140, height: 45 },
-  button: { width: 100, height: 46 },
+  button: { width: 100, height: 45 },
   chartPie: { width: 80, height: 80 },
   // ...继续扩展
 };
@@ -113,16 +114,16 @@ const typeSizeMap = {
 // 添加组件到画布
 function addComponent(type) {
   if (!componentMap[type]) return;
-  const size = typeSizeMap[type] || { width: 120, height: 50 };
+  // const size = typeSizeMap[type] || { width: 120, height: 50 };
   canvasComponents.value.push({
     id: Date.now() + Math.random(),
     type,
     component: componentMap[type],
-    props: {},
+    props: compProps[type].props,
     top: 50 + Math.random() * 40,
     left: 50 + Math.random() * 30,
-    width: size.width,
-    height: size.height,
+    // width: size.width,
+    // height: size.height,
   });
 }
 // 获取路由实例
@@ -184,8 +185,8 @@ function getDraggableStyle(comp, idx) {
     position: 'absolute',
     top: comp.top + 'px',
     left: comp.left + 'px',
-    width: (comp.width || 120) + 'px',
-    height: (comp.height || 50) + 'px',
+    // width: (comp.width || 120) + 'px',
+    // height: (comp.height || 50) + 'px',
     opacity: isDragging.value && draggingIndex.value === idx ? 0.7 : 1,
     zIndex: isDragging.value && draggingIndex.value === idx ? 999 : 1,
     boxShadow: `0 ${baseSpread}px ${baseBlur + blur}px ${spread}px ${shadowColor}`,

@@ -8,7 +8,7 @@ const bus = {
   },
   devices: [],
   projList: [],
-
+  activeProjIdx: -1,
   // 注册事件监听
   on(event, callback) {
     if (!events[event]) {

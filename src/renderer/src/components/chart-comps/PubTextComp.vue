@@ -1,8 +1,8 @@
 <template>
   <div class="input-comp" @click="emit(compClick, 'pubtext')">
-    <div class="input-comp__label">输入框</div>
+    <div class="input-comp__label">{{ props.compProps.title }}</div>
     <div class="input-comp__box">
-      <a-input v-model:value="inputValue" class="input-comp__input" :placeholder="placeholder" :style="inputStyle"/>
+      <a-input v-model:value="inputValue" class="input-comp__input" :placeholder="props.compProps.placeholder" :style="inputStyle"/>
       <a-button type="primary" class="input-comp__send-btn" :style="btnStyle" >
         <template #icon>
           <img src="../../assets/img/pub.svg" :style="iconStyle" />
@@ -13,43 +13,35 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch, reactive, inject } from 'vue';
 
 const inputValue = ref('');
 
 const props = defineProps({
-  placeholder: {
-    type: String,
-    default: '请输入'
-  },
-  width: {
-    type: [Number, String],
-    default: 265
-  },
-  height: {
-    type: [Number, String],
-    default: 30
+  compProps: {
+    type: Object,
+    required: false,
+    default: () => ({})
   }
-});
-
-const emit = defineEmits(['compClick']);
+})
 
 const inputStyle = computed(() => ({
-  width: typeof props.width === 'number' ? (props.width - 45) + 'px'  : `calc(${props.width} - 45px)`,
-  height: typeof props.height === 'number'  ? props.height + 'px'  : props.height,
+  width: typeof props.compProps.width === 'number' ? (props.compProps.width - 45) + 'px'  : `calc(${props.compProps.width} - 45px)`,
+  height: typeof props.compProps.height === 'number'  ? props.compProps.height + 'px'  : props.compProps.height,
   borderRadius: '8px 0 0 8px',
   fontSize: '14px'
 }));
 const btnStyle = computed(() => ({
-  width: props.height + 'px',
-  height: typeof props.height === 'number'  ? props.height + 'px'  : props.height,
+  width: props.compProps.height + 'px',
+  height: typeof props.compProps.height === 'number'  ? props.compProps.height + 'px'  : props.compProps.height,
   borderRadius: '0 8px 8px 0',
 }));
 const iconStyle = computed(() => ({
-  width: props.height / 2 + 'px',
-  // height: '20px',
+  width: props.compProps.height / 2 + 'px',
   textAlign: 'center',
 }));
+
+
 </script>
 
 <style scoped>
@@ -72,6 +64,9 @@ const iconStyle = computed(() => ({
   font-weight: 500;
   margin-bottom: 12px;
   letter-spacing: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .input-comp__box {
   display: flex;

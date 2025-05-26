@@ -5,15 +5,22 @@
       <div class="visual-editor__header-left">
         <a-dropdown>
           <a class="ant-dropdown-link" @click.prevent>
-            a <DownOutlined />
+            {{ activeProj.name }} ▼
           </a>
+          <template #overlay>
+            <a-menu>
+              <a-menu-item v-for="(item, index) in projList" :key="index" @click="() => {activeProjIdx = index; bus.activeProjIdx = index}">
+                <span>{{ item.name }}</span>
+              </a-menu-item>
+            </a-menu>
+          </template>
         </a-dropdown>
       </div>
       <div class="visual-editor__header-right">
         <a-badge status="error" />
         <span class="visual-editor__header-connection">连接失败</span>
         <a-button type="primary" shape="round" class="visual-editor__header-fullscreen">
-          <template #icon><FullscreenOutlined /></template>
+          <template #icon></template>
           全屏
         </a-button>
       </div>
@@ -46,17 +53,17 @@
 
       <!-- 中间画布部分 -->
       <a-layout-content class="visual-editor__content">
-        <div class="visual-editor__canvas-wrapper">
+        <div class="visual-editor__canvas-wrapper" @mousedown="() => {activeComponent = commonComp; $router.push('/home/chart/common')}">
           <div class="visual-editor__canvas" ref="canvasRef">
             <div
               v-for="(comp, idx) in canvasComponents"
               :key="comp.id"
               class="visual-editor__draggable"
-              :class="{ 'visual-editor__draggable--dragging': isDragging && draggingIndex === idx }"
+              :class="{ 'visual-editor__draggable--dragging': isDragging && draggingIndex === idx, active: activeComponent === comp }"
               :style="getDraggableStyle(comp, idx)"
-              @mousedown="startDrag($event, idx, comp)"
+              @mousedown.stop="startDrag($event, idx, comp)"
             >
-              <component :is="comp.component" v-bind="comp.props" />
+              <component :is="comp.component" :compProps="comp.props" />
             </div>
           </div>
         </div>
@@ -71,14 +78,19 @@
 </template>
 
 <script setup>
-import { ref, markRaw, computed } from 'vue';
+import { ref, markRaw, provide, reactive, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import chartCfg from '../cfg/chart-cfg';
+import { cloneDeep } from 'lodash-es';
+import bus from '../utils/bus';
 
 // 引入所有可用的自定义组件
 import PubTextComp from '../components/chart-comps/PubTextComp.vue'
 import ButtonComp from '../components/chart-comps/ButtonComp.vue'
 import PieComp from '../components/chart-comps/PieComp.vue'
+
+// 获取路由实例
+const router = useRouter();
 
 // 组件映射，key要与chart-cfg配置一致
 const componentMap = {
@@ -89,8 +101,15 @@ const componentMap = {
 };
 
 const menu = ref(chartCfg.menu);
+const projList = reactive(bus.projList);
+// 直接从 bus 中获取和设置 activeProjIdx
+const activeProjIdx = ref(bus.activeProjIdx)
+const activeProj = computed(() => projList[activeProjIdx.value]);
 const canvasComponents = ref([]);
 
+// 画布上激活的组件
+const commonComp = {props:{}};
+const activeComponent = ref(commonComp);
 const compProps = {...chartCfg.menu.pubComponents.parts, ...chartCfg.menu.subComponents.parts};
 // 拖拽相关
 const isDragging = ref(false);
@@ -119,22 +138,23 @@ function addComponent(type) {
     id: Date.now() + Math.random(),
     type,
     component: componentMap[type],
-    props: compProps[type].props,
+    props: cloneDeep(compProps[type].props),
     top: 50 + Math.random() * 40,
     left: 50 + Math.random() * 30,
-    // width: size.width,
-    // height: size.height,
+    
   });
+  activeComponent.value = canvasComponents.value[canvasComponents.value.length - 1]; // 设置新添加组件为激活状态
+  router.push({ path: '/home/chart/' + type });
 }
-// 获取路由实例
-const router = useRouter();
+
 
 // 拖拽逻辑
 function startDrag(event, idx, comp) {
   if (!isDragging.value) {
-    console.log(comp.type)
+    activeComponent.value = comp;
+    console.log('ctiveComponent.value:', comp);
     // 路由跳转
-    router.push({ path: '/home/chart/' + comp.type });
+    router.push({ path: '/home/chart/' + comp.type});
   };
   isDragging.value = true;
   draggingIndex.value = idx;
@@ -202,6 +222,11 @@ function getDraggableStyle(comp, idx) {
   };
 }
 
+// 提供getter/setter让属性面板可读写当前props
+provide('activeCompProps', {
+  get: () => activeComponent.value?.props,
+  set: (val) => { activeComponent.value.props = { ...val } }
+})
 
 </script>
 
@@ -321,9 +346,12 @@ function getDraggableStyle(comp, idx) {
   }
 
   &__draggable {
+    &.active {
+      border: 1px solid rgba(48, 150, 245, 0.6) !important;
+    }
     &:hover {
       transform: scale(1.05);
-      box-shadow: 0 4px 16px 6px rgba(36,137,202,0.18)!important;
+      box-shadow: 0 4px 16px 6px rgba(36,137,202,0.18)
     }
     &--dragging {
       pointer-events: none;

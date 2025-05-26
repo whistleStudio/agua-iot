@@ -134,7 +134,11 @@ const activeProjID = ref(-999), hoverSubIndex = ref(-1), hoverPubIndex = ref(-1)
 let projList = reactive([])
 const passform = ref({})
 
-const activeProjIndex = computed(() => projList.findIndex((item) => item.id === activeProjID.value))
+const activeProjIndex = computed(() => {
+  const idx = projList.findIndex((item) => item.id === activeProjID.value)
+  bus.activeProjIdx = idx
+  return idx
+})
 const activeProj = computed(() => {
   if (activeProjID.value === -999) return {}
   return projList[activeProjIndex.value]
@@ -315,7 +319,8 @@ watch(() => activeProj.value.cache, (newVal) => {
 onBeforeMount(() => {
   projList = reactive(bus.projList)
   if (projList.length > 0) {
-    activeProjID.value = projList[0].id // 默认选中第一个项目
+    if (bus.activeProjIdx === -1) activeProjID.value = projList[0].id // 默认选中第一个项目
+    else activeProjID.value = projList[bus.activeProjIdx].id 
   }
 })
 </script>

@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, markRaw, provide, reactive, computed } from 'vue';
+import { ref, markRaw, provide, reactive, computed, onBeforeMount } from 'vue';
 import { useRouter } from 'vue-router';
 import chartCfg from '../cfg/chart-cfg';
 import { cloneDeep } from 'lodash-es';
@@ -105,7 +105,7 @@ const projList = reactive(bus.projList);
 // 直接从 bus 中获取和设置 activeProjIdx
 const activeProjIdx = ref(bus.activeProjIdx)
 const activeProj = computed(() => projList[activeProjIdx.value]);
-const canvasComponents = ref([]);
+const canvasComponents = computed(() => activeProj.value.canvasCache.components);
 
 // 画布上激活的组件
 const commonComp = {props:{}};
@@ -133,16 +133,15 @@ const typeSizeMap = {
 // 添加组件到画布
 function addComponent(type) {
   if (!componentMap[type]) return;
-  // const size = typeSizeMap[type] || { width: 120, height: 50 };
   canvasComponents.value.push({
     id: Date.now() + Math.random(),
     type,
     component: componentMap[type],
     props: cloneDeep(compProps[type].props),
     top: 50 + Math.random() * 40,
-    left: 50 + Math.random() * 30,
-    
+    left: 50 + Math.random() * 30,    
   });
+  console.log(bus.projList[activeProjIdx.value].canvasCache.components.length, 'components');
   activeComponent.value = canvasComponents.value[canvasComponents.value.length - 1]; // 设置新添加组件为激活状态
   router.push({ path: '/home/chart/' + type });
 }
@@ -182,6 +181,7 @@ function onDrag(event) {
 }
 function stopDrag() {
   if (isDragging.value && draggingIndex.value !== null) {
+    console.log("pos:", activeComponent.value.left, activeComponent.value.top);
     if (isOverLeftSider.value) {
       canvasComponents.value.splice(draggingIndex.value, 1);
     }
@@ -226,6 +226,18 @@ function getDraggableStyle(comp, idx) {
 provide('activeCompProps', {
   get: () => activeComponent.value?.props,
   set: (val) => { activeComponent.value.props = { ...val } }
+})
+
+/* --------------- */
+onBeforeMount(() => {
+  if (projList.length === 0) {
+    // bus.alert({ msg: '请先创建一个项目', type: 'warning' });
+    router.push('/home/proj');
+  } else {
+    // 初始化时设置第一个项目为激活状态
+    activeProjIdx.value = 0;
+    bus.activeProjIdx = 0;
+  }
 })
 
 </script>

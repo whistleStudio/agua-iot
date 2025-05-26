@@ -15,6 +15,12 @@
           "qos": 0,
           "color": "#A5280E",
           "alias": ""
+        },
+        {
+          "topic": "cvaa",
+          "qos": 0,
+          "color": "#366d08",
+          "alias": ""
         }
       ],
       "pubTopics": [
@@ -48,7 +54,11 @@
           "content": "hello ha",
           "color": "#fff"
         }
-      ]
+      ],
+      "canvasCache": {
+        "layout": {},
+        "components": []
+      }
     },
     {
       "id": 1747715044462,

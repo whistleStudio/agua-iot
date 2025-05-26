@@ -1,4 +1,3 @@
-
 const events = {}
 
 const bus = {
@@ -36,6 +35,15 @@ const bus = {
       bus.off(event, wrapper)
     }
     bus.on(event, wrapper)
+  },
+  // 更新本地存储
+  changeProjInfo() {
+    window.electron.ipcRenderer.invoke('r:changeProjList', this.projList)
+    .then((res) => {
+    })
+    .catch((err) => {
+      console.error(err)
+    })
   }
 }
 

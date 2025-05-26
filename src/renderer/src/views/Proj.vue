@@ -155,9 +155,13 @@ function handleProjModalOk(newProj) {
     name: newProj.name.trim(),
     subTopics: [],
     pubTopics: [],
-    cache: []
+    cache: [],
+    canvasCache: {
+      layout: {},
+      components: []
+    }
   })
-  changeProjInfo()
+  bus.changeProjInfo()
   if (activeProjID.value === -999) {
     activeProjID.value = projList[0].id // 默认选中第一个项目
   }
@@ -169,7 +173,7 @@ function handleDeleteProj(id) {
   const index = bus.projList.findIndex((item) => item.id === id)
   if (index !== -1) {
     projList.splice(index, 1)
-    changeProjInfo()
+    bus.changeProjInfo()
     // 修正activeProjID
     if (activeProjID.value == id) {
       if (projList.length > 0) {
@@ -208,7 +212,7 @@ function handleSubModalOk(newSub) {
       alias: newSub.alias
     })
     console.log('activeProj.subTopics ---', activeProj.value.subTopics)
-    changeProjInfo()
+    bus.changeProjInfo()
     changeMqttCache(newSub.topic)
   }
 }
@@ -218,7 +222,7 @@ function clickDeleteSub(index) {
   console.log('clickDeleteSub ---', index)
   if (activeProjID.value === -999) return
   activeProj.value.subTopics.splice(index, 1)
-  changeProjInfo()
+  bus.changeProjInfo()
 }
 
 /* 删除发布 */
@@ -226,7 +230,7 @@ function clickDeletePub(index) {
   console.log('clickDeletePub ---', index)
   if (activeProjID.value === -999) return
   activeProj.value.pubTopics.splice(index, 1)
-  changeProjInfo()
+  bus.changeProjInfo()
 }
 
 /* 发布主题输入框模糊 */
@@ -239,7 +243,7 @@ function blurPubTopic() {
       activeProj.value.pubTopics.shift()
     }
     activeProj.value.pubTopics.push(cloneDeep(pubTopic.value))
-    changeProjInfo()
+    bus.changeProjInfo()
   }
 }
 
@@ -256,7 +260,7 @@ function handleSend() {
     } else {
       const time = new Date().toISOString().replace('T', ' ').replace('Z', '')
       activeProj.value.cache.push({ type: 1, time, topic: pubTopic.value.topic, qos: pubTopic.value.qos, content: pubMsg.value.payload, color: '#fff' })
-      changeProjInfo()
+      bus.changeProjInfo()
     }
   })
 }
@@ -265,19 +269,19 @@ function handleSend() {
 function emptyCache() {
   if (activeProjID.value === -999) return
   activeProj.value.cache = []
-  changeProjInfo()
+  bus.changeProjInfo()
 }
 
 // 数据本地化
-function changeProjInfo() {
-  window.electron.ipcRenderer.invoke('r:changeProjList', bus.projList)
-    .then((res) => {
-      // console.log('projList---', res)
-    })
-    .catch((err) => {
-      console.error(err)
-    })
-}
+// function bus.changeProjInfo() {
+//   window.electron.ipcRenderer.invoke('r:changeProjList', bus.projList)
+//   .then((res) => {
+//     // console.log('projList---', res)
+//   })
+//   .catch((err) => {
+//     console.error(err)
+//   })
+// }
 
 // 修改mqtt缓存
 function changeMqttCache(topic) {
@@ -300,7 +304,7 @@ window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
   if (activeProjID.value === -999 || !isReading.value) return
   const index = activeProj.value.subTopics.findIndex((item) => item.topic === topic)
   activeProj.value.cache.push({ type: 0, time, topic, qos, content: payload, color: activeProj.value.subTopics[index].color })
-  changeProjInfo()
+  bus.changeProjInfo()
 })
 
 // 获取图片路径

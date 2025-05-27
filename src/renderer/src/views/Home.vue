@@ -37,7 +37,7 @@ const alertInfo = reactive({
 const menuListInfo = reactive([
   { name: 'Device', href: "/home/device"},
   { name: 'Proj'  , href: "/home/proj"},
-  { name: 'Chart', href: "/home/chart/common"}
+  { name: 'Chart', href: "/home/chart/layout"}
 ])
 
 function getMenuIconPath(index) {

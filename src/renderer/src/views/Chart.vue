@@ -9,7 +9,7 @@
           </a>
           <template #overlay>
             <a-menu>
-              <a-menu-item v-for="(item, index) in projList" :key="index" @click="() => {activeProjIdx = index; bus.activeProjIdx = index}">
+              <a-menu-item v-for="(item, index) in projList" :key="index" @click="() => {activeProjIdx = index; bus.activeProjIdx = index; showLayoutSettings()}">
                 <span>{{ item.name }}</span>
               </a-menu-item>
             </a-menu>
@@ -53,7 +53,7 @@
 
       <!-- 中间画布部分 -->
       <a-layout-content class="visual-editor__content">
-        <div class="visual-editor__canvas-wrapper" @mousedown="() => {activeComponent = commonComp; $router.push('/home/chart/common')}">
+        <div class="visual-editor__canvas-wrapper" @mousedown="showLayoutSettings">
           <div class="visual-editor__canvas" ref="canvasRef">
             <div
               v-for="(comp, idx) in canvasComponents"
@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, markRaw, provide, reactive, computed, onBeforeMount } from 'vue';
+import { ref, markRaw, provide, reactive, computed, onBeforeMount, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import chartCfg from '../cfg/chart-cfg';
 import { cloneDeep } from 'lodash-es';
@@ -91,6 +91,8 @@ import PieComp from '../components/chart-comps/PieComp.vue'
 
 // 获取路由实例
 const router = useRouter();
+
+const emit = defineEmits(['alert']);
 
 // 组件映射，key要与chart-cfg配置一致
 const componentMap = {
@@ -105,11 +107,25 @@ const projList = reactive(bus.projList);
 // 直接从 bus 中获取和设置 activeProjIdx
 const activeProjIdx = ref(bus.activeProjIdx)
 const activeProj = computed(() => projList[activeProjIdx.value]);
-const canvasComponents = computed(() => activeProj.value.canvasCache.components);
+const canvasRawComponents = computed({
+  get() {
+    return activeProj.value?.canvasCache?.rawComponents || []
+  },
+  set(val) {
+    // 响应式赋值
+    if (activeProj.value && activeProj.value.canvasCache) {
+      activeProj.value.canvasCache.rawComponents = val
+    }
+  }
+})
+// const canvasComponents  = computed(
+//   () => {console.log('ccccc'); return canvasRawComponents.value.map(item => ({...item, component: componentMap[item.type] }))}
+// );
+const canvasComponents = ref([])
 
 // 画布上激活的组件
-const commonComp = {props:{}};
-const activeComponent = ref(commonComp);
+const layoutComp = {props:{}};
+const activeComponent = ref(layoutComp);
 const compProps = {...chartCfg.menu.pubComponents.parts, ...chartCfg.menu.subComponents.parts};
 // 拖拽相关
 const isDragging = ref(false);
@@ -130,24 +146,39 @@ const typeSizeMap = {
   // ...继续扩展
 };
 
-// 添加组件到画布
+/* 添加组件到画布 */
 function addComponent(type) {
   if (!componentMap[type]) return;
-  canvasComponents.value.push({
+  const newComp = {
     id: Date.now() + Math.random(),
     type,
-    component: componentMap[type],
     props: cloneDeep(compProps[type].props),
     top: 50 + Math.random() * 40,
-    left: 50 + Math.random() * 30,    
+    left: 50 + Math.random() * 30
+  }
+  // 恢复 component 字段
+  // newComp.component = markRaw(componentMap[type])
+  canvasRawComponents.value.push(newComp)
+  canvasComponents.value.push({
+    ...newComp,
+    component: componentMap[type] // 直接映射组件
   });
-  console.log(bus.projList[activeProjIdx.value].canvasCache.components.length, 'components');
+  bus.changeProjInfo()
+  // canvasComponents.value.push({
+  //   id: Date.now() + Math.random(),
+  //   type,
+  //   component: componentMap[type],
+  //   props: cloneDeep(compProps[type].props),
+  //   top: 50 + Math.random() * 40,
+  //   left: 50 + Math.random() * 30,    
+  // });
+  console.log(bus.projList[activeProjIdx.value].canvasCache.rawComponents.length, 'components');
   activeComponent.value = canvasComponents.value[canvasComponents.value.length - 1]; // 设置新添加组件为激活状态
   router.push({ path: '/home/chart/' + type });
 }
 
 
-// 拖拽逻辑
+/* 拖拽选中逻辑 */
 function startDrag(event, idx, comp) {
   if (!isDragging.value) {
     activeComponent.value = comp;
@@ -186,6 +217,7 @@ function stopDrag() {
       canvasComponents.value.splice(draggingIndex.value, 1);
     }
   }
+  bus.changeProjInfo();
   isDragging.value = false;
   draggingIndex.value = null;
   isOverLeftSider.value = false;
@@ -231,14 +263,36 @@ provide('activeCompProps', {
 /* --------------- */
 onBeforeMount(() => {
   if (projList.length === 0) {
-    // bus.alert({ msg: '请先创建一个项目', type: 'warning' });
     router.push('/home/proj');
+    emit("alert", { type: "warning", msg: "请先创建一个项目" })
   } else {
     // 初始化时设置第一个项目为激活状态
     activeProjIdx.value = 0;
     bus.activeProjIdx = 0;
+    // 恢复组件
+    canvasComponents.value = activeProj.value?.canvasCache?.rawComponents.map(item => ({
+      ...item,
+      component: componentMap[item.type] 
+    })) || [];
   }
 })
+
+watch(canvasComponents, (newVal) => {
+  // 每次组件变化时更新到 bus 中
+  if (activeProj.value && activeProj.value.canvasCache) {
+    newVal.forEach((comp, idx) => {
+      canvasRawComponents.value[idx].left = comp.left;
+      canvasRawComponents.value[idx].top = comp.top;
+      canvasRawComponents.value[idx].props = comp.props;
+    });
+  }
+}, { deep: true });
+
+// 右侧属性栏展示-布局设置
+function showLayoutSettings() {
+  router.push('/home/chart/layout');
+  activeComponent.value = layoutComp;
+}
 
 </script>
 

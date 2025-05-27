@@ -1,3 +1,4 @@
+import cloneDeep from 'lodash/cloneDeep'
 const events = {}
 
 const bus = {
@@ -38,8 +39,10 @@ const bus = {
   },
   // 更新本地存储
   changeProjInfo() {
-    window.electron.ipcRenderer.invoke('r:changeProjList', this.projList)
-    .then((res) => {
+    // console.log('changeProjInfo', this.projList)
+    window.electron?.ipcRenderer.invoke('r:changeProjList', JSON.parse(JSON.stringify(this.projList)))
+    .then(() => {
+      // Successfully updated project info
     })
     .catch((err) => {
       console.error(err)

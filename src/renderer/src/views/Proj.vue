@@ -158,7 +158,7 @@ function handleProjModalOk(newProj) {
     cache: [],
     canvasCache: {
       layout: {},
-      components: []
+      rawComponents: []
     }
   })
   bus.changeProjInfo()
@@ -271,17 +271,6 @@ function emptyCache() {
   activeProj.value.cache = []
   bus.changeProjInfo()
 }
-
-// 数据本地化
-// function bus.changeProjInfo() {
-//   window.electron.ipcRenderer.invoke('r:changeProjList', bus.projList)
-//   .then((res) => {
-//     // console.log('projList---', res)
-//   })
-//   .catch((err) => {
-//     console.error(err)
-//   })
-// }
 
 // 修改mqtt缓存
 function changeMqttCache(topic) {

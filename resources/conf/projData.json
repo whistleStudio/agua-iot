@@ -17,9 +17,9 @@
           "alias": ""
         },
         {
-          "topic": "cvaa",
+          "topic": "customtopic/#wewqeqw",
           "qos": 0,
-          "color": "#366d08",
+          "color": "#F97860",
           "alias": ""
         }
       ],
@@ -57,7 +57,40 @@
       ],
       "canvasCache": {
         "layout": {},
-        "components": []
+        "rawComponents": [
+          {
+            "id": 1748335428554.4004,
+            "type": "pubtext",
+            "props": {
+              "title": "输入框xxx",
+              "width": 140,
+              "height": 30,
+              "btnWidth": 30,
+              "placeholder": "请输入发布内容",
+              "topic": "",
+              "size": "medium",
+              "hideBg": false
+            },
+            "top": 188.2451885696985,
+            "left": 26.775690598014876
+          },
+          {
+            "id": 1748335432254.493,
+            "type": "pubtext",
+            "props": {
+              "title": "输入框aaa",
+              "width": 140,
+              "height": 30,
+              "btnWidth": 30,
+              "placeholder": "请输入发布内容",
+              "topic": "",
+              "size": "medium",
+              "hideBg": false
+            },
+            "top": 50.64643737877799,
+            "left": 377.6468319426183
+          }
+        ]
       }
     },
     {
@@ -65,7 +98,11 @@
       "name": "bbbb",
       "subTopics": [],
       "pubTopics": [],
-      "cache": []
+      "cache": [],
+      "canvasCache": {
+        "layout": {},
+        "rawComponents": []
+      }
     }
   ]
 }

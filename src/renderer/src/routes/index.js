@@ -20,8 +20,8 @@ const routes = [
         component: () => import('../views/Chart.vue'),
         children: [
           {
-            path: 'common',
-            component: () => import('../views/chart-views/Common.vue'),
+            path: 'layout',
+            component: () => import('../views/chart-views/Layout.vue'),
           },
           {
             path: 'pubtext',

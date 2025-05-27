@@ -118,9 +118,7 @@ const canvasRawComponents = computed({
     }
   }
 })
-// const canvasComponents  = computed(
-//   () => {console.log('ccccc'); return canvasRawComponents.value.map(item => ({...item, component: componentMap[item.type] }))}
-// );
+
 const canvasComponents = ref([])
 
 // 画布上激活的组件
@@ -157,22 +155,13 @@ function addComponent(type) {
     left: 50 + Math.random() * 30
   }
   // 恢复 component 字段
-  // newComp.component = markRaw(componentMap[type])
   canvasRawComponents.value.push(newComp)
   canvasComponents.value.push({
-    ...newComp,
+    ...newComp, // 其中props是对象的引用，直接同步canvasRawComponents
     component: componentMap[type] // 直接映射组件
   });
-  bus.changeProjInfo()
-  // canvasComponents.value.push({
-  //   id: Date.now() + Math.random(),
-  //   type,
-  //   component: componentMap[type],
-  //   props: cloneDeep(compProps[type].props),
-  //   top: 50 + Math.random() * 40,
-  //   left: 50 + Math.random() * 30,    
-  // });
-  console.log(bus.projList[activeProjIdx.value].canvasCache.rawComponents.length, 'components');
+  // bus.changeProjInfo()
+  // console.log(bus.projList[activeProjIdx.value].canvasCache.rawComponents.length, 'components');
   activeComponent.value = canvasComponents.value[canvasComponents.value.length - 1]; // 设置新添加组件为激活状态
   router.push({ path: '/home/chart/' + type });
 }
@@ -182,7 +171,6 @@ function addComponent(type) {
 function startDrag(event, idx, comp) {
   if (!isDragging.value) {
     activeComponent.value = comp;
-    console.log('ctiveComponent.value:', comp);
     // 路由跳转
     router.push({ path: '/home/chart/' + comp.type});
   };
@@ -212,12 +200,12 @@ function onDrag(event) {
 }
 function stopDrag() {
   if (isDragging.value && draggingIndex.value !== null) {
-    console.log("pos:", activeComponent.value.left, activeComponent.value.top);
     if (isOverLeftSider.value) {
       canvasComponents.value.splice(draggingIndex.value, 1);
+      canvasRawComponents.value.splice(draggingIndex.value, 1); // 手动同步删除
     }
   }
-  bus.changeProjInfo();
+  // bus.changeProjInfo();
   isDragging.value = false;
   draggingIndex.value = null;
   isOverLeftSider.value = false;
@@ -259,8 +247,20 @@ provide('activeCompProps', {
   get: () => activeComponent.value?.props,
   set: (val) => { activeComponent.value.props = { ...val } }
 })
+// 同步canvasComponents到bus
+watch(canvasComponents, (newVal) => {
+  console.log('canvasComponents changed:', newVal);
+  // 每次组件变化时更新到 bus 中
+  if (activeProj.value && activeProj.value.canvasCache) {
+    newVal.forEach((comp, idx) => {
+      canvasRawComponents.value[idx].left = comp.left;
+      canvasRawComponents.value[idx].top = comp.top;
+    });
+  }
+  bus.changeProjInfo();
+}, { deep: true });
 
-/* --------------- */
+/* ----------------------------- */
 onBeforeMount(() => {
   if (projList.length === 0) {
     router.push('/home/proj');
@@ -277,16 +277,7 @@ onBeforeMount(() => {
   }
 })
 
-watch(canvasComponents, (newVal) => {
-  // 每次组件变化时更新到 bus 中
-  if (activeProj.value && activeProj.value.canvasCache) {
-    newVal.forEach((comp, idx) => {
-      canvasRawComponents.value[idx].left = comp.left;
-      canvasRawComponents.value[idx].top = comp.top;
-      canvasRawComponents.value[idx].props = comp.props;
-    });
-  }
-}, { deep: true });
+
 
 // 右侧属性栏展示-布局设置
 function showLayoutSettings() {

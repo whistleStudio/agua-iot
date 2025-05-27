@@ -8,9 +8,8 @@
         <a-input v-model:value="attrData.title" placeholder="输入框" />
       </a-form-item>
       <a-form-item label="Topic">
-        <a-select v-model:value="attrData.topic" placeholder="请选择">
-          <a-select-option value="topic1">topic1</a-select-option>
-          <a-select-option value="topic2">topic2</a-select-option>
+        <a-select v-model:value="selectTopic" placeholder="请选择发布主题" :options="opts" @change="v => {console.log(v); attrData.topic = JSON.parse(v)}">
+          <!-- <a-select-option v-for="v in pubTopics" :value="v" class="topic-opt">{{ v.topic }}</a-select-option> -->
         </a-select>
       </a-form-item>
       <!-- <a-divider style="margin: 16px 0" /> -->
@@ -29,53 +28,42 @@
 </template>
 
 <script setup>
-import { onBeforeMount, reactive, watch, inject, computed } from 'vue'
+import { inject, computed, ref, onBeforeMount } from 'vue'
 import { useRoute } from 'vue-router'
-
-// props: compAttr 双向绑定外部组件数据
-// const props = defineProps({
-//   compAttr: {
-//     type: Object,
-//     required: false,
-//     default: () => ({})
-//   }
-// })
-// const emit = defineEmits(['compAttrChange'])
-
-// const attrData = reactive({
-//   title: props?.compAttr?.title || '',
-//   topic: props?.compAttr?.topic || '',
-//   hideBg: props?.compAttr?.hideBg || false,
-//   size: props?.compAttr?.size || 'medium'
-// })
-
-// 双向同步外部数据
-// watch(
-//   () => props.compAttr,
-//   (val) => {
-//     if (val) {
-//       attrData.title = val.title || ''
-//       attrData.topic = val.topic || ''
-//       attrData.hideBg = val.hideBg || false
-//       attrData.size = val.size || 'medium'
-//     }
-//   },
-//   { immediate: true, deep: true }
-// )
+import bus from '../../utils/bus'
 
 const activeCompProps = inject('activeCompProps')
 // 直接用computed对象实现表单与画布props的双向绑定
 const attrData = computed({
   get: () => activeCompProps.get(),
-  set: (val) => activeCompProps.set(val)
+  set: (val) => {activeCompProps.set(val)}
 })
 
-/* --------------------- */
-// onBeforeMount(() => {
-//   const route = useRoute();
-//   // const routeParams = reactive(route.params.comp);
-//   console.log('routeParams', route.query);
+const pubTopics = computed(() => (bus.activeProjIdx !== -1 && bus.activeProjIdx !== undefined) ? bus.projList[bus.activeProjIdx].pubTopics : [])
+// const selectTopic = computed(() => {
+//   return pubTopics.value.find(v => v.topic === attrData.value.topic)
 // })
+
+const selectTopic = ref()
+
+const opts = computed(() => pubTopics.value.map(v => {
+  return {
+    label: `${v.topic}${'\u00A0'.repeat(Math.max(0, 25 - v.topic.length))} qos:${v.qos} retain:${v.retain}`,
+    value: JSON.stringify(v)
+  }
+}))
+
+/* ------------------------------- */
+onBeforeMount(() => {
+  console.log('PubTextComp onBeforeMount:', attrData.value.topic)
+  const avtJson = JSON.stringify(attrData.value.topic) 
+  if (attrData.value?.topic?.topic && pubTopics.value.findIndex(v => JSON.stringify(v)===avtJson) !== -1) {
+    selectTopic.value = avtJson
+  } else {
+    selectTopic.value = null
+  }
+})
+
 </script>
 
 <style lang="scss" scoped>
@@ -94,5 +82,6 @@ const attrData = computed({
   :deep(.ant-form-item) {
     margin-bottom: 16px;
   }
+
 }
 </style>

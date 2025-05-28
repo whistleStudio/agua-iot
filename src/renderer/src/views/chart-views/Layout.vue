@@ -1,69 +1,85 @@
 <template>
   <a-layout-sider width="260" class="visual-editor__sider visual-editor__sider--right">
     <div class="visual-editor__settings-title">布局设置</div>
+
     <div class="visual-editor__settings-group">
-      <span>当前布局</span>
-      <a-input-group compact class="visual-editor__settings-layout">
-        <a-input style="width: 60px;" value="1920" disabled addon-before="W" />
-        <a-input style="width: 60px;" value="1080" disabled addon-before="H" />
-      </a-input-group>
-    </div>
-    <div class="visual-editor__settings-title">项目设置</div>
-    <div class="visual-editor__settings-group">
-      <div>主题</div>
-      <a-radio-group value="light" class="visual-editor__settings-radio">
-        <a-radio value="light">浅色</a-radio>
-        <a-radio value="dark">深色</a-radio>
+      <div class="visual-editor__settings-label">主题</div>
+      <a-radio-group v-model:value="layoutSettings.theme" class="visual-editor__settings-radio" :options="themeOpts">
       </a-radio-group>
     </div>
     <div class="visual-editor__settings-group">
-      <div>封面</div>
-      <a-radio-group value="auto" class="visual-editor__settings-radio">
-        <a-radio value="auto">自动生成</a-radio>
-        <a-radio value="upload">本地上传</a-radio>
+      <div class="visual-editor__settings-label">背景图片</div>
+      <a-radio-group value="auto" class="visual-editor__settings-radio" :options="bgOpts" >
       </a-radio-group>
-      <div class="visual-editor__cover-box"></div>
+      <div class="visual-editor__cover-box">
+        <span class="visual-editor__cover-placeholder">暂无封面</span>
+      </div>
     </div>
   </a-layout-sider>
 </template>
 
 <script setup>
+import { computed, inject, ref } from 'vue';
+
+const activeLayoutSettings = inject('activeLayoutSettings');
+const layoutSettings = computed({
+  get: () => activeLayoutSettings.get(),
+  set: (val) => { activeLayoutSettings.set(val); }
+});
+
+const themeOpts = ref([
+  { label: '浅色', value: 'light' },
+  { label: '深色', value: 'dark' }
+]);
+const bgOpts = ref([
+  { label: '无', value: 'default' },
+  { label: '本地上传', value: 'upload' }
+]);
 </script>
 
 <style lang="scss" scoped>
 .visual-editor__sider--right {
   border-left: 1px solid #ededed;
-  border-right: none;
-  padding: 24px 16px;
-  min-width: 240px;
-  max-width: 280px;
   background: #fafafa;
+  padding: 16px !important;
+  min-width: 240px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
 }
 
 .visual-editor__settings-title {
-  font-weight: bold;
-  margin-bottom: 16px;
-  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 18px;
+  font-size: 16px;
+  color: #222;
 }
 
-.visual-editor__settings-group {
-  margin-bottom: 20px;
-}
+.visual-editor__settings-group { margin-bottom: 24px; }
 
-.visual-editor__settings-layout {
-  margin-left: 8px;
-}
+.visual-editor__settings-label { color: #444; font-size: 14px; }
 
 .visual-editor__settings-radio {
-  margin-top: 8px;
+  margin-top: 2px;
+  display: flex;
+  gap: 16px;
+  .ant-radio-wrapper { font-size: 14px; }
 }
 
 .visual-editor__cover-box {
-  margin-top: 10px;
-  width: 120px;
-  height: 120px;
-  border: 1px dashed #e5e5e5;
+  margin-top: 8px;
+  width: 140px;
+  height: 100px;
+  border: 1.5px dashed #e0e0e0;
   background: #fcfcfc;
-  border-radius: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  .visual-editor__cover-placeholder {
+    color: #bbb;
+    font-size: 13px;
+  }
 }
 </style>

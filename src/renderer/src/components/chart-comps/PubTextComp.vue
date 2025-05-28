@@ -1,5 +1,5 @@
 <template>
-  <div class="input-comp" @click="emit(compClick, 'pubtext')">
+  <div class="input-comp" :style="inputCompStyle">
     <div class="input-comp__label">{{ props.compProps.title }}</div>
     <div class="input-comp__box">
       <a-input v-model:value="inputValue" class="input-comp__input" :placeholder="props.compProps.placeholder" :style="inputStyle"/>
@@ -25,19 +25,34 @@ const props = defineProps({
   }
 })
 
+const whSize = computed(() => {
+  switch (props.compProps.size) {
+    case 'small':
+      return { width: '180px', height: '30px' };
+    case 'large':
+      return { width: '300px', height: '50px' };
+    default:
+      return { width: '240px', height: '40px' };
+  }
+});
+const inputCompStyle = computed(() => ({
+  background: props.compProps.hideBg ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 1)',
+}))
 const inputStyle = computed(() => ({
-  width: typeof props.compProps.width === 'number' ? (props.compProps.width - 45) + 'px'  : `calc(${props.compProps.width} - 45px)`,
-  height: typeof props.compProps.height === 'number'  ? props.compProps.height + 'px'  : props.compProps.height,
+  width:  `calc(${whSize.value.width} - ${whSize.value.height})`,
+  height: whSize.value.height,
   borderRadius: '8px 0 0 8px',
-  fontSize: '14px'
+  fontSize: '14px',
+  background: props.compProps.hideBg ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 1)',
 }));
 const btnStyle = computed(() => ({
-  width: props.compProps.height + 'px',
-  height: typeof props.compProps.height === 'number'  ? props.compProps.height + 'px'  : props.compProps.height,
+  width: whSize.value.height,
+  height: whSize.value.height,
   borderRadius: '0 8px 8px 0',
+  background: props.compProps.hideBg ? 'rgba(35, 138, 255, 0.2)' : 'rgba(35, 138, 255, 1)',
 }));
 const iconStyle = computed(() => ({
-  width: props.compProps.height / 2 + 'px',
+  width: `calc(${whSize.value.height} / 2)`,
   textAlign: 'center',
 }));
 
@@ -46,11 +61,10 @@ const iconStyle = computed(() => ({
 
 <style scoped>
 .input-comp {
-  background: #fff;
   border-radius: 8px;
   padding: 12px;
   box-shadow: 0 0 8px rgba(0,0,0,0.03);
-  min-width: 240px;
+  /* min-width: 240px; */
   box-sizing: border-box;
   width: 100%;
   display: flex;
@@ -72,7 +86,7 @@ const iconStyle = computed(() => ({
   display: flex;
   flex-direction: row;
   width: 100%;
-  max-width: 270px;
+  /* max-width: 270px; */
   align-items: center;
 }
 .input-comp__input {
@@ -80,6 +94,7 @@ const iconStyle = computed(() => ({
   border-radius: 8px 0 0 8px !important;
   border-right: none !important;
   box-shadow: 4px 8px 18px 0 rgba(36,137,202,0.09); 
+
 }
 .input-comp__send-btn {
   /* width: 45px;
@@ -90,11 +105,10 @@ const iconStyle = computed(() => ({
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: #238aff;
   border: none;
 }
 .input-comp__send-btn:hover {
-  background: #156fd1;
+  background: #156fd1 !important;
 }
 .input-comp__send-btn img {
   display: block;

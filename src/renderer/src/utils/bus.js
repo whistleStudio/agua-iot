@@ -9,6 +9,11 @@ const bus = {
   devices: [],
   projList: [],
   activeProjIdx: -1,
+  sizeOpts: [
+    { label: '小', value: 'small' },
+    { label: '中', value: 'medium' },
+    { label: '大', value: 'large' }
+  ],
   // 注册事件监听
   on(event, callback) {
     if (!events[event]) {

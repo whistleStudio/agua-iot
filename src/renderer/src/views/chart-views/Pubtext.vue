@@ -8,17 +8,11 @@
         <a-input v-model:value="attrData.title" placeholder="输入框" />
       </a-form-item>
       <a-form-item label="Topic">
-        <a-select v-model:value="selectTopic" placeholder="请选择发布主题" :options="opts" @change="v => {console.log(v); attrData.topic = JSON.parse(v)}">
-          <!-- <a-select-option v-for="v in pubTopics" :value="v" class="topic-opt">{{ v.topic }}</a-select-option> -->
-        </a-select>
+        <a-select v-model:value="selectTopic" placeholder="请选择发布主题" :options="opts" @change="v => {console.log(v); attrData.topic = JSON.parse(v)}"></a-select>
       </a-form-item>
       <!-- <a-divider style="margin: 16px 0" /> -->
       <a-form-item label="组件大小">
-        <a-select v-model:value="attrData.size" placeholder="请选择">
-          <a-select-option value="small">小</a-select-option>
-          <a-select-option value="medium">中</a-select-option>
-          <a-select-option value="large">大</a-select-option>
-        </a-select>
+        <a-select v-model:value="selectSize" placeholder="请选择" :options="bus.sizeOpts" @change="v => attrData.size = v"></a-select>
       </a-form-item>
       <a-form-item label="隐藏底色">
         <a-checkbox v-model:checked="attrData.hideBg" />
@@ -40,11 +34,9 @@ const attrData = computed({
 })
 
 const pubTopics = computed(() => (bus.activeProjIdx !== -1 && bus.activeProjIdx !== undefined) ? bus.projList[bus.activeProjIdx].pubTopics : [])
-// const selectTopic = computed(() => {
-//   return pubTopics.value.find(v => v.topic === attrData.value.topic)
-// })
 
 const selectTopic = ref()
+const selectSize = ref(attrData.value?.size || 'medium')
 
 const opts = computed(() => pubTopics.value.map(v => {
   return {
@@ -52,6 +44,8 @@ const opts = computed(() => pubTopics.value.map(v => {
     value: JSON.stringify(v)
   }
 }))
+
+
 
 /* ------------------------------- */
 onBeforeMount(() => {

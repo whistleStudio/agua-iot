@@ -157,7 +157,10 @@ function handleProjModalOk(newProj) {
     pubTopics: [],
     cache: [],
     canvasCache: {
-      layout: {},
+      layout: {
+        "theme": "light",
+        "background": "default",
+      },
       rawComponents: []
     }
   })

@@ -78,7 +78,7 @@ app.whenReady().then(() => {
   /* 更改项目列表 */
   ipcMain.handle('r:changeProjList', (_, projList) => {
     try {
-      console.log(projList)
+      // console.log(projList)
       projData.list = projList
       fs.writeFileSync(projDataUrl, JSON.stringify(projData, null, 2))
       return {err: 0}

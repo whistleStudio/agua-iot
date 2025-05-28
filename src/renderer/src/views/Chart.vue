@@ -120,6 +120,7 @@ const canvasRawComponents = computed({
 })
 
 const canvasComponents = ref([])
+const canvasLayout = ref({})
 
 // 画布上激活的组件
 const layoutComp = {props:{}};
@@ -136,13 +137,6 @@ const leftSiderRef = ref(null);
 const panelDropArea = ref(null);
 const canvasRef = ref(null);
 
-// 每种类型的默认宽高
-const typeSizeMap = {
-  pubtext: { width: 140, height: 45 },
-  button: { width: 100, height: 45 },
-  chartPie: { width: 80, height: 80 },
-  // ...继续扩展
-};
 
 /* 添加组件到画布 */
 function addComponent(type) {
@@ -232,7 +226,7 @@ function getDraggableStyle(comp, idx) {
     boxShadow: `0 ${baseSpread}px ${baseBlur + blur}px ${spread}px ${shadowColor}`,
     border: '1px solid #e6e6e6',
     borderRadius: '6px',
-    background: '#fff',
+    // background: '#fff',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -247,6 +241,12 @@ provide('activeCompProps', {
   get: () => activeComponent.value?.props,
   set: (val) => { activeComponent.value.props = { ...val } }
 })
+// 提供getter/setter让布局面板可读写当前设置
+provide('activeLayoutSettings', {
+  get: () => activeProj.value?.canvasCache?.layout || {},
+  set: (val) => { activeProj.value.canvasCache.layout = { ...val } }
+});
+
 // 同步canvasComponents到bus
 watch(canvasComponents, (newVal) => {
   console.log('canvasComponents changed:', newVal);
@@ -258,6 +258,15 @@ watch(canvasComponents, (newVal) => {
     });
   }
   bus.changeProjInfo();
+}, { deep: true });
+
+watch(canvasLayout.value, (newVal) => {
+  // 当布局设置变化时，更新到 bus 中
+  console.log('Layout settings changed:', newVal);
+  if (activeProj.value && activeProj.value.canvasCache) {
+    activeProj.value.canvasCache.layout = { ...newVal };
+    bus.changeProjInfo();
+  }
 }, { deep: true });
 
 /* ----------------------------- */
@@ -274,6 +283,8 @@ onBeforeMount(() => {
       ...item,
       component: componentMap[item.type] 
     })) || [];
+    // 恢复布局设置
+    canvasLayout.value = activeProj.value?.canvasCache?.layout || {};
   }
 })
 

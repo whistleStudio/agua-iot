@@ -9,7 +9,7 @@
     </div>
     <div class="visual-editor__settings-group">
       <div class="visual-editor__settings-label">背景图片</div>
-      <a-radio-group value="auto" class="visual-editor__settings-radio" :options="bgOpts" >
+      <a-radio-group v-model:value="layoutSettings.background" class="visual-editor__settings-radio" :options="bgOpts" >
       </a-radio-group>
       <div class="visual-editor__cover-box">
         <span class="visual-editor__cover-placeholder">暂无封面</span>

@@ -247,6 +247,20 @@ provide('activeLayoutSettings', {
   set: (val) => { activeProj.value.canvasCache.layout = { ...val } }
 });
 
+// 恢复组件，布局设置
+function restoreCanvas() {
+  if (activeProj.value && activeProj.value.canvasCache) {
+    canvasComponents.value = activeProj.value.canvasCache.rawComponents.map(item => ({
+      ...item,
+      component: componentMap[item.type] 
+    })) || [];
+    canvasLayout.value = activeProj.value.canvasCache.layout || {};
+  } else {
+    canvasComponents.value = [];
+    canvasLayout.value = {};
+  }
+}
+
 // 同步canvasComponents到bus
 watch(canvasComponents, (newVal) => {
   console.log('canvasComponents changed:', newVal);
@@ -259,15 +273,27 @@ watch(canvasComponents, (newVal) => {
   }
   bus.changeProjInfo();
 }, { deep: true });
-
-watch(canvasLayout.value, (newVal) => {
-  // 当布局设置变化时，更新到 bus 中
-  console.log('Layout settings changed:', newVal);
+// 同步canvasLayout到bus
+watch(canvasLayout, (newVal, oldVal) => {
+  console.log('Layout settings changed:', oldVal, "->",newVal);
   if (activeProj.value && activeProj.value.canvasCache) {
-    activeProj.value.canvasCache.layout = { ...newVal };
+    // activeProj.value.canvasCache.layout = { ...newVal }; // 这样写不行会导致canvasLayout.value 和 activeProj.value.canvasCache.layout 引用不同对象
+    // console.log('==', activeProj.value.canvasCache.layout == canvasLayout.value); // false
+    // canvasLayout.value = { ...newVal }; // 而这样写会导致递归错误
+    // 啥都不用写，因为 onBeforeMount 后，bus里的layout和canvasLayout.value 已经是同一个对象了
     bus.changeProjInfo();
   }
 }, { deep: true });
+// 监听activeProjIdx变化，自动更新canvasComponents和canvasLayout
+watch(activeProjIdx, (newIdx) => {
+  console.log('Active project changed:', newIdx);
+  if (projList[newIdx]) {
+    restoreCanvas();
+  } else {
+    canvasComponents.value = [];
+    canvasLayout.value = {};
+  }
+}, { immediate: true });
 
 /* ----------------------------- */
 onBeforeMount(() => {
@@ -278,13 +304,7 @@ onBeforeMount(() => {
     // 初始化时设置第一个项目为激活状态
     activeProjIdx.value = 0;
     bus.activeProjIdx = 0;
-    // 恢复组件
-    canvasComponents.value = activeProj.value?.canvasCache?.rawComponents.map(item => ({
-      ...item,
-      component: componentMap[item.type] 
-    })) || [];
-    // 恢复布局设置
-    canvasLayout.value = activeProj.value?.canvasCache?.layout || {};
+    restoreCanvas(); // 恢复画布组件和布局设置
   }
 })
 

@@ -13,3 +13,12 @@ bus changeProjInfo; canvasComponents改computed,projList关联bus.projList, acti
 ## 20250527
 
 项目选择；画布中组件序列化本地存储，canvasRawComponents（bus里引用）去除components, 加载时序列化用canvasComponents接收；watch deep监听canvasComponents变化，改变canvasRawComponents后本地化；右边栏主题单选, Json.stringfy以支持a-select选项，后传bus再Json.parse
+
+## 20250528
+
+watch的对象要是响应式才行，改变也是要改变响应式的才有用
+let obj = {} 
+const a = ref(obj)
+obj.attr = 1 // watch a 会变化, 因为此时a.value = obj(引用), obj变化时，可以监测到
+obj = {} // 新的引用
+obj.attr = 2 // watch a 无变化， 因为此时a.value = obj(原先的引用)，而obj改变的是新引用内容

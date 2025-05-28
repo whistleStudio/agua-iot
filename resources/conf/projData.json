@@ -62,7 +62,7 @@
         },
         "rawComponents": [
           {
-            "id": 1748410428963.6755,
+            "id": 1748423601417.593,
             "type": "pubtext",
             "props": {
               "title": "输入框xxx",
@@ -71,11 +71,11 @@
               "btnWidth": 30,
               "placeholder": "请输入发布内容",
               "topic": "",
-              "size": "medium",
+              "size": "small",
               "hideBg": false
             },
-            "top": 65.87444355844116,
-            "left": 178.0436124687094
+            "top": 87.13996583458974,
+            "left": 65.36296324092837
           }
         ]
       }

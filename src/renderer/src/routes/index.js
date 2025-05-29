@@ -30,6 +30,10 @@ const routes = [
           {
             path: 'button',
             component: () => import('../views/chart-views/Pubtext.vue'),
+          },
+          {
+            path: 'linechart',
+            component: () => import('../views/chart-views/LineChart.vue'),
           }
         ]
       }

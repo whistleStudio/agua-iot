@@ -88,6 +88,7 @@ import bus from '../utils/bus';
 import PubTextComp from '../components/chart-comps/PubTextComp.vue'
 import ButtonComp from '../components/chart-comps/ButtonComp.vue'
 import PieComp from '../components/chart-comps/PieComp.vue'
+import LineChartComp from '../components/chart-comps/LineChartComp.vue';
 
 // 获取路由实例
 const router = useRouter();
@@ -99,6 +100,7 @@ const componentMap = {
   pubtext: markRaw(PubTextComp),
   button: markRaw(ButtonComp),
   chartPie: markRaw(PieComp),
+  linechart: markRaw(LineChartComp),
   // ...可继续扩展其它组件
 };
 

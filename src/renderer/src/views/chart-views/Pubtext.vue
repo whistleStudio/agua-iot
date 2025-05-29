@@ -62,7 +62,7 @@ onBeforeMount(() => {
 
 <style lang="scss" scoped>
 .component-props {
-  padding: 16px 12px 0 12px;
+  padding: 16px 12px 16px 0;
   min-width: 240px;
   .component-props__title {
     font-size: 16px;

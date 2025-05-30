@@ -11,10 +11,12 @@
         <a-select v-model:value="selectTopic" placeholder="请选择订阅主题" :options="opts" @change="v => { attrData.topic = JSON.parse(v) }"></a-select>
       </a-form-item>
       <a-form-item label="组件宽度">
-        <a-input v-model:value="attrData.width" placeholder="420" />
+        <a-input v-model:value.number="attrData.width" placeholder="420" @pressEnter="enterBlur"
+        @blur="bus.emit('lineChartWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})"/>
       </a-form-item>
       <a-form-item label="组件高度">
-        <a-input v-model:value="attrData.height" placeholder="280" />
+        <a-input v-model:value.number="attrData.height" placeholder="280" @pressEnter="enterBlur"
+        @blur="bus.emit('lineChartWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})"/>
       </a-form-item>
       <a-form-item label="隐藏底色">
         <a-checkbox v-model:checked="attrData.hideBg" />
@@ -40,7 +42,7 @@
     <div class="tips">
       <div class="tips-title">组件功能</div>
       <div class="tips-desc">
-        定时获取最新的10/1000条数据，<br>
+        定时获取最新的10/100/1000条数据，<br>
         以消息时间为x轴，显示在折线图上。
       </div>
     </div>
@@ -95,19 +97,29 @@ onBeforeMount(() => {
   } else {
     selectTopic.value = null
   }
-  if (!attrData.value.count) attrData.value.count = 10
-  if (!attrData.value.width) attrData.value.width = 420
-  if (!attrData.value.height) attrData.value.height = 280
-  if (!attrData.value.yUnit) attrData.value.yUnit = '°C'
+  // if (!attrData.value.count) attrData.value.count = 10
+  // if (!attrData.value.width) attrData.value.width = 420
+  // if (!attrData.value.height) attrData.value.height = 280
+  // if (!attrData.value.yUnit) attrData.value.yUnit = '°C'
 
-  // 初始化折线数组
-  if (Array.isArray(attrData.value.lines)) {
-    lineList.value = [...attrData.value.lines]
-  } else if (attrData.value.line1) {
-    lineList.value = [attrData.value.line1]
-  } else {
-    lineList.value = ['折线1']
+  // // 初始化折线数组
+  // if (Array.isArray(attrData.value.lines)) {
+  //   lineList.value = [...attrData.value.lines]
+  // } else if (attrData.value.line1) {
+  //   lineList.value = [attrData.value.line1]
+  // } else {
+  //   lineList.value = ['折线1']
+  // }
+  lineList.value = attrData.value.lineTitles
+  // // 初始状态的话给出示例图表
+  console.log("isInit", attrData.value.isInit)
+  if (attrData.value.isInit) {
+    attrData.value.yData.forEach((line, idx) => {
+      // line = Array(5).fill(0).map((_, i) => (i+idx))
+      console.log(`init line ${idx + 1}:`, line)
+    })
   }
+
   updateLines()
 })
 
@@ -129,6 +141,8 @@ function updateLines() {
   // 兼容老字段
   if (attrData.value.lines?.[0]) attrData.value.line1 = attrData.value.lines[0]
 }
+// 输入框回车失去焦
+function enterBlur(e) { e.target.blur() }
 </script>
 
 <style lang="scss" scoped>

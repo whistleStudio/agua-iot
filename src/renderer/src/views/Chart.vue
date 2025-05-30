@@ -63,7 +63,7 @@
               :style="getDraggableStyle(comp, idx)"
               @mousedown.stop="startDrag($event, idx, comp)"
             >
-              <component :is="comp.component" :compProps="comp.props" />
+              <component :is="comp.component" :compProps="comp.props" :compId="comp.id"/>
             </div>
           </div>
         </div>
@@ -167,6 +167,7 @@ function addComponent(type) {
 function startDrag(event, idx, comp) {
   if (!isDragging.value) {
     activeComponent.value = comp;
+    bus.activeCompId = comp.id; // 更新总线上的当前组件
     // 路由跳转
     router.push({ path: '/home/chart/' + comp.type});
   };
@@ -265,7 +266,7 @@ function restoreCanvas() {
 
 // 同步canvasComponents到bus
 watch(canvasComponents, (newVal) => {
-  console.log('canvasComponents changed:', newVal);
+  // console.log('canvasComponents changed:', newVal);
   // 每次组件变化时更新到 bus 中
   if (activeProj.value && activeProj.value.canvasCache) {
     newVal.forEach((comp, idx) => {
@@ -316,6 +317,7 @@ onBeforeMount(() => {
 function showLayoutSettings() {
   router.push('/home/chart/layout');
   activeComponent.value = layoutComp;
+  bus.activeCompId = 0; // 更新总线上的当前组件
 }
 
 </script>

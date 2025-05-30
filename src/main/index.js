@@ -79,11 +79,18 @@ app.whenReady().then(() => {
   /* 更改项目列表 */
   ipcMain.handle('r:changeProjList', (_, projList) => {
     try {
-      // console.log(projList)
+      projList.forEach(proj => { // 清空yData属性
+        proj.canvasCache.rawComponents.forEach(comp => {
+          if (comp?.props && comp.props.hasOwnProperty('yData')) {
+            // 如果存在yData属性，则清空
+            comp.props.yData = [[]]
+          }
+        })
+      })
       projData.list = projList
       fs.writeFileSync(projDataUrl, JSON.stringify(projData, null, 2))
       return {err: 0}
-    } catch (err) { return {err: 1, msg: '本地文件同步异常'} }
+    } catch (err) { console.log(err); return {err: 1, msg: '本地文件同步异常'} }
   })
   /* mqtt订阅+修改缓存 */
   ipcMain.handle('r:changeMqttCache', (_, topic) => {

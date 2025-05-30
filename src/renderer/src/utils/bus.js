@@ -9,6 +9,7 @@ const bus = {
   devices: [],
   projList: [],
   activeProjIdx: -1,
+  activeCompId: 0,
   sizeOpts: [
     { label: '小', value: 'small' },
     { label: '中', value: 'medium' },

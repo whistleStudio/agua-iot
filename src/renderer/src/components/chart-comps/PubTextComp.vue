@@ -22,6 +22,11 @@ const props = defineProps({
     type: Object,
     required: false,
     default: () => ({})
+  },
+  compId: {
+    type: Number,
+    required: false,
+    default: -1
   }
 })
 

@@ -22,3 +22,7 @@ const a = ref(obj)
 obj.attr = 1 // watch a 会变化, 因为此时a.value = obj(引用), obj变化时，可以监测到
 obj = {} // 新的引用
 obj.attr = 2 // watch a 无变化， 因为此时a.value = obj(原先的引用)，而obj改变的是新引用内容
+
+## 20250530
+
+画布里的组件用bus事件打通和属性面板的动态数据互通

@@ -1,5 +1,3 @@
-import { h } from "vue";
-
 export default {
   // tp - 0发布; 1订阅; 2装饰
   menu: {
@@ -12,8 +10,6 @@ export default {
           icon: "",
           props: {
             title: "输入框xxx",
-            width: 140,
-            height: 30,
             btnWidth: 30,
             placeholder: "请输入发布内容", 
             topic: {},
@@ -70,15 +66,15 @@ export default {
           props:{
             title: "折线图",
             topic: {},
-            w: 450,
-            h: 300,
+            width: 450,
+            height: 300,
             hideBg: false, // 是否隐藏背景
             yUnit: "单位", // Y轴单位
             count: 10,
-            yData: [],
-          },
-          width: 100,
-          height: 45,
+            isInit: true, // 数据是否为初始状态
+            lineTitles: ["折线1"],
+            yData: [[]],
+          }
         },
         gauge: {
           tp: 1,

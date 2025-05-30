@@ -21,25 +21,34 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, inject, onBeforeMount } from 'vue'
 import * as echarts from 'echarts'
+import bus from '../../utils/bus'
 
 const props = defineProps({
   compProps: {
     type: Object,
     required: false,
     default: () => ({})
+  },
+  compId: {
+    type: Number,
+    required: false,
+    default: -1
   }
 })
 
+const activeCompProps = inject('activeCompProps')
+
 const RefMain = ref(null)
 const container = ref(null)
+
 let myChart
 
 const width = ref(300)
 const height = ref(200)
-const left = ref(100)
-const top = ref(100)
+const left = ref(0)
+const top = ref(0)
 
 let resizing = false
 let origin = { x: 0, y: 0 }
@@ -152,8 +161,29 @@ function renderChart() {
   myChart.resize()
 }
 
+/* -------------------------------------- */
+watch([width, height], () => {
+  console.log('watch lineChart size change:', width.value, height.value)
+  activeCompProps.get().width = width.value
+  activeCompProps.get().height = height.value
+  nextTick(() => myChart && myChart.resize())
+})
+
+bus.on('lineChartWHChange', ({id, newWidth, newHeight}) => {
+  if (id !== props.compId) return
+  console.log('bus lineChartWHChange match:', id, newWidth, newHeight)
+  width.value = newWidth
+  height.value = newHeight
+  nextTick(() => myChart && myChart.resize())
+})
+
+/* ---------------------------------- */
+onBeforeMount(() => {
+  width.value = props.compProps.width || 300
+  height.value = props.compProps.height || 200
+})
 onMounted(renderChart)
-watch([width, height], () => nextTick(() => myChart && myChart.resize()))
+
 </script>
 
 <style scoped lang="scss">

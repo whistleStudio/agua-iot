@@ -81,9 +81,14 @@ app.whenReady().then(() => {
     try {
       projList.forEach(proj => { // 清空yData属性
         proj.canvasCache.rawComponents.forEach(comp => {
-          if (comp?.props && comp.props.hasOwnProperty('yData')) {
+          if (comp?.props && comp.props.hasOwnProperty('data') && comp.props.hasOwnProperty("time")) {
             // 如果存在yData属性，则清空
-            comp.props.yData = [[]]
+            comp.props.data.forEach(item => {
+              if (item.hasOwnProperty('logs')) {
+                item.logs = []
+              }
+            })
+            comp.props.time = []
           }
         })
       })

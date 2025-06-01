@@ -6,7 +6,8 @@
       height: height + 'px',
       left: left + 'px',
       top: top + 'px',
-      position: 'absolute'
+      position: 'absolute',
+      backgroundColor: bgc
     }"
     ref="container"
   >
@@ -49,6 +50,7 @@ const width = ref(300)
 const height = ref(200)
 const left = ref(0)
 const top = ref(0)
+const bgc = ref('rgb(246, 250, 253)')
 
 let resizing = false
 let origin = { x: 0, y: 0 }
@@ -94,7 +96,7 @@ function stopResize() {
 }
 
 const option = {
-  backgroundColor: '#f6fafd',
+  backgroundColor: 'rgb(255, 255, 255)',
   title: {
     text: '多折线图',
     left: 'center',
@@ -106,7 +108,7 @@ const option = {
     }
   },
   legend: {
-    data: ['折线1', '折线2'],
+    data: ['折线1'],
     top: 40,
     left: 'center',
     icon: 'circle',
@@ -131,24 +133,15 @@ const option = {
     axisLabel: { color: '#6c839a', fontWeight: 500 }
   },
   series: [
-    {
-      name: '折线1',
-      data: [150, 230, 224, 218, 135, 147, 260],
-      type: 'line',
-      symbol: 'circle',
-      symbolSize: 7,
-      itemStyle: { color: '#4d8af0', borderColor: '#fff', borderWidth: 2 },
-      lineStyle: { color: '#4d8af0', width: 2 }
-    },
-    {
-      name: '折线2',
-      data: [180, 330, 224, 218, 135, 147, 260],
-      type: 'line',
-      symbol: 'circle',
-      symbolSize: 7,
-      itemStyle: { color: '#ff0000', borderColor: '#fff', borderWidth: 2 },
-      lineStyle: { color: '#ff0000', width: 2 }
-    }
+    // {
+    //   name: '折线1',
+    //   data: [150, 230, 224, 218, 135, 147, 260],
+    //   type: 'line',
+    //   symbol: 'circle',
+    //   symbolSize: 7,
+    //   itemStyle: { color: '#4d8af0', borderColor: '#fff', borderWidth: 2 },
+    //   lineStyle: { color: '#4d8af0', width: 2 }
+    // }
   ]
 }
 
@@ -161,6 +154,33 @@ function renderChart() {
   myChart.resize()
 }
 
+// 初始状态样例数据生成
+function genInitData() {
+  console.log('genInitData called:', props.compProps.isInit)
+  if (props.compProps.isInit) {
+    const dataL = props.compProps.data.length, dateNow = Date.now()
+    console.log('init data length:', dataL)
+    Array(10).fill(0).forEach((_, idx) => {
+      const timeStamp = formatTime(dateNow - (10 - idx) * 1000)
+      props.compProps.time[idx] = timeStamp
+      Array(dataL).fill(0).forEach((__, lineIdx) => {
+        props.compProps.data[lineIdx].logs[idx]=idx+lineIdx
+      })
+    })
+    option.xAxis.data = props.compProps.time
+    console.log('init data generated:', props.compProps.data)
+  }
+}
+
+// 将 Date.now() 转为 "HH:mm:ss" 字符串
+function formatTime(ts) {
+  const date = new Date(ts)
+  const h = String(date.getHours()).padStart(2, '0')
+  const m = String(date.getMinutes()).padStart(2, '0')
+  const s = String(date.getSeconds()).padStart(2, '0')
+  return `${h}:${m}:${s}`
+}
+
 /* -------------------------------------- */
 watch([width, height], () => {
   console.log('watch lineChart size change:', width.value, height.value)
@@ -168,6 +188,39 @@ watch([width, height], () => {
   activeCompProps.get().height = height.value
   nextTick(() => myChart && myChart.resize())
 })
+
+watch(props.compProps, newVal => {
+  option.title.text = newVal.title || '折线图'
+  option.yAxis.name = newVal.yUnit
+  if (newVal.hideBg) {
+    bgc.value = 'rgba(255, 255, 255, 0.01)'
+    option.backgroundColor = 'rgba(255, 255, 255, 0.01)'
+  } else {
+    bgc.value = 'rgb(255, 255, 255)'
+    option.backgroundColor = 'rgb(255, 255, 255)'
+  }
+  option.legend.data = []
+  option.series = []
+  newVal.data.forEach((line, idx) => {
+    console.log('linechart line data:', line.logs)
+    option.legend.data.push(line.name || `折线${idx + 1}`)
+    option.series.push({
+      name: line.name || `折线${idx + 1}`,
+      data: line.logs || [],
+      // data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // 临时数据
+      type: 'line',
+      symbol: 'circle',
+      symbolSize: 7,
+      itemStyle: { color: line.color, borderColor: '#fff', borderWidth: 2 },
+      lineStyle: { color: line.color, width: 2 }
+    })
+  })
+  // console.log('linechart props.compProps changed:', newVal)
+  if (myChart) {
+    myChart.setOption(option, true)
+    myChart.resize()
+  }
+}, {  deep: true })
 
 bus.on('lineChartWHChange', ({id, newWidth, newHeight}) => {
   if (id !== props.compId) return
@@ -181,6 +234,7 @@ bus.on('lineChartWHChange', ({id, newWidth, newHeight}) => {
 onBeforeMount(() => {
   width.value = props.compProps.width || 300
   height.value = props.compProps.height || 200
+  genInitData()
 })
 onMounted(renderChart)
 
@@ -188,14 +242,13 @@ onMounted(renderChart)
 
 <style scoped lang="scss">
 .resize-container {
-  border: 1.5px solid #90c2fa;
   border-radius: 7px;
-  background: #f6fafd;
-  box-shadow: none;
+  box-shadow: 0 0 8px rgba(0,0,0,0.03);
+  background: rgb(255, 255, 255);
   display: flex;
   align-items: center;
   justify-content: center;
-
+  box-sizing: border-box;
   .chart-center {
     width: 100%;
     height: 100%;

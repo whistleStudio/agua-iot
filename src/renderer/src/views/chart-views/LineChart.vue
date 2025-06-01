@@ -22,7 +22,7 @@
         <a-checkbox v-model:checked="attrData.hideBg" />
       </a-form-item>
       <a-form-item label="纵轴单位">
-        <a-input v-model:value="attrData.yUnit" placeholder="°C" />
+        <a-input v-model:value="attrData.yUnit" placeholder="单位" />
       </a-form-item>
       <a-form-item label="数量">
         <a-select v-model:value="attrData.count" :options="countOpts" />
@@ -31,7 +31,7 @@
         <div class="lineset-list">
           <div v-for="(line, idx) in lineList" :key="idx" class="lineset-row">
             <span class="line-index">{{ idx + 1 }}.</span>
-            <a-input class="line-input" v-model:value="lineList[idx]" :placeholder="`折线${idx + 1}`" :disabled="false" @change="updateLines" />
+            <a-input class="line-input" v-model:value="lineList[idx].name" :placeholder="`折线${idx + 1}`" :disabled="false" @change="updateLines" />
             <a-button v-if="lineList.length > 1" type="text" class="line-remove-btn" style="color:#d4380d" @click="removeLine(idx)">-</a-button>
           </div>
           <a-button v-if="lineList.length < 5" type="dashed" class="line-add-btn" @click="addLine" style="margin-top: 8px;width: 40px;height: 32px;">+</a-button>
@@ -85,7 +85,7 @@ const countOpts = [
 ]
 
 // 折线名称数组（最多5项）与attrData同步
-const lineList = ref([])
+const lineList = computed(() => (attrData.value.data || []))
 
 onBeforeMount(() => {
   const avtJson = JSON.stringify(attrData.value.topic)
@@ -97,6 +97,7 @@ onBeforeMount(() => {
   } else {
     selectTopic.value = null
   }
+  // genInitData()
   // if (!attrData.value.count) attrData.value.count = 10
   // if (!attrData.value.width) attrData.value.width = 420
   // if (!attrData.value.height) attrData.value.height = 280
@@ -110,24 +111,59 @@ onBeforeMount(() => {
   // } else {
   //   lineList.value = ['折线1']
   // }
-  lineList.value = attrData.value.lineTitles
+  // lineList.value = attrData.value.data
   // // 初始状态的话给出示例图表
   console.log("isInit", attrData.value.isInit)
-  if (attrData.value.isInit) {
-    attrData.value.yData.forEach((line, idx) => {
-      // line = Array(5).fill(0).map((_, i) => (i+idx))
-      console.log(`init line ${idx + 1}:`, line)
-    })
-  }
+  // if (attrData.value.isInit) {
+  //   attrData.value.yData.forEach((line, idx) => {
+  //     // line = Array(5).fill(0).map((_, i) => (i+idx))
+  //     console.log(`init line ${idx + 1}:`, line)
+  //   })
+  // }
 
   updateLines()
 })
 
 watch(lineList, updateLines, { deep: true })
 
+// 初始状态样例数据生成
+// function genInitData() {
+//   console.log('genInitData called:', attrData.value.isInit)
+//   if (attrData.value.isInit) {
+//     const dataL = attrData.value.data.length, dateNow = Date.now()
+//     console.log('init data length:', dataL)
+//     Array(10).fill(0).forEach((_, idx) => {
+//       const timeStamp = formatTime(dateNow - (10 - idx) * 1000)
+//       attrData.value.time[idx] = timeStamp
+//       Array(dataL).fill(0).forEach((__, lineIdx) => {
+//         attrData.value.data[lineIdx].logs[idx]=idx+lineIdx
+//       })
+//     })
+//     console.log('init data generated:', attrData.value.data)
+//   }
+// }
+
+// 将 Date.now() 转为 "HH:mm:ss" 字符串
+// function formatTime(ts) {
+//   const date = new Date(ts)
+//   const h = String(date.getHours()).padStart(2, '0')
+//   const m = String(date.getMinutes()).padStart(2, '0')
+//   const s = String(date.getSeconds()).padStart(2, '0')
+//   return `${h}:${m}:${s}`
+// }
+
 function addLine() {
+  let defaultNameList = Array(5).fill(0).map((_, i) => `折线${i + 1}`)
+  let defaultColorList = ['#a9c5e8', '#b7e8c5', '#f7e3b5', '#f5c6b7', '#e3b7d3']
+  lineList.value.forEach(line => {
+    const idx = defaultNameList.indexOf(line.name)
+    if (idx !== -1) defaultNameList.splice(idx, 1)
+    const idx2 = defaultColorList.indexOf(line.color)
+    if (idx2 !== -1) defaultColorList.splice(idx2, 1)
+  })
   if (lineList.value.length < 5) {
-    lineList.value.push(`折线${lineList.value.length + 1}`)
+    lineList.value.push({name: defaultNameList[0], color: defaultColorList[0], logs: []})
+    genInitData()
   }
 }
 function removeLine(idx) {
@@ -137,9 +173,9 @@ function removeLine(idx) {
 }
 function updateLines() {
   // 同步到attrData
-  attrData.value.lines = [...lineList.value]
+  // attrData.value.data = [...lineList.value]
   // 兼容老字段
-  if (attrData.value.lines?.[0]) attrData.value.line1 = attrData.value.lines[0]
+  // if (attrData.value.lines?.[0]) attrData.value.line1 = attrData.value.lines[0]
 }
 // 输入框回车失去焦
 function enterBlur(e) { e.target.blur() }

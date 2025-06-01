@@ -73,7 +73,8 @@ export default {
             count: 10,
             isInit: true, // 数据是否为初始状态
             lineTitles: ["折线1"],
-            yData: [[]],
+            data:[{ name: "折线1", color: "#a9c5e8", logs: [] }],
+            time: []
           }
         },
         gauge: {

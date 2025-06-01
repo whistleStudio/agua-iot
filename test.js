@@ -1,1 +1,2 @@
-console.log(1+"a"+false)
+let a = []
+a[0] = 1

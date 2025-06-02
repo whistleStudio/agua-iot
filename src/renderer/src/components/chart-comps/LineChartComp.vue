@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch, inject, onBeforeMount } from 'vue'
+import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onUnmounted, onBeforeUnmount } from 'vue'
 import * as echarts from 'echarts'
 import bus from '../../utils/bus'
 
@@ -136,15 +136,6 @@ const option = {
     axisLabel: { color: '#6c839a', fontWeight: 500 }
   },
   series: [
-    // {
-    //   name: '折线1',
-    //   data: [150, 230, 224, 218, 135, 147, 260],
-    //   type: 'line',
-    //   symbol: 'circle',
-    //   symbolSize: 7,
-    //   itemStyle: { color: '#4d8af0', borderColor: '#fff', borderWidth: 2 },
-    //   lineStyle: { color: '#4d8af0', width: 2 }
-    // }
   ]
 }
 
@@ -169,6 +160,8 @@ function genInitData() {
       })
     })
     option.xAxis.data = props.compProps.time
+  } else {
+
   }
 }
 
@@ -181,9 +174,14 @@ function formatTime(ts) {
   return `${h}:${m}:${s}`
 }
 
+// 处理payload
+function processPayload(payload) {
+  return payload.replace(/\s+/g, '').split(/,|，/)
+}
+
 /* -------------------------------------- */
 watch([width, height], () => {
-  console.log('watch lineChart size change:', width.value, height.value)
+  // console.log('watch lineChart size change:', width.value, height.value)
   activeCompProps.get().width = width.value
   activeCompProps.get().height = height.value
   nextTick(() => myChart && myChart.resize())
@@ -214,12 +212,13 @@ watch(props.compProps, newVal => {
       lineStyle: { color: line.color, width: 2 }
     })
   })
+  option.xAxis.data = newVal.time || []
   // console.log('linechart props.compProps changed:', newVal)
   if (myChart) {
     myChart.setOption(option, true)
     myChart.resize()
   }
-}, {  deep: true })
+}, { immediate: true, deep: true })
 // 属性面变化时组件DOM更新
 bus.on('lineChartWHChange', ({id, newWidth, newHeight}) => {
   if (id !== props.compId) return
@@ -234,6 +233,37 @@ bus.on('initDataChange', () => {
   genInitData()
 })
 
+const subTopicDataHandle = ({ topic, qos, payload, time }) => {
+  if ( topic != props.compProps.topic.topic || qos != props.compProps.topic.qos ) return
+  console.log('bus subTopicData received:', topic, qos, payload, time)
+  if (props.compProps.isInit) {
+    props.compProps.time = [] // 清空时间戳
+    props.compProps.data.forEach(line => {
+      line.logs = [] // 清空所有折线数据
+    })
+  }
+  try {
+    const data = processPayload(payload)
+    const timeStamp = formatTime(Date.now())
+    props.compProps.time.push(timeStamp)
+    if (props.compProps.time.length > 100) {
+      props.compProps.time.shift() // 保持最新的100条时间戳
+    }
+    props.compProps.data.forEach((line, idx) => {
+      if (data[idx] !== undefined) {
+        line.logs.push(parseFloat(data[idx]).toFixed(2)) // 保留两位小数
+        if (line.logs.length > 100) {
+          line.logs.shift() // 保持最新的100条数据
+        }
+      } else {
+        line.logs.push('NaN') // 如果没有数据，填充0
+      }
+    })
+    props.compProps.isInit = false // 标记为非初始化状态
+  } catch(e) { console.log("sub data err", e); return}
+}
+// 监听订阅主题的数据
+bus.on('subTopicData', subTopicDataHandle)
 /* ---------------------------------- */
 onBeforeMount(() => {
   width.value = props.compProps.width || 300
@@ -241,6 +271,8 @@ onBeforeMount(() => {
   genInitData()
 })
 onMounted(renderChart)
+
+onBeforeUnmount(() => bus.off('subTopicData', subTopicDataHandle))
 
 </script>
 

@@ -17,8 +17,12 @@
         </a-dropdown>
       </div>
       <div class="visual-editor__header-right">
-        <a-badge status="error" />
-        <span class="visual-editor__header-connection">连接失败</span>
+        <!-- <a-badge status="error" />
+        <span class="visual-editor__header-connection">连接失败</span> -->
+        <div @click="clickReadingBtn" class="reading-btn">
+          <img v-if="isStart" :src="getImgPath('stop.svg')" alt="">
+          <img v-else :src="getImgPath('start.svg')" alt="">
+        </div> 
         <a-button type="primary" shape="round" class="visual-editor__header-fullscreen">
           <template #icon></template>
           全屏
@@ -104,6 +108,7 @@ const componentMap = {
   // ...可继续扩展其它组件
 };
 
+const isStart = ref(false);
 const menu = ref(chartCfg.menu);
 const projList = reactive(bus.projList);
 // 直接从 bus 中获取和设置 activeProjIdx
@@ -264,6 +269,23 @@ function restoreCanvas() {
   }
 }
 
+// 获取图片路径
+function getImgPath(imgName) {
+  return new URL(`../assets/img/${imgName}`, import.meta.url).href
+}
+
+function clickReadingBtn() {
+  isStart.value = !isStart.value;
+}
+
+// 监听mqtt数据
+window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
+  const { topic, qos, payload, time } = data
+  if (!isStart.value) return
+  bus.emit('subTopicData', data)
+})
+
+/* ----------------------------------------------------- */
 // 同步canvasComponents到bus
 watch(canvasComponents, (newVal) => {
   // console.log('canvasComponents changed:', newVal);
@@ -347,6 +369,19 @@ function showLayoutSettings() {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     z-index: 2;
     flex-shrink: 0;
+    &-right {
+      display: flex;
+      align-items: center;
+      .reading-btn {
+        display: flex;
+        margin-right: 10px;
+        cursor: pointer;
+        img {
+          width: 20px;
+          height: 20px;
+        }
+      }
+    }
   }
 
   &__sider {

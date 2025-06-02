@@ -21,12 +21,14 @@ const bus = {
       events[event] = []
     }
     events[event].push(callback)
+    console.log('on', event, callback)
   },
 
   // 注销事件监听
   off(event, callback) {
     if (!events[event]) return
     events[event] = events[event].filter(cb => cb !== callback)
+    console.log('off', event, callback)
   },
 
   // 触发事件

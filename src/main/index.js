@@ -89,6 +89,7 @@ app.whenReady().then(() => {
               }
             })
             comp.props.time = []
+            comp.props.isInit = true // 重置为初始状态
           }
         })
       })

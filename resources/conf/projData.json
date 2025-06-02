@@ -74,40 +74,37 @@
               "size": "small",
               "hideBg": false
             },
-            "top": 31.139965834589745,
+            "top": 30.139965834589745,
             "left": 136.36296324092837
           },
           {
-            "id": 1748790363194.4033,
+            "id": 1748871853020.1372,
             "type": "linechart",
             "props": {
               "title": "折线图",
-              "topic": {},
-              "width": 614,
-              "height": 346,
+              "topic": {
+                "topic": "testtopic/num",
+                "qos": 0,
+                "color": "#f2a145",
+                "alias": ""
+              },
+              "width": 450,
+              "height": 300,
               "hideBg": false,
               "yUnit": "单位",
               "count": 10,
               "isInit": true,
-              "lineTitles": [
-                "折线1"
-              ],
               "data": [
                 {
-                  "name": "折线12",
-                  "color": "#a9c5e8",
-                  "logs": []
-                },
-                {
                   "name": "折线1",
-                  "color": "#b7e8c5",
+                  "color": "#a9c5e8",
                   "logs": []
                 }
               ],
               "time": []
             },
-            "top": 214.97807425496637,
-            "left": 73.81221545376116
+            "top": 179.60147876284597,
+            "left": 24.345761038001683
           }
         ]
       }

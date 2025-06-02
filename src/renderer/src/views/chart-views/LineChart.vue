@@ -97,30 +97,6 @@ onBeforeMount(() => {
   } else {
     selectTopic.value = null
   }
-  // genInitData()
-  // if (!attrData.value.count) attrData.value.count = 10
-  // if (!attrData.value.width) attrData.value.width = 420
-  // if (!attrData.value.height) attrData.value.height = 280
-  // if (!attrData.value.yUnit) attrData.value.yUnit = '°C'
-
-  // // 初始化折线数组
-  // if (Array.isArray(attrData.value.lines)) {
-  //   lineList.value = [...attrData.value.lines]
-  // } else if (attrData.value.line1) {
-  //   lineList.value = [attrData.value.line1]
-  // } else {
-  //   lineList.value = ['折线1']
-  // }
-  // lineList.value = attrData.value.data
-  // // 初始状态的话给出示例图表
-  console.log("isInit", attrData.value.isInit)
-  // if (attrData.value.isInit) {
-  //   attrData.value.yData.forEach((line, idx) => {
-  //     // line = Array(5).fill(0).map((_, i) => (i+idx))
-  //     console.log(`init line ${idx + 1}:`, line)
-  //   })
-  // }
-
   updateLines()
 })
 

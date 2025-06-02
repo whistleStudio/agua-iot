@@ -1,2 +1,1 @@
-let a = []
-a[0] = 1
+console.log(parseFloat("2.5555").toFixed(2))

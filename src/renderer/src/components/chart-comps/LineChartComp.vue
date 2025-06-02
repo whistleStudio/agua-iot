@@ -117,6 +117,9 @@ const option = {
     textStyle: { fontSize: 15, color: '#444', padding: [0,0,0,3] }
   },
   grid: { top: 70, left: 48, right: 16, bottom: 38, containLabel: true },
+  tooltip: {
+    trigger: 'axis'
+  },
   xAxis: {
     type: 'category',
     data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
@@ -156,10 +159,8 @@ function renderChart() {
 
 // 初始状态样例数据生成
 function genInitData() {
-  console.log('genInitData called:', props.compProps.isInit)
   if (props.compProps.isInit) {
     const dataL = props.compProps.data.length, dateNow = Date.now()
-    console.log('init data length:', dataL)
     Array(10).fill(0).forEach((_, idx) => {
       const timeStamp = formatTime(dateNow - (10 - idx) * 1000)
       props.compProps.time[idx] = timeStamp
@@ -168,7 +169,6 @@ function genInitData() {
       })
     })
     option.xAxis.data = props.compProps.time
-    console.log('init data generated:', props.compProps.data)
   }
 }
 
@@ -202,7 +202,6 @@ watch(props.compProps, newVal => {
   option.legend.data = []
   option.series = []
   newVal.data.forEach((line, idx) => {
-    console.log('linechart line data:', line.logs)
     option.legend.data.push(line.name || `折线${idx + 1}`)
     option.series.push({
       name: line.name || `折线${idx + 1}`,
@@ -221,13 +220,18 @@ watch(props.compProps, newVal => {
     myChart.resize()
   }
 }, {  deep: true })
-
+// 属性面变化时组件DOM更新
 bus.on('lineChartWHChange', ({id, newWidth, newHeight}) => {
   if (id !== props.compId) return
   console.log('bus lineChartWHChange match:', id, newWidth, newHeight)
   width.value = newWidth
   height.value = newHeight
   nextTick(() => myChart && myChart.resize())
+})
+// 增删折线时更新图表
+bus.on('initDataChange', () => {
+  if (bus.activeCompId !== props.compId) return 
+  genInitData()
 })
 
 /* ---------------------------------- */

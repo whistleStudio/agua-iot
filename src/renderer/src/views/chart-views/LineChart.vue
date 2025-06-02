@@ -126,31 +126,6 @@ onBeforeMount(() => {
 
 watch(lineList, updateLines, { deep: true })
 
-// 初始状态样例数据生成
-// function genInitData() {
-//   console.log('genInitData called:', attrData.value.isInit)
-//   if (attrData.value.isInit) {
-//     const dataL = attrData.value.data.length, dateNow = Date.now()
-//     console.log('init data length:', dataL)
-//     Array(10).fill(0).forEach((_, idx) => {
-//       const timeStamp = formatTime(dateNow - (10 - idx) * 1000)
-//       attrData.value.time[idx] = timeStamp
-//       Array(dataL).fill(0).forEach((__, lineIdx) => {
-//         attrData.value.data[lineIdx].logs[idx]=idx+lineIdx
-//       })
-//     })
-//     console.log('init data generated:', attrData.value.data)
-//   }
-// }
-
-// 将 Date.now() 转为 "HH:mm:ss" 字符串
-// function formatTime(ts) {
-//   const date = new Date(ts)
-//   const h = String(date.getHours()).padStart(2, '0')
-//   const m = String(date.getMinutes()).padStart(2, '0')
-//   const s = String(date.getSeconds()).padStart(2, '0')
-//   return `${h}:${m}:${s}`
-// }
 
 function addLine() {
   let defaultNameList = Array(5).fill(0).map((_, i) => `折线${i + 1}`)
@@ -163,12 +138,13 @@ function addLine() {
   })
   if (lineList.value.length < 5) {
     lineList.value.push({name: defaultNameList[0], color: defaultColorList[0], logs: []})
-    genInitData()
+    bus.emit('initDataChange')
   }
 }
 function removeLine(idx) {
   if (lineList.value.length > 1) {
     lineList.value.splice(idx, 1)
+    bus.emit('initDataChange')
   }
 }
 function updateLines() {

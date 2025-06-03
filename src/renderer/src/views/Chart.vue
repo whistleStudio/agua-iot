@@ -67,7 +67,7 @@
               :style="getDraggableStyle(comp, idx)"
               @mousedown.stop="startDrag($event, idx, comp)"
             >
-              <component :is="comp.component" :compProps="comp.props" :compId="comp.id"/>
+              <component :is="comp.component" :compProps="comp.props" :compId="comp.id" :activeCompId="activeCompId"/>
             </div>
           </div>
         </div>
@@ -82,7 +82,7 @@
 </template>
 
 <script setup>
-import { ref, markRaw, provide, reactive, computed, onBeforeMount, watch } from 'vue';
+import { ref, markRaw, provide, reactive, computed, onBeforeMount, watch, onBeforeUnmount } from 'vue';
 import { useRouter } from 'vue-router';
 import chartCfg from '../cfg/chart-cfg';
 import { cloneDeep } from 'lodash-es';
@@ -131,7 +131,7 @@ const canvasLayout = ref({})
 
 // 画布上激活的组件
 const layoutComp = {props:{}};
-const activeComponent = ref(layoutComp);
+const activeComponent = ref(layoutComp), activeCompId = ref(0);
 const compProps = {...chartCfg.menu.pubComponents.parts, ...chartCfg.menu.subComponents.parts};
 // 拖拽相关
 const isDragging = ref(false);
@@ -173,6 +173,7 @@ function startDrag(event, idx, comp) {
   if (!isDragging.value) {
     activeComponent.value = comp;
     bus.activeCompId = comp.id; // 更新总线上的当前组件
+    activeCompId.value = comp.id; // 更新本地状态
     // 路由跳转
     router.push({ path: '/home/chart/' + comp.type});
   };
@@ -333,6 +334,13 @@ onBeforeMount(() => {
   }
 })
 
+onBeforeUnmount(() => {
+  // 清理拖拽事件监听
+  document.removeEventListener('mousemove', onDrag);
+  document.removeEventListener('mouseup', stopDrag);
+  // 清理mqtt数据监听
+  window.electron.ipcRenderer.removeAllListeners("m:mqttData");
+})
 
 
 // 右侧属性栏展示-布局设置
@@ -340,6 +348,7 @@ function showLayoutSettings() {
   router.push('/home/chart/layout');
   activeComponent.value = layoutComp;
   bus.activeCompId = 0; // 更新总线上的当前组件
+  activeCompId.value = 0; // 更新本地状态
 }
 
 </script>
@@ -485,5 +494,23 @@ function showLayoutSettings() {
       opacity: 0.7;
     }
   }
+  :deep(.tips) {
+    border: 1px solid #d9f7be;
+    background: #f6ffed;
+    padding: 8px;
+    margin-top: 12px;
+    border-radius: 3px;
+    .tips-title {
+      font-weight: bold;
+      color: #389e0d;
+      margin-bottom: 4px;
+    }
+    .tips-desc {
+      color: #222;
+      font-size: 13px;
+      line-height: 20px;
+    }
+  }
 }
+
 </style>

@@ -107,7 +107,7 @@
 
 
 <script setup>
-import { onMounted, onBeforeMount, reactive, ref, computed, watch } from 'vue'
+import { onMounted, onBeforeMount, reactive, ref, computed, watch, onBeforeUnmount } from 'vue'
 import ProjModal from '../components/ProjModal.vue'
 import SubscriptionModal from '../components/SubscriptionModal.vue';
 import bus from '../utils/bus'
@@ -312,12 +312,17 @@ watch(() => activeProj.value.cache, (newVal) => {
   }
 }, { deep: true })
 
+/* ---------------------------------- */
 onBeforeMount(() => {
   projList = reactive(bus.projList)
   if (projList.length > 0) {
     if (bus.activeProjIdx === -1) activeProjID.value = projList[0].id // 默认选中第一个项目
     else activeProjID.value = projList[bus.activeProjIdx].id 
   }
+})
+
+onBeforeUnmount(() => {
+  window.electron.ipcRenderer.removeAllListeners("m:mqttData")
 })
 </script>
 

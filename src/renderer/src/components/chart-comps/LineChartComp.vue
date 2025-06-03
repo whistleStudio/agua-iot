@@ -1,6 +1,6 @@
 <template>
   <div
-    class="resize-container"
+    class="resize-container" :class="{ active: props.compId === activeCompId }"
     :style="{
       width: width + 'px',
       height: height + 'px',
@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onUnmounted, onBeforeUnmount } from 'vue'
+import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount } from 'vue'
 import * as echarts from 'echarts'
 import bus from '../../utils/bus'
 
@@ -33,6 +33,11 @@ const props = defineProps({
     default: () => ({})
   },
   compId: {
+    type: Number,
+    required: false,
+    default: -1
+  },
+  activeCompId: {
     type: Number,
     required: false,
     default: -1
@@ -122,7 +127,7 @@ const option = {
   },
   xAxis: {
     type: 'category',
-    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    data: [],
     axisLine: { lineStyle: { color: '#b7d7f6' } },
     axisLabel: { color: '#6c839a', fontWeight: 500 }
   },
@@ -188,6 +193,7 @@ watch([width, height], () => {
 })
 
 watch(props.compProps, newVal => {
+  // console.log('linechart props.compProps changed')
   option.title.text = newVal.title || '折线图'
   option.yAxis.name = newVal.yUnit
   if (newVal.hideBg) {
@@ -201,6 +207,8 @@ watch(props.compProps, newVal => {
   option.series = []
   newVal.data.forEach((line, idx) => {
     option.legend.data.push(line.name || `折线${idx + 1}`)
+    line.logs.splice(0, line.logs.length - newVal.count) // 保留最新的count条数据
+    newVal.time.splice(0, newVal.time.length - newVal.count) // 保留最新的count条时间戳
     option.series.push({
       name: line.name || `折线${idx + 1}`,
       data: line.logs || [],
@@ -219,23 +227,29 @@ watch(props.compProps, newVal => {
     myChart.resize()
   }
 }, { immediate: true, deep: true })
+
 // 属性面变化时组件DOM更新
-bus.on('lineChartWHChange', ({id, newWidth, newHeight}) => {
+const lineChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
   if (id !== props.compId) return
-  console.log('bus lineChartWHChange match:', id, newWidth, newHeight)
+  console.log('lineChartWHChange match:', id, newWidth, newHeight)
   width.value = newWidth
   height.value = newHeight
   nextTick(() => myChart && myChart.resize())
-})
+}
+bus.on('lineChartWHChange', lineChartWHChangeHandle)
+
 // 增删折线时更新图表
-bus.on('initDataChange', () => {
+const initDataChangeHandle = () => {
   if (bus.activeCompId !== props.compId) return 
   genInitData()
-})
+}
+bus.on('initDataChange', initDataChangeHandle)
 
+// 监听订阅主题的数据
 const subTopicDataHandle = ({ topic, qos, payload, time }) => {
+  // console.log('bus1 subTopicData received:', topic, qos, payload, time)
   if ( topic != props.compProps.topic.topic || qos != props.compProps.topic.qos ) return
-  console.log('bus subTopicData received:', topic, qos, payload, time)
+  // console.log('bus2 subTopicData received:', topic, qos, payload, time)
   if (props.compProps.isInit) {
     props.compProps.time = [] // 清空时间戳
     props.compProps.data.forEach(line => {
@@ -246,15 +260,15 @@ const subTopicDataHandle = ({ topic, qos, payload, time }) => {
     const data = processPayload(payload)
     const timeStamp = formatTime(Date.now())
     props.compProps.time.push(timeStamp)
-    if (props.compProps.time.length > 100) {
-      props.compProps.time.shift() // 保持最新的100条时间戳
-    }
+    // if (props.compProps.time.length > 100) {
+    //   props.compProps.time.shift() // 保持最新的100条时间戳
+    // }
     props.compProps.data.forEach((line, idx) => {
       if (data[idx] !== undefined) {
         line.logs.push(parseFloat(data[idx]).toFixed(2)) // 保留两位小数
-        if (line.logs.length > 100) {
-          line.logs.shift() // 保持最新的100条数据
-        }
+        // if (line.logs.length > 100) {
+        //   line.logs.shift() // 保持最新的100条数据
+        // }
       } else {
         line.logs.push('NaN') // 如果没有数据，填充0
       }
@@ -262,7 +276,6 @@ const subTopicDataHandle = ({ topic, qos, payload, time }) => {
     props.compProps.isInit = false // 标记为非初始化状态
   } catch(e) { console.log("sub data err", e); return}
 }
-// 监听订阅主题的数据
 bus.on('subTopicData', subTopicDataHandle)
 /* ---------------------------------- */
 onBeforeMount(() => {
@@ -272,7 +285,11 @@ onBeforeMount(() => {
 })
 onMounted(renderChart)
 
-onBeforeUnmount(() => bus.off('subTopicData', subTopicDataHandle))
+onBeforeUnmount(() => {
+  bus.off('lineChartWHChange', lineChartWHChangeHandle)
+  bus.off('initDataChange', initDataChangeHandle)
+  bus.off('subTopicData', subTopicDataHandle)
+})
 
 </script>
 
@@ -285,6 +302,9 @@ onBeforeUnmount(() => bus.off('subTopicData', subTopicDataHandle))
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
+  &.active {
+    border: 1px solid rgba(48, 150, 245, 0.6) !important;
+  }
   .chart-center {
     width: 100%;
     height: 100%;

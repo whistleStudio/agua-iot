@@ -18,6 +18,20 @@
         <a-checkbox v-model:checked="attrData.hideBg" />
       </a-form-item>
     </a-form>
+
+    <div class="tips">
+      <div class="tips-title">组件功能</div>
+      <div class="tips-desc">
+        点击发送按钮，将输入框内容发布到指定主题。<br>
+      </div>
+    </div>
+    <div class="tips">
+      <div class="tips-title">发布数据</div>
+      <div class="tips-desc">
+        示例：meow~<br>
+        说明：文本
+      </div>
+    </div>
   </div>
 </template>
 
@@ -49,7 +63,7 @@ const opts = computed(() => pubTopics.value.map(v => {
 
 /* ------------------------------- */
 onBeforeMount(() => {
-  console.log('PubTextComp onBeforeMount:', attrData.value.topic)
+  // console.log('PubTextComp onBeforeMount:', attrData.value.topic)
   const avtJson = JSON.stringify(attrData.value.topic) 
   if (attrData.value?.topic?.topic && pubTopics.value.findIndex(v => JSON.stringify(v)===avtJson) !== -1) {
     selectTopic.value = avtJson
@@ -76,6 +90,5 @@ onBeforeMount(() => {
   :deep(.ant-form-item) {
     margin-bottom: 16px;
   }
-
 }
 </style>

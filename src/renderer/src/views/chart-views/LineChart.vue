@@ -80,8 +80,8 @@ const opts = computed(() => subTopics.value.map(v => ({
 
 const countOpts = [
   { label: '10', value: 10 },
-  { label: '100', value: 100 },
-  { label: '1000', value: 1000 }
+  { label: '50', value: 50 },
+  { label: '100', value: 100 }
 ]
 
 // 折线名称数组（最多5项）与attrData同步
@@ -185,23 +185,6 @@ function enterBlur(e) { e.target.blur() }
         border: 1px solid #1890ff;
         background: #e6f7ff;
       }
-    }
-  }
-  .tips {
-    border: 1px solid #d9f7be;
-    background: #f6ffed;
-    padding: 8px 12px;
-    margin-top: 12px;
-    border-radius: 3px;
-    .tips-title {
-      font-weight: bold;
-      color: #389e0d;
-      margin-bottom: 4px;
-    }
-    .tips-desc {
-      color: #222;
-      font-size: 13px;
-      line-height: 20px;
     }
   }
 }

@@ -10,7 +10,6 @@ export default {
           icon: "",
           props: {
             title: "输入框xxx",
-            btnWidth: 30,
             placeholder: "请输入发布内容", 
             topic: {},
             size: "medium", // small, medium, large

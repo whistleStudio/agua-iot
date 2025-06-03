@@ -62,34 +62,31 @@
         },
         "rawComponents": [
           {
-            "id": 1748423601417.593,
+            "id": 1748939836957.1353,
             "type": "pubtext",
             "props": {
               "title": "输入框xxx",
-              "width": 140,
-              "height": 30,
               "btnWidth": 30,
               "placeholder": "请输入发布内容",
-              "topic": "",
-              "size": "small",
+              "topic": {
+                "topic": "ssss",
+                "qos": 0,
+                "retain": false
+              },
+              "size": "medium",
               "hideBg": false
             },
-            "top": 30.139965834589745,
-            "left": 136.36296324092837
+            "top": 31.36291032796163,
+            "left": 418.14804336695016
           },
           {
-            "id": 1748871853020.1372,
+            "id": 1748941862289.247,
             "type": "linechart",
             "props": {
               "title": "折线图",
-              "topic": {
-                "topic": "testtopic/num",
-                "qos": 0,
-                "color": "#f2a145",
-                "alias": ""
-              },
-              "width": 450,
-              "height": 300,
+              "topic": {},
+              "width": 497,
+              "height": 328,
               "hideBg": false,
               "yUnit": "单位",
               "count": 10,
@@ -103,8 +100,8 @@
               ],
               "time": []
             },
-            "top": 179.60147876284597,
-            "left": 24.345761038001683
+            "top": 184.712350856086,
+            "left": 274.5187828216077
           }
         ]
       }

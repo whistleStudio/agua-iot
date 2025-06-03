@@ -21,8 +21,9 @@
 
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, onBeforeUnmount } from 'vue'
 import ConnectionModal from '../components/ProjModal.vue'
+import bus from '../utils/bus'
 
 
 
@@ -51,6 +52,7 @@ const connectionModalInfo = reactive({
 
 /* 显示自定义提示框 */
 const showCustomAlert = ({msg, type}) => {
+  console.log('showCustomAlert:', msg, type)
   alertInfo.isShow = true
   alertInfo.msg = msg
   alertInfo.tp = type
@@ -59,6 +61,13 @@ const showCustomAlert = ({msg, type}) => {
   }, 1000)
 }
 
+
+bus.on('showCustomAlert', showCustomAlert)
+
+/* ------------------------ */
+onBeforeUnmount(() => {
+  bus.off('showCustomAlert', showCustomAlert)
+})
 </script>
 
 <style scoped lang="scss">

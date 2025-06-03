@@ -2,8 +2,8 @@
   <div class="input-comp" :style="inputCompStyle" >
     <div class="input-comp__label">{{ props.compProps.title }}</div>
     <div class="input-comp__box" @mousedown.stop>
-      <a-input v-model:value="inputValue" class="input-comp__input" :placeholder="props.compProps.placeholder" :style="inputStyle"/>
-      <a-button type="primary" class="input-comp__send-btn" :style="btnStyle" @mousedown.stop="pubTopicData">
+      <a-input v-model:value="inputValue" class="input-comp__input" placeholder="请输入发布内容" :style="inputStyle"/>
+      <a-button type="primary" class="input-comp__send-btn" :style="btnStyle" @mousedown.stop="bus.pubTopicData(props.compProps, inputValue)">
         <template #icon>
           <img src="../../assets/img/pub.svg" :style="iconStyle" />
         </template>
@@ -62,20 +62,20 @@ const iconStyle = computed(() => ({
   textAlign: 'center',
 }));
 
-/* 发布数据 */
-function pubTopicData() {
-  // console.log("props.compProps.topic.topic:", props.compProps.topic.topic);
-  if (!props.compProps.topic || !props.compProps.topic.topic) { bus.emit("showCustomAlert", { type: "warning", msg: "请选择一个主题" }); return; }
-  window.electron.ipcRenderer.invoke('r:publishMqtt', {
-    ...props.compProps.topic,
-    payload: inputValue.value,
-  })
-  .then((res) => {
-    if (res.err) {
-      emit("alert", { type: "error", msg: res.msg })
-    }
-  })
-}
+// /* 发布数据 */
+// function pubTopicData() {
+//   // console.log("props.compProps.topic.topic:", props.compProps.topic.topic);
+//   if (!props.compProps.topic || !props.compProps.topic.topic) { bus.emit("showCustomAlert", { type: "warning", msg: "请选择一个主题" }); return; }
+//   window.electron.ipcRenderer.invoke('r:publishMqtt', {
+//     ...props.compProps.topic,
+//     payload: inputValue.value,
+//   })
+//   .then((res) => {
+//     if (res.err) {
+//       emit("alert", { type: "error", msg: res.msg })
+//     }
+//   })
+// }
 
 
 </script>

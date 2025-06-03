@@ -1,11 +1,11 @@
 <template>
   <div class="component-props">
-    <div class="component-props__title">组件属性 <span>输入框</span></div>
+    <div class="component-props__title">组件属性 <span>按钮</span></div>
     <a-divider style="margin: 8px 0 16px 0" />
 
     <a-form :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" layout="horizontal">
       <a-form-item label="组件标题">
-        <a-input v-model:value="attrData.title" placeholder="输入框" />
+        <a-input v-model:value="attrData.title" placeholder="请输入标题" />
       </a-form-item>
       <a-form-item label="Topic">
         <a-select v-model:value="selectTopic" placeholder="请选择发布主题" :options="opts" @change="v => {console.log(v); attrData.topic = JSON.parse(v)}"></a-select>
@@ -13,6 +13,12 @@
       <!-- <a-divider style="margin: 16px 0" /> -->
       <a-form-item label="组件大小">
         <a-select v-model:value="attrData.size" placeholder="请选择" :options="bus.sizeOpts" @change="v => attrData.size = v"></a-select>
+      </a-form-item>
+      <a-form-item label="按钮文字">
+        <a-input v-model:value="attrData.btnText" placeholder="请输入按钮文本" />
+      </a-form-item>
+      <a-form-item label="发送内容">
+        <a-input v-model:value="attrData.payload" placeholder="请输入发送内容" />
       </a-form-item>
       <a-form-item label="隐藏底色">
         <a-checkbox v-model:checked="attrData.hideBg" />
@@ -22,7 +28,7 @@
     <div class="tips">
       <div class="tips-title">组件功能</div>
       <div class="tips-desc">
-        点击发送按钮，将输入框内容发布到指定主题。<br>
+        点击按钮，将自定义内容发布到指定主题。<br>
       </div>
     </div>
     <div class="tips">
@@ -37,7 +43,6 @@
 
 <script setup>
 import { inject, computed, ref, onBeforeMount, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import bus from '../../utils/bus'
 
 const activeCompProps = inject('activeCompProps')
@@ -57,7 +62,6 @@ const opts = computed(() => pubTopics.value.map(v => {
     value: JSON.stringify(v)
   }
 }))
-
 // 处理主题
 function solveTopic(topic) {
   if (topic && pubTopics.value.findIndex(v => JSON.stringify(v) === JSON.stringify(topic)) !== -1) {

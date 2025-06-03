@@ -31,7 +31,7 @@
         <div class="lineset-list">
           <div v-for="(line, idx) in lineList" :key="idx" class="lineset-row">
             <span class="line-index">{{ idx + 1 }}.</span>
-            <a-input class="line-input" v-model:value="lineList[idx].name" :placeholder="`折线${idx + 1}`" :disabled="false" @change="updateLines" />
+            <a-input class="line-input" v-model:value="lineList[idx].name" :placeholder="`折线${idx + 1}`" :disabled="false" />
             <a-button v-if="lineList.length > 1" type="text" class="line-remove-btn" style="color:#d4380d" @click="removeLine(idx)">-</a-button>
           </div>
           <a-button v-if="lineList.length < 5" type="dashed" class="line-add-btn" @click="addLine" style="margin-top: 8px;width: 40px;height: 32px;">+</a-button>
@@ -87,22 +87,6 @@ const countOpts = [
 // 折线名称数组（最多5项）与attrData同步
 const lineList = computed(() => (attrData.value.data || []))
 
-onBeforeMount(() => {
-  const avtJson = JSON.stringify(attrData.value.topic)
-  if (
-    attrData.value?.topic?.topic &&
-    subTopics.value.findIndex(v => JSON.stringify(v) === avtJson) !== -1
-  ) {
-    selectTopic.value = avtJson
-  } else {
-    selectTopic.value = null
-  }
-  updateLines()
-})
-
-watch(lineList, updateLines, { deep: true })
-
-
 function addLine() {
   let defaultNameList = Array(5).fill(0).map((_, i) => `折线${i + 1}`)
   let defaultColorList = ['#a9c5e8', '#b7e8c5', '#f7e3b5', '#f5c6b7', '#e3b7d3']
@@ -123,14 +107,29 @@ function removeLine(idx) {
     bus.emit('initDataChange')
   }
 }
-function updateLines() {
-  // 同步到attrData
-  // attrData.value.data = [...lineList.value]
-  // 兼容老字段
-  // if (attrData.value.lines?.[0]) attrData.value.line1 = attrData.value.lines[0]
-}
 // 输入框回车失去焦
 function enterBlur(e) { e.target.blur() }
+// 处理主题
+function solveTopic(topic) {
+  if (topic && subTopics.value.findIndex(v => JSON.stringify(v) === JSON.stringify(topic)) !== -1) {
+    return JSON.stringify(topic)
+  } else {
+    return null
+  }
+}
+
+/* -------------------------------- */
+watch(attrData, (newVal) => {
+  solveTopic(newVal.topic)
+  selectTopic.value = solveTopic(newVal.topic)
+}, { deep: true })
+
+
+/* ------------------------------- */
+onBeforeMount(() => {
+  solveTopic(attrData.value.topic)
+  selectTopic.value = solveTopic(attrData.value.topic)
+})
 </script>
 
 <style lang="scss" scoped>

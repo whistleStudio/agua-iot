@@ -9,8 +9,7 @@ export default {
           name: "输入框",
           icon: "",
           props: {
-            title: "输入框xxx",
-            placeholder: "请输入发布内容", 
+            title: "请输入标题",
             topic: {},
             size: "medium", // small, medium, large
             hideBg: false, // 是否隐藏背景
@@ -20,13 +19,29 @@ export default {
           tp: 0,
           name: "按钮",
           icon: "",
-          width: 100,
-          height: 45,
+          props: {
+            title: "按钮",
+            topic: {},
+            size: "medium", // small, medium, large
+            btnText: "按钮",
+            payload: "喵~",
+            hideBg: false, // 是否隐藏背景
+          }
         }, 
         switch: {
           tp: 0,
           name: "开关",
-          icon: ""
+          icon: "",
+          props: {
+            title: "开关",
+            topic: {},
+            size: "medium", // small, medium, large
+            onText: "ON",
+            offText: "OFF",
+            onPayload: "on",
+            offPayload: "off",
+            hideBg: false, // 是否隐藏背景
+          }
         },
         slider: {
           tp: 0,

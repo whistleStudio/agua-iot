@@ -65,7 +65,7 @@
             "id": 1748939836957.1353,
             "type": "pubtext",
             "props": {
-              "title": "输入框xxx",
+              "title": "s",
               "btnWidth": 30,
               "placeholder": "请输入发布内容",
               "topic": {
@@ -76,15 +76,20 @@
               "size": "medium",
               "hideBg": false
             },
-            "top": 31.36291032796163,
-            "left": 418.14804336695016
+            "top": 32.36291032796163,
+            "left": 65.14804336695016
           },
           {
             "id": 1748941862289.247,
             "type": "linechart",
             "props": {
               "title": "折线图",
-              "topic": {},
+              "topic": {
+                "topic": "testtopic/num",
+                "qos": 0,
+                "color": "#f2a145",
+                "alias": ""
+              },
               "width": 497,
               "height": 328,
               "hideBg": false,
@@ -100,8 +105,49 @@
               ],
               "time": []
             },
-            "top": 184.712350856086,
-            "left": 274.5187828216077
+            "top": 218.712350856086,
+            "left": 131.51878282160772
+          },
+          {
+            "id": 1748957919862.7214,
+            "type": "button",
+            "props": {
+              "title": "按钮",
+              "titlePlaceholder": "请输入标题",
+              "topic": {
+                "topic": "abc",
+                "qos": 0,
+                "retain": false
+              },
+              "size": "medium",
+              "btnText": "s",
+              "btnTextPlaceholder": "请输入按钮文本",
+              "payload": "喵~",
+              "payloadPlaceholder": "请输入发送内容",
+              "hideBg": false
+            },
+            "top": 43.71539848750004,
+            "left": 460.9892175109805
+          },
+          {
+            "id": 1748963389735.2834,
+            "type": "switch",
+            "props": {
+              "title": "开关",
+              "topic": {
+                "topic": "abc",
+                "qos": 0,
+                "retain": false
+              },
+              "size": "medium",
+              "onText": "ON",
+              "offText": "OFF",
+              "onPayload": "on",
+              "offPayload": "off",
+              "hideBg": false
+            },
+            "top": 43.993662770339796,
+            "left": 608.0919521870487
           }
         ]
       }

@@ -93,6 +93,7 @@ import PubTextComp from '../components/chart-comps/PubTextComp.vue'
 import ButtonComp from '../components/chart-comps/ButtonComp.vue'
 import PieComp from '../components/chart-comps/PieComp.vue'
 import LineChartComp from '../components/chart-comps/LineChartComp.vue';
+import SwitchComp from '../components/chart-comps/SwitchComp.vue';
 
 // 获取路由实例
 const router = useRouter();
@@ -105,6 +106,7 @@ const componentMap = {
   button: markRaw(ButtonComp),
   chartPie: markRaw(PieComp),
   linechart: markRaw(LineChartComp),
+  switch: markRaw(SwitchComp),
   // ...可继续扩展其它组件
 };
 

@@ -29,7 +29,11 @@ const routes = [
           },
           {
             path: 'button',
-            component: () => import('../views/chart-views/Pubtext.vue'),
+            component: () => import('../views/chart-views/Button.vue'),
+          },
+          {
+            path: 'switch',
+            component: () => import('../views/chart-views/Switch.vue'),
           },
           {
             path: 'linechart',

@@ -1,18 +1,30 @@
 <template>
   <div class="component-props">
-    <div class="component-props__title">组件属性 <span>输入框</span></div>
+    <div class="component-props__title">组件属性 <span>开关</span></div>
     <a-divider style="margin: 8px 0 16px 0" />
 
     <a-form :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" layout="horizontal">
       <a-form-item label="组件标题">
-        <a-input v-model:value="attrData.title" placeholder="输入框" />
+        <a-input v-model:value="attrData.title" placeholder="请输入标题" />
       </a-form-item>
       <a-form-item label="Topic">
-        <a-select v-model:value="selectTopic" placeholder="请选择发布主题" :options="opts" @change="v => {console.log(v); attrData.topic = JSON.parse(v)}"></a-select>
+        <a-select v-model:value="selectTopic" placeholder="请选择发布主题" :options="opts" @change="v => { attrData.topic = JSON.parse(v) }"></a-select>
       </a-form-item>
       <!-- <a-divider style="margin: 16px 0" /> -->
       <a-form-item label="组件大小">
         <a-select v-model:value="attrData.size" placeholder="请选择" :options="bus.sizeOpts" @change="v => attrData.size = v"></a-select>
+      </a-form-item>
+      <a-form-item label="开启显示">
+        <a-input v-model:value="attrData.onText" placeholder="请输入开启状态标签" />
+      </a-form-item>
+      <a-form-item label="关闭显示">
+        <a-input v-model:value="attrData.offText" placeholder="请输入关闭状态标签" />
+      </a-form-item>
+      <a-form-item label="开启发送">
+        <a-input v-model:value="attrData.onPayload" placeholder="请输入开启发送文本" />
+      </a-form-item>
+      <a-form-item label="关闭发送">
+        <a-input v-model:value="attrData.offPayload" placeholder="请输入关闭发送文本" />
       </a-form-item>
       <a-form-item label="隐藏底色">
         <a-checkbox v-model:checked="attrData.hideBg" />
@@ -22,14 +34,14 @@
     <div class="tips">
       <div class="tips-title">组件功能</div>
       <div class="tips-desc">
-        点击发送按钮，将输入框内容发布到指定主题。<br>
+        切换开关，将对应状态下自定义文本发送至指定主题。<br>
       </div>
     </div>
     <div class="tips">
       <div class="tips-title">发布数据</div>
       <div class="tips-desc">
-        示例：喵~<br>
-        说明：文本
+        示例：on<br>
+        说明：当开启发送的文本为"on"时，开关切换至开启状态时，将发送一次"on"到指定主题；<br>
       </div>
     </div>
   </div>
@@ -37,7 +49,6 @@
 
 <script setup>
 import { inject, computed, ref, onBeforeMount, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import bus from '../../utils/bus'
 
 const activeCompProps = inject('activeCompProps')
@@ -57,7 +68,6 @@ const opts = computed(() => pubTopics.value.map(v => {
     value: JSON.stringify(v)
   }
 }))
-
 // 处理主题
 function solveTopic(topic) {
   if (topic && pubTopics.value.findIndex(v => JSON.stringify(v) === JSON.stringify(topic)) !== -1) {

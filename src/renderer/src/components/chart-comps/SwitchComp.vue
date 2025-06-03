@@ -1,13 +1,14 @@
 <template>
   <div class="comp" :style="compStyle">
     <div class="comp__label">{{ props.compProps.title }}</div>
-    <a-button type="primary" @mousedown.stop="bus.pubTopicData(props.compProps, props.compProps.payload)">{{ props.compProps.btnText }}</a-button>
+    <a-switch v-model:checked="checked" @mousedown.stop @change="switchChange"
+    :checked-children="props.compProps.onText" :un-checked-children="props.compProps.offText" />
   </div>
 </template>
 
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import bus from '../../utils/bus';
 
 const props = defineProps({
@@ -22,6 +23,8 @@ const props = defineProps({
     default: -1
   }
 })
+
+const checked = ref(true);
 
 const whSize = computed(() => {
   switch (props.compProps.size) {
@@ -40,6 +43,13 @@ const compStyle = computed(() => ({
   padding: whSize.value.padding,
   background: props.compProps.hideBg ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 1)',
 }));
+
+/* 切换开关-发布数据 */
+function switchChange(checked) {
+  // console.log("props.compProps.topic.topic:", props.compProps.topic.topic);
+  bus.pubTopicData(props.compProps, checked ? props.compProps.onPayload : props.compProps.offPayload);
+}
+
 
 </script>
 

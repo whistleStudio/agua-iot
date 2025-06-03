@@ -55,6 +55,19 @@ const bus = {
     .catch((err) => {
       console.error(err)
     })
+  },
+  /* 发布数据 */
+  pubTopicData(compProps, payload) {
+    if (!compProps.topic || !compProps.topic.topic) { this.emit("showCustomAlert", { type: "warning", msg: "请选择一个主题" }); return; }
+    window.electron.ipcRenderer.invoke('r:publishMqtt', {
+      ...compProps.topic,
+      payload
+    })
+    .then((res) => {
+      if (res.err) {
+        this.emit("alert", { type: "error", msg: res.msg })
+      }
+    })
   }
 }
 

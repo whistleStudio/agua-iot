@@ -1,6 +1,6 @@
 <template>
   <div class="component-props">
-    <div class="component-props__title">组件属性 <span>按钮</span></div>
+    <div class="component-props__title">组件属性 <span>滑动条</span></div>
     <a-divider style="margin: 8px 0 16px 0" />
 
     <a-form :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" layout="horizontal">
@@ -10,16 +10,21 @@
       <a-form-item label="Topic">
         <a-select v-model:value="selectTopic" placeholder="请选择发布主题" :options="opts" @change="v => {console.log(v); attrData.topic = JSON.parse(v)}"></a-select>
       </a-form-item>
-      <!-- <a-divider style="margin: 16px 0" /> -->
       <a-form-item label="组件大小">
         <a-select v-model:value="attrData.size" placeholder="请选择" :options="bus.sizeOpts" @change="v => attrData.size = v"></a-select>
       </a-form-item>
-      <a-form-item label="按钮文字">
-        <a-input v-model:value="attrData.btnText" placeholder="请输入按钮文本" />
+      <a-form-item label="最小值">
+        <a-input v-model:value.number="attrData.min" placeholder="请输入最小值" />
       </a-form-item>
-      <a-form-item label="发送内容">
-        <a-input v-model:value="attrData.payload" placeholder="请输入发送内容" />
+      <a-form-item label="最大值">
+        <a-input v-model:value.number="attrData.max" placeholder="请输入最大值" />
       </a-form-item>
+      <a-form-item label="步长">
+        <a-input v-model:value.number="attrData.step" placeholder="请输入步长" />
+      </a-form-item>
+      <a-form-item label="垂直显示">
+        <a-checkbox v-model:checked="attrData.vertical" />
+      </a-form-item>      
       <a-form-item label="隐藏底色">
         <a-checkbox v-model:checked="attrData.hideBg" />
       </a-form-item>
@@ -28,13 +33,13 @@
     <div class="tips">
       <div class="tips-title">组件功能</div>
       <div class="tips-desc">
-        点击按钮，将自定义内容发布到指定主题。<br>
+        移动滑块，将其对应数值发送至指定主题。<br>
       </div>
     </div>
     <div class="tips">
       <div class="tips-title">发布数据</div>
       <div class="tips-desc">
-        示例：喵~<br>
+        示例：1<br>
         说明：文本
       </div>
     </div>

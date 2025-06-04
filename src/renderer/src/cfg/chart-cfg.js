@@ -9,7 +9,7 @@ export default {
           name: "输入框",
           icon: "",
           props: {
-            title: "请输入标题",
+            title: "输入框",
             topic: {},
             size: "medium", // small, medium, large
             hideBg: false, // 是否隐藏背景

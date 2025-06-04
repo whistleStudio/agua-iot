@@ -91,9 +91,10 @@ import bus from '../utils/bus';
 // 引入所有可用的自定义组件
 import PubTextComp from '../components/chart-comps/PubTextComp.vue'
 import ButtonComp from '../components/chart-comps/ButtonComp.vue'
+import SwitchComp from '../components/chart-comps/SwitchComp.vue';
+import SliderComp from '../components/chart-comps/SliderComp.vue';
 import PieComp from '../components/chart-comps/PieComp.vue'
 import LineChartComp from '../components/chart-comps/LineChartComp.vue';
-import SwitchComp from '../components/chart-comps/SwitchComp.vue';
 
 // 获取路由实例
 const router = useRouter();
@@ -107,6 +108,7 @@ const componentMap = {
   chartPie: markRaw(PieComp),
   linechart: markRaw(LineChartComp),
   switch: markRaw(SwitchComp),
+  slider: markRaw(SliderComp),
   // ...可继续扩展其它组件
 };
 

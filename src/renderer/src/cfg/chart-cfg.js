@@ -46,7 +46,17 @@ export default {
         slider: {
           tp: 0,
           name: "滑动条",
-          icon: ""
+          icon: "",
+          props: {
+            title: "滑动条",
+            topic: {},
+            size: "medium", // small, medium, large
+            min: 0,
+            max: 100,
+            step: 1,
+            vertical: false, // 是否垂直
+            hideBg: false, // 是否隐藏背景
+          }
         },
         radio: {
           tp: 0,

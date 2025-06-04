@@ -36,6 +36,10 @@ const routes = [
             component: () => import('../views/chart-views/Switch.vue'),
           },
           {
+            path: 'slider',
+            component: () => import('../views/chart-views/Slider.vue'),
+          },
+          {
             path: 'linechart',
             component: () => import('../views/chart-views/LineChart.vue'),
           }

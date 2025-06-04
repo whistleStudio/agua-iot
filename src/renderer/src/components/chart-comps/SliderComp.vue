@@ -1,13 +1,17 @@
 <template>
-  <div class="comp" :style="compStyle">
+  <div class="comp" style="height: 100px; background-color: #ff0;">
     <div class="comp__label">{{ props.compProps.title }}</div>
-    <a-button :style="btnStyle" type="primary" @mousedown.stop="bus.pubTopicData(props.compProps, props.compProps.payload)">{{ props.compProps.btnText }}</a-button>
+    <div @mousedown.stop style="height: 50px; background-color: #0f0; display: flex; align-items: center; justify-content: center;">
+      <a-slider @mousedown.stop 
+      v-model:value="sliderVal" :min="props.compProps.min" :max="props.compProps.max" style="width: 200px; height: 20px; background: #000; vertical-align: middle;"/>
+    </div>
+
   </div>
 </template>
 
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import bus from '../../utils/bus';
 
 const props = defineProps({
@@ -22,6 +26,8 @@ const props = defineProps({
     default: -1
   }
 })
+
+const sliderVal = ref(props.compProps.min || 0);
 
 const whSize = computed(() => {
   switch (props.compProps.size) {

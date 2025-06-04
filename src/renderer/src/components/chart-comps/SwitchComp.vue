@@ -1,7 +1,7 @@
 <template>
   <div class="comp" :style="compStyle">
     <div class="comp__label">{{ props.compProps.title }}</div>
-    <a-switch v-model:checked="checked" @mousedown.stop @change="switchChange"
+    <a-switch v-model:checked="checked" @mousedown.stop @change="switchChange" 
     :checked-children="props.compProps.onText" :un-checked-children="props.compProps.offText" />
   </div>
 </template>
@@ -29,11 +29,11 @@ const checked = ref(true);
 const whSize = computed(() => {
   switch (props.compProps.size) {
     case 'small':
-      return { minWidth: '80px', height: '80px', padding: '3px' };
+      return { minWidth: '80px', height: '80px', padding: '7px' };
     case 'large':
-      return { minWidth: '120px', height: '120px', padding: '20px' };
+      return { minWidth: '120px', height: '120px', padding: '25px' };
     default:
-      return { minWidth: '100px', height: '100px', padding: '12px' };  
+      return { minWidth: '100px', height: '100px', padding: '16px' };  
   }
 });
 

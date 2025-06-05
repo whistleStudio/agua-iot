@@ -61,7 +61,18 @@ export default {
         radio: {
           tp: 0,
           name: "单选框",
-          icon: ""
+          icon: "",
+          props: {
+            title: "单选框",
+            topic: {},
+            size: "medium", // small, medium, large
+            options: [
+              { label: "选项1", value: "内容1" },
+              { label: "选项2", value: "内容2" }
+            ],
+            showType: "default", // default, button
+            hideBg: false // 是否隐藏背景
+          }
         },
         checkbox: {
           tp: 0,

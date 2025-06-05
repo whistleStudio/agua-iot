@@ -40,6 +40,10 @@ const routes = [
             component: () => import('../views/chart-views/Slider.vue'),
           },
           {
+            path: 'radio',
+            component: () => import('../views/chart-views/Radio.vue'),
+          },
+          {
             path: 'linechart',
             component: () => import('../views/chart-views/LineChart.vue'),
           }

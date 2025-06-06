@@ -94,6 +94,7 @@ import ButtonComp from '../components/chart-comps/ButtonComp.vue'
 import SwitchComp from '../components/chart-comps/SwitchComp.vue';
 import SliderComp from '../components/chart-comps/SliderComp.vue';
 import RadioComp from '../components/chart-comps/RadioComp.vue';
+import CheckboxComp from '../components/chart-comps/CheckboxComp.vue';
 import PieComp from '../components/chart-comps/PieComp.vue'
 import LineChartComp from '../components/chart-comps/LineChartComp.vue';
 
@@ -112,8 +113,8 @@ const componentMap = {
   switch: markRaw(SwitchComp),
   slider: markRaw(SliderComp),
   radio: markRaw(RadioComp),
+  checkbox: markRaw(CheckboxComp),
   linechart: markRaw(LineChartComp),
-
   // ...可继续扩展其它组件
 };
 

@@ -77,7 +77,17 @@ export default {
         checkbox: {
           tp: 0,
           name: "复选框",
-          icon: ""
+          icon: "",
+          props: {
+            title: "复选框",
+            topic: {},
+            size: "medium", // small, medium, large
+            options: [
+              { label: "选项1", value: "内容1" },
+              { label: "选项2", value: "内容2" }
+            ],
+            hideBg: false // 是否隐藏背景            
+          }
         }
       }
     },

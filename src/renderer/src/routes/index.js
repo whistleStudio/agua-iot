@@ -44,6 +44,10 @@ const routes = [
             component: () => import('../views/chart-views/Radio.vue'),
           },
           {
+            path: 'checkbox',
+            component: () => import('../views/chart-views/Checkbox.vue'),
+          },
+          {
             path: 'linechart',
             component: () => import('../views/chart-views/LineChart.vue'),
           }

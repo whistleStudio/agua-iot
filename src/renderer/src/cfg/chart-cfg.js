@@ -124,22 +124,87 @@ export default {
         gauge: {
           tp: 1,
           name: "仪表盘",
-          icon: ""
+          icon: "",
+          props: {
+            title: "仪表盘",
+            topic: {},
+            width: 300,
+            height: 250,
+            hideBg: false,
+            min: 0,
+            max: 100,
+            unit: "",
+            isInit: true, // 数据是否为初始状态
+            value: 0,
+          }
         },
         pie: {
           tp: 1,
-          name: "饼图",
-          icon: ""
+          name: "饼状图",
+          icon: "",
+          props: {
+            title: "饼状图",
+            topic: {},
+            width: 420,
+            height: 280,
+            hideBg: false,
+            isInit: true,
+            data: [
+              { name: "分块1", color: "#a9c5e8", value: 20 },
+              { name: "分块2", color: "#b7e8c5", value: 30 },
+              { name: "分块3", color: "#f7e3b5", value: 50 }
+            ]
+          }
         },
         scatter: {
           tp: 1,
           name: "散点图",
-          icon: ""
+          icon: "",
+          props: {
+            title: "散点图",
+            topic: {},
+            width: 450,
+            height: 300,
+            hideBg: false,
+            count: 10,
+            maxPoints: 100,
+            xUnit: "",
+            yUnit: "",
+            scatterColor: "#37a2da",
+            isInit: true,
+            value: []
+          }
         },
         candlestick: {
           tp: 1,
           name: "K线图",
-          icon: ""
+          icon: "",
+          props: {
+            title: "K线图",
+            topic: {},
+            width: 420,
+            height: 280,
+            hideBg: false,
+            count: 10,
+            maxPoints: 100,
+            isInit: true,
+            value: []
+          }
+        },
+        liquidfill: {
+          tp: 1,
+          name: "水波图",
+          icon: "",
+          props: {
+            title: "水波图",
+            topic: {},
+            width: 200,
+            height: 200,
+            hideBg: false,
+            colorMain: '#4caafe',
+            total: 100,
+            value: 0
+          }
         },
         bar: {
           tp: 1,

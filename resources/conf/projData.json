@@ -62,53 +62,6 @@
         },
         "rawComponents": [
           {
-            "id": 1748939836957.1353,
-            "type": "pubtext",
-            "props": {
-              "title": "s",
-              "btnWidth": 30,
-              "placeholder": "请输入发布内容",
-              "topic": {
-                "topic": "ssss",
-                "qos": 0,
-                "retain": false
-              },
-              "size": "medium",
-              "hideBg": false
-            },
-            "top": 35.36291032796163,
-            "left": 22.148043366950162
-          },
-          {
-            "id": 1748941862289.247,
-            "type": "linechart",
-            "props": {
-              "title": "折线图",
-              "topic": {
-                "topic": "testtopic/num",
-                "qos": 0,
-                "color": "#f2a145",
-                "alias": ""
-              },
-              "width": 497,
-              "height": 328,
-              "hideBg": false,
-              "yUnit": "单位",
-              "count": 10,
-              "isInit": true,
-              "data": [
-                {
-                  "name": "折线1",
-                  "color": "#a9c5e8",
-                  "logs": []
-                }
-              ],
-              "time": []
-            },
-            "top": 222.712350856086,
-            "left": -34.481217178392285
-          },
-          {
             "id": 1748963389735.2834,
             "type": "switch",
             "props": {
@@ -125,87 +78,30 @@
               "offPayload": "off",
               "hideBg": false
             },
-            "top": 37.993662770339796,
-            "left": 405.0919521870487
+            "top": 20.993662770339796,
+            "left": 37.09195218704872
           },
           {
-            "id": 1749026394855.8777,
-            "type": "button",
+            "id": 1749396129343.8267,
+            "type": "liquidfill",
             "props": {
-              "title": "按钮",
-              "topic": {},
-              "size": "medium",
-              "btnText": "按钮",
-              "payload": "喵~",
-              "hideBg": false
-            },
-            "top": 38.7269134918067,
-            "left": 302.50534565652015
-          },
-          {
-            "id": 1749029222060.2378,
-            "type": "slider",
-            "props": {
-              "title": "滑动条",
+              "title": "水波图",
               "topic": {
-                "topic": "abc",
+                "topic": "testtopic/num",
                 "qos": 0,
-                "retain": false
+                "color": "#f2a145",
+                "alias": ""
               },
-              "size": "large",
-              "min": 30,
-              "max": 100,
-              "step": 1,
-              "vertical": false,
-              "hideBg": false
+              "width": 275,
+              "height": 253,
+              "hideBg": false,
+              "colorMain": "#00ddff",
+              "total": 100,
+              "value": "",
+              "isInit": true
             },
-            "top": 33.98664133764282,
-            "left": 583.9064009328705
-          },
-          {
-            "id": 1749140557251.731,
-            "type": "radio",
-            "props": {
-              "title": "单选框",
-              "topic": {},
-              "size": "medium",
-              "options": [
-                {
-                  "label": "选项1",
-                  "value": "内容1"
-                },
-                {
-                  "label": "选项2",
-                  "value": "内容2"
-                }
-              ],
-              "showType": "default",
-              "hideBg": false
-            },
-            "top": 174.9876093029386,
-            "left": 154.26649876670416
-          },
-          {
-            "id": 1749222068587.584,
-            "type": "checkbox",
-            "props": {
-              "title": "复选框",
-              "topic": {},
-              "size": "large",
-              "options": [
-                {
-                  "label": "选项1",
-                  "value": "内容1"
-                },
-                {
-                  "label": "选项2",
-                  "value": "内容2"
-                }
-              ],
-              "hideBg": false
-            },
-            "top": 331.378159798055,
-            "left": 519.2766710424269
+            "top": 241.25819437037768,
+            "left": 340.38370388639953
           }
         ]
       }

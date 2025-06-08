@@ -12,7 +12,7 @@
     ref="container"
   >
     <div class="chart-center">
-      <div id="pieMain" ref="RefMain"></div>
+      <div id="gaugeMain" ref="RefMain"></div>
     </div>
     <div
       class="resize-handle"
@@ -100,43 +100,73 @@ function stopResize() {
   document.removeEventListener('mouseup', stopResize)
 }
 
+// --- 紧凑型仪表盘，标题居中，刻度示数不重叠，支持isInit ---
 const option = {
-  backgroundColor: 'rgb(255, 255, 255)',
-  title: {
-    text: '饼状图',
-    left: 'center',
-    top: 15,
-    textStyle: {
-      fontWeight: 700,
-      fontSize: 18,
-      color: '#222'
-    }
-  },
-  tooltip: {
-    trigger: 'item',
-    formatter: '{b}: {c} ({d}%)'
-  },
-  legend: {
-    orient: 'vertical',
-    left: 10,
-    top: 40,
-    textStyle: { fontSize: 15, color: '#444' }
-  },
+  backgroundColor: 'rgb(255,255,255)',
   series: [
     {
-      name: '分块',
-      type: 'pie',
-      radius: ['40%', '70%'],
-      avoidLabelOverlap: false,
-      label: {
+      name: '仪表盘',
+      type: 'gauge',
+      min: 0,
+      max: 100,
+      splitNumber: 5,
+      radius: '97%',
+      center: ['50%', '57%'],
+      startAngle: 210,
+      endAngle: -30,
+      axisLine: {
+        lineStyle: {
+          width: 15,
+          color: [
+            [0.3, '#67e0e3'],
+            [0.7, '#37a2da'],
+            [1, '#fd666d']
+          ]
+        }
+      },
+      pointer: {
+        itemStyle: {
+          color: 'auto'
+        },
+        width: 5,
+        length: '68%'
+      },
+      axisTick: {
+        distance: -21,
+        length: 8,
+        lineStyle: {
+          color: '#fff',
+          width: 2
+        }
+      },
+      splitLine: {
+        distance: -23,
+        length: 18,
+        lineStyle: {
+          color: '#fff',
+          width: 3
+        }
+      },
+      axisLabel: {
+        color: 'inherit',
+        distance: 28, // 更远离刻度线，防止重叠
+        fontSize: 13
+      },
+      title: {
         show: true,
-        position: 'outside',
-        formatter: '{d}%',
+        color: '#222',
+        fontWeight: 'bold',
+        fontSize: 20,
+        offsetCenter: [0, '-75%'], // 圆心正上
       },
-      labelLine: {
-        show: true
+      detail: {
+        valueAnimation: true,
+        formatter: '{value} {b}',
+        color: 'auto',
+        fontSize: 20,
+        offsetCenter: [0, '40%']
       },
-      data: []
+      data: [{ value: 0, name: '仪表盘' }]
     }
   ]
 }
@@ -150,25 +180,28 @@ function renderChart() {
   myChart.resize()
 }
 
-// 初始状态样例数据生成
+// 初始值
 function genInitData() {
+  // isInit=true 时 value 一律为0
   if (props.compProps.isInit) {
-    const dataL = props.compProps.data.length
-    for (let i = 0; i < dataL; i++) {
-      props.compProps.data[i].value = 20 + 10 * i
-    }
-    updateOptionData()
+    props.compProps.value = 0
+    option.series[0].data = [{ value: 0, name: props.compProps.title || '仪表盘' }]
+  } else {
+    option.series[0].data = [{ value: props.compProps.value || 0, name: props.compProps.title || '仪表盘' }]
   }
-}
-
-// 处理payload
-function processPayload(payload) {
-  return payload.replace(/\s+/g, '').split(/,|，/)
+  option.series[0].min = props.compProps.min ?? 0
+  option.series[0].max = props.compProps.max ?? 100
+  option.series[0].title = {
+    show: true,
+    color: '#222',
+    fontWeight: 'bold',
+    fontSize: 20,
+    offsetCenter: [0, '-75%']
+  }
 }
 
 function updateOptionData() {
   const comp = props.compProps
-  option.title.text = comp.title || '饼状图'
   if (comp.hideBg) {
     bgc.value = 'rgba(255,255,255,0.01)'
     option.backgroundColor = 'rgba(255,255,255,0.01)'
@@ -176,16 +209,32 @@ function updateOptionData() {
     bgc.value = 'rgb(255,255,255)'
     option.backgroundColor = 'rgb(255,255,255)'
   }
-  option.legend.data = []
-  option.series[0].data = []
-  comp.data.forEach((seg, idx) => {
-    option.legend.data.push(seg.name || `分块${idx + 1}`)
-    option.series[0].data.push({
-      value: seg.value || 0,
-      name: seg.name || `分块${idx + 1}`,
-      itemStyle: { color: seg.color }
-    })
-  })
+  option.series[0].min = comp.min ?? 0
+  option.series[0].max = comp.max ?? 100
+  // isInit时value一律为0
+  option.series[0].data = [{
+    value: comp.isInit ? 0 : (comp.value ?? 0),
+    name: comp.title || '仪表盘'
+  }]
+  option.series[0].title = {
+    show: true,
+    color: '#222',
+    fontWeight: 'bold',
+    fontSize: 18,
+    offsetCenter: [0, '70%']
+  }
+  option.series[0].detail = {
+    valueAnimation: true,
+    formatter: `{value} ${comp.unit || ''}`,
+    color: 'inherit',
+    fontSize: 20,
+    offsetCenter: [0, '40%']
+  }
+  option.series[0].axisLabel = {
+    color: 'inherit',
+    distance: 28,
+    fontSize: 13
+  }
   if (myChart) {
     myChart.setOption(option, true)
     myChart.resize()
@@ -203,46 +252,29 @@ watch(props.compProps, newVal => {
   updateOptionData()
 }, { immediate: true, deep: true })
 
-// 属性面变化时组件DOM更新
-const pieChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
+const gaugeChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
   if (id !== props.compId) return
   width.value = newWidth
   height.value = newHeight
   nextTick(() => myChart && myChart.resize())
 }
-bus.on('pieChartWHChange', pieChartWHChangeHandle)
+bus.on('gaugeChartWHChange', gaugeChartWHChangeHandle)
 
-// 增删分块时更新图表
-const initPieDataChangeHandle = () => {
-  if (bus.activeCompId !== props.compId) return 
-  genInitData()
-  updateOptionData()
-}
-bus.on('initPieDataChange', initPieDataChangeHandle)
-
-// 监听订阅主题的数据
 const subTopicDataHandle = ({ topic, qos, payload, time }) => {
   if ( topic != props.compProps.topic.topic || qos != props.compProps.topic.qos ) return
-  if (props.compProps.isInit) {
-    props.compProps.data.forEach(seg => {
-      seg.value = 0 // 清空所有分块数据
-    })
-  }
   try {
-    const data = processPayload(payload)
-    props.compProps.data.forEach((seg, idx) => {
-      if (data[idx] !== undefined) {
-        seg.value = parseFloat(data[idx])
-      } else {
-        seg.value = 0
-      }
-    })
-    props.compProps.isInit = false // 标记为非初始化状态
+    if (props.compProps.isInit) {
+      props.compProps.value = 0
+      props.compProps.isInit = false
+    } else {
+      const value = parseFloat(payload)
+      props.compProps.value = isNaN(value) ? 0 : value
+    }
     updateOptionData()
-  } catch(e) { console.log("pie sub data err", e); }
+  } catch(e) { console.log("gauge sub data err", e); }
 }
 bus.on('subTopicData', subTopicDataHandle)
-/* ---------------------------------- */
+
 onBeforeMount(() => {
   width.value = props.compProps.width || 300
   height.value = props.compProps.height || 200
@@ -252,8 +284,7 @@ onBeforeMount(() => {
 onMounted(renderChart)
 
 onBeforeUnmount(() => {
-  bus.off('pieChartWHChange', pieChartWHChangeHandle)
-  bus.off('initPieDataChange', initPieDataChangeHandle)
+  bus.off('gaugeChartWHChange', gaugeChartWHChangeHandle)
   bus.off('subTopicData', subTopicDataHandle)
 })
 
@@ -278,9 +309,9 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
   }
-  #pieMain {
-    width: 98%;
-    height: 98%;
+  #gaugeMain {
+    width: 99%;
+    height: 99%;
     min-width: 120px;
     min-height: 100px;
   }

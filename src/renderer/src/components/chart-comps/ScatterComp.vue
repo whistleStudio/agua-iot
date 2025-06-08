@@ -12,7 +12,7 @@
     ref="container"
   >
     <div class="chart-center">
-      <div id="pieMain" ref="RefMain"></div>
+      <div id="scatterMain" ref="RefMain"></div>
     </div>
     <div
       class="resize-handle"
@@ -51,11 +51,11 @@ const container = ref(null)
 
 let myChart
 
-const width = ref(300)
-const height = ref(200)
+const width = ref(450)
+const height = ref(300)
 const left = ref(0)
 const top = ref(0)
-const bgc = ref('rgb(246, 250, 253)')
+const bgc = ref('rgb(255,255,255)')
 
 let resizing = false
 let origin = { x: 0, y: 0 }
@@ -63,6 +63,7 @@ let startLeft = 0
 let startTop = 0
 let startWidth = 0
 let startHeight = 0
+let isFakeData = true
 
 function startResize(e) {
   e.preventDefault()
@@ -100,45 +101,62 @@ function stopResize() {
   document.removeEventListener('mouseup', stopResize)
 }
 
-const option = {
-  backgroundColor: 'rgb(255, 255, 255)',
-  title: {
-    text: '饼状图',
-    left: 'center',
-    top: 15,
-    textStyle: {
-      fontWeight: 700,
-      fontSize: 18,
-      color: '#222'
-    }
-  },
-  tooltip: {
-    trigger: 'item',
-    formatter: '{b}: {c} ({d}%)'
-  },
-  legend: {
-    orient: 'vertical',
-    left: 10,
-    top: 40,
-    textStyle: { fontSize: 15, color: '#444' }
-  },
-  series: [
-    {
-      name: '分块',
-      type: 'pie',
-      radius: ['40%', '70%'],
-      avoidLabelOverlap: false,
-      label: {
-        show: true,
-        position: 'outside',
-        formatter: '{d}%',
+// 保证点数上限、初始值
+function ensureValueValid() {
+  const comp = props.compProps
+  if (!Array.isArray(comp.value)) comp.value = []
+  // 限制最大点数
+  if (comp.value.length > comp.maxPoints) {
+    comp.value = comp.value.slice(comp.value.length - comp.maxPoints)
+  }
+}
+
+function getScatterOption() {
+  const comp = props.compProps
+  let scatterColor = comp.scatterColor || '#37a2da'
+  let bg = 'rgb(255,255,255)'
+  if (comp.hideBg) bg = 'rgba(255,255,255,0.01)'
+  bgc.value = bg
+  return {
+    backgroundColor: bg,
+    title: {
+      text: comp.title || '散点图',
+      left: 'center',
+      top: 14,
+      textStyle: {
+        fontWeight: 'bold',
+        fontSize: 16,
+        color: '#222'
+      }
+    },
+    tooltip: {
+      trigger: 'item',
+      formatter: function(params) {
+        const [x, y] = params.value
+        return `x: ${x} ${comp.xUnit || ''}<br/>y: ${y} ${comp.yUnit || ''}`
+      }
+    },
+    xAxis: {
+      name: comp.xUnit || '',
+      nameLocation: 'end',
+      type: 'value',
+      axisLabel: { color: '#666', fontSize: 13 }
+    },
+    yAxis: {
+      name: comp.yUnit || '',
+      nameLocation: 'end',
+      type: 'value',
+      axisLabel: { color: '#666', fontSize: 13 }
+    },
+    series: [{
+      type: 'scatter',
+      symbolSize: 8,
+      itemStyle: {
+        color: scatterColor
       },
-      labelLine: {
-        show: true
-      },
-      data: []
-    }
-  ]
+      data: comp.value.slice(-comp.count)
+    }]
+  }
 }
 
 function renderChart() {
@@ -146,114 +164,83 @@ function renderChart() {
   if (!myChart) {
     myChart = echarts.init(RefMain.value)
   }
-  myChart.setOption(option, true)
+  ensureValueValid()
+  myChart.setOption(getScatterOption(), true)
   myChart.resize()
 }
 
-// 初始状态样例数据生成
-function genInitData() {
-  if (props.compProps.isInit) {
-    const dataL = props.compProps.data.length
-    for (let i = 0; i < dataL; i++) {
-      props.compProps.data[i].value = 20 + 10 * i
-    }
-    updateOptionData()
-  }
-}
-
-// 处理payload
-function processPayload(payload) {
-  return payload.replace(/\s+/g, '').split(/,|，/)
-}
-
 function updateOptionData() {
-  const comp = props.compProps
-  option.title.text = comp.title || '饼状图'
-  if (comp.hideBg) {
-    bgc.value = 'rgba(255,255,255,0.01)'
-    option.backgroundColor = 'rgba(255,255,255,0.01)'
-  } else {
-    bgc.value = 'rgb(255,255,255)'
-    option.backgroundColor = 'rgb(255,255,255)'
-  }
-  option.legend.data = []
-  option.series[0].data = []
-  comp.data.forEach((seg, idx) => {
-    option.legend.data.push(seg.name || `分块${idx + 1}`)
-    option.series[0].data.push({
-      value: seg.value || 0,
-      name: seg.name || `分块${idx + 1}`,
-      itemStyle: { color: seg.color }
-    })
-  })
+  ensureValueValid()
   if (myChart) {
-    myChart.setOption(option, true)
+    myChart.setOption(getScatterOption(), true)
     myChart.resize()
   }
 }
 
-/* -------------------------------------- */
 watch([width, height], () => {
   activeCompProps.get().width = width.value
   activeCompProps.get().height = height.value
   nextTick(() => myChart && myChart.resize())
 })
 
-watch(props.compProps, newVal => {
+watch(() => props.compProps, () => {
   updateOptionData()
-}, { immediate: true, deep: true })
+}, { deep: true, immediate: true })
 
-// 属性面变化时组件DOM更新
-const pieChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
+const scatterChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
   if (id !== props.compId) return
   width.value = newWidth
   height.value = newHeight
   nextTick(() => myChart && myChart.resize())
 }
-bus.on('pieChartWHChange', pieChartWHChangeHandle)
+bus.on('scatterChartWHChange', scatterChartWHChangeHandle)
 
-// 增删分块时更新图表
-const initPieDataChangeHandle = () => {
-  if (bus.activeCompId !== props.compId) return 
-  genInitData()
-  updateOptionData()
-}
-bus.on('initPieDataChange', initPieDataChangeHandle)
-
-// 监听订阅主题的数据
 const subTopicDataHandle = ({ topic, qos, payload, time }) => {
-  if ( topic != props.compProps.topic.topic || qos != props.compProps.topic.qos ) return
-  if (props.compProps.isInit) {
-    props.compProps.data.forEach(seg => {
-      seg.value = 0 // 清空所有分块数据
-    })
-  }
+  if (topic !== props.compProps.topic.topic || qos !== props.compProps.topic.qos) return
   try {
-    const data = processPayload(payload)
-    props.compProps.data.forEach((seg, idx) => {
-      if (data[idx] !== undefined) {
-        seg.value = parseFloat(data[idx])
-      } else {
-        seg.value = 0
+    if (props.compProps.isInit) {
+      // 清空数据
+      props.compProps.value = []
+      props.compProps.isInit = false
+    }
+    // 订阅数据格式：x,y
+    const vals = payload.split(',').map(Number)
+    if (vals.length === 2 && !vals.some(isNaN)) {
+      if (!Array.isArray(props.compProps.value)) props.compProps.value = []
+      props.compProps.value.push(vals)
+      if (props.compProps.value.length > props.compProps.maxPoints) {
+        props.compProps.value = props.compProps.value.slice(props.compProps.value.length - props.compProps.maxPoints)
       }
-    })
-    props.compProps.isInit = false // 标记为非初始化状态
-    updateOptionData()
-  } catch(e) { console.log("pie sub data err", e); }
+      updateOptionData()
+    }
+  } catch (e) { console.log("scatter sub data err", e); }
 }
 bus.on('subTopicData', subTopicDataHandle)
-/* ---------------------------------- */
+
 onBeforeMount(() => {
-  width.value = props.compProps.width || 300
-  height.value = props.compProps.height || 200
-  genInitData()
-  updateOptionData()
+  width.value = props.compProps.width || 450
+  height.value = props.compProps.height || 300
+  const comp = props.compProps
+  if (!Array.isArray(comp.value)) comp.value = []
+  // isInit=true时，生成10个随机点，先清空
+  if (comp.isInit) {
+    comp.value = []
+    for (let i = 0; i < 10; i++) {
+      comp.value.push([
+        Number((Math.random() * 100).toFixed(2)),
+        Number((Math.random() * 100).toFixed(2))
+      ])
+    }
+  }
+  // 限制最大点数
+  if (comp.value.length > comp.maxPoints) {
+    comp.value = comp.value.slice(comp.value.length - comp.maxPoints)
+  }
 })
 onMounted(renderChart)
 
 onBeforeUnmount(() => {
-  bus.off('pieChartWHChange', pieChartWHChangeHandle)
-  bus.off('initPieDataChange', initPieDataChangeHandle)
+  bus.off('scatterChartWHChange', scatterChartWHChangeHandle)
   bus.off('subTopicData', subTopicDataHandle)
 })
 
@@ -278,9 +265,9 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
   }
-  #pieMain {
-    width: 98%;
-    height: 98%;
+  #scatterMain {
+    width: 99%;
+    height: 99%;
     min-width: 120px;
     min-height: 100px;
   }

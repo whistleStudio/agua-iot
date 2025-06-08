@@ -50,6 +50,22 @@ const routes = [
           {
             path: 'linechart',
             component: () => import('../views/chart-views/LineChart.vue'),
+          },
+          {
+            path: 'gauge',
+            component: () => import('../views/chart-views/Gauge.vue'),
+          },
+          {
+            path: "pie",
+            component: () => import('../views/chart-views/Pie.vue'),
+          },
+          {
+            path: 'scatter',
+            component: () => import('../views/chart-views/Scatter.vue'),
+          },
+          {
+            path: 'liquidfill',
+            component: () => import('../views/chart-views/Liquidfill.vue'),
           }
         ]
       }

@@ -95,9 +95,11 @@ import SwitchComp from '../components/chart-comps/SwitchComp.vue';
 import SliderComp from '../components/chart-comps/SliderComp.vue';
 import RadioComp from '../components/chart-comps/RadioComp.vue';
 import CheckboxComp from '../components/chart-comps/CheckboxComp.vue';
-import PieComp from '../components/chart-comps/PieComp.vue'
 import LineChartComp from '../components/chart-comps/LineChartComp.vue';
-
+import GaugeComp from '../components/chart-comps/GaugeComp.vue';
+import PieComp from '../components/chart-comps/PieComp.vue'
+import ScatterComp from '../components/chart-comps/ScatterComp.vue';
+import LiquidfillComp from '../components/chart-comps/LiquidfillComp.vue';
 
 
 // 获取路由实例
@@ -115,6 +117,10 @@ const componentMap = {
   radio: markRaw(RadioComp),
   checkbox: markRaw(CheckboxComp),
   linechart: markRaw(LineChartComp),
+  gauge: markRaw(GaugeComp),
+  pie: markRaw(PieComp),
+  scatter: markRaw(ScatterComp),
+  liquidfill: markRaw(LiquidfillComp),
   // ...可继续扩展其它组件
 };
 

@@ -40,3 +40,7 @@ obj.attr = 2 // watch a 无变化， 因为此时a.value = obj(原先的引用)�
 ## 202506062318
 
 增加checkbox
+
+## 202506082333
+
+增加gauge,pie,scatter,liquidfill

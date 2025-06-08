@@ -15,7 +15,7 @@
           {{ item.label }}
         </a-checkbox>
       </a-checkbox-group>
-      <a-button type="primary" style="margin-top: 12px; width: 100%;" @click="onSend" :disabled="!selectedValues.length">
+      <a-button type="primary" style="margin-top: 12px; width: 100%;" @mousedown.stop="onSend" :disabled="!selectedValues.length">
         发送
       </a-button>
     </div>
@@ -79,6 +79,7 @@ function onSend() {
     props.compProps,
     selectedValues.value.join('_')
   )
+  console.log('发送数据:',  selectedValues.value.join('_'))
 }
 </script>
 

@@ -175,22 +175,6 @@ export default {
             value: []
           }
         },
-        candlestick: {
-          tp: 1,
-          name: "K线图",
-          icon: "",
-          props: {
-            title: "K线图",
-            topic: {},
-            width: 420,
-            height: 280,
-            hideBg: false,
-            count: 10,
-            maxPoints: 100,
-            isInit: true,
-            value: []
-          }
-        },
         liquidfill: {
           tp: 1,
           name: "水波图",
@@ -209,17 +193,59 @@ export default {
         bar: {
           tp: 1,
           name: "柱状图",
-          icon: ""
+          icon: "",
+          props: {
+            title: "柱状图",
+            topic: {},
+            width: 420,
+            height: 280,
+            hideBg: false, // 是否隐藏背景
+            yUnit: "单位", // Y轴单位
+            count: 10,
+            isInit: true, // 数据是否为初始状态
+            categories: [
+              { name: "类目1", color: "#4caafe", logs: [] }
+            ],
+            time: []
+          }
         },
         stackedarea: {
           tp: 1,
           name: "堆叠面积图",
-          icon: ""
+          icon: "",
+          props: {
+            title: "堆叠面积图",
+            topic: {},
+            width: 420,
+            height: 280,
+            hideBg: false,
+            yUnit: "单位",
+            count: 10,
+            isInit: true,
+            categories: [
+              { name: "类目1", color: "#a9c5e8", logs: [] }
+            ],
+            time: []
+          }
         },
         radar: {
           tp: 1,
           name: "雷达图",
-          icon: ""
+          icon: "",
+          props: {
+            title: "雷达图",
+            topic: {},
+            width: 350,
+            height: 200,
+            hideBg: false,
+            isInit: true,
+            // 每个类目可配置最大值
+            categories: [
+              { name: "类目1", max: 100 },
+              { name: "类目2", max: 100 },
+              { name: "类目3", max: 100 }
+            ]
+          }
         },
       }
     },  

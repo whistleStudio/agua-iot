@@ -100,6 +100,9 @@ import GaugeComp from '../components/chart-comps/GaugeComp.vue';
 import PieComp from '../components/chart-comps/PieComp.vue'
 import ScatterComp from '../components/chart-comps/ScatterComp.vue';
 import LiquidfillComp from '../components/chart-comps/LiquidfillComp.vue';
+import BarComp from '../components/chart-comps/BarComp.vue';
+import StackedareaComp from '../components/chart-comps/StackedareaComp.vue';
+import RadarComp from '../components/chart-comps/RadarComp.vue';
 
 
 // 获取路由实例
@@ -121,6 +124,9 @@ const componentMap = {
   pie: markRaw(PieComp),
   scatter: markRaw(ScatterComp),
   liquidfill: markRaw(LiquidfillComp),
+  bar: markRaw(BarComp),
+  stackedarea: markRaw(StackedareaComp),
+  radar: markRaw(RadarComp),
   // ...可继续扩展其它组件
 };
 
@@ -180,6 +186,8 @@ function addComponent(type) {
   // bus.changeProjInfo()
   // console.log(bus.projList[activeProjIdx.value].canvasCache.rawComponents.length, 'components');
   activeComponent.value = canvasComponents.value[canvasComponents.value.length - 1]; // 设置新添加组件为激活状态
+  bus.activeCompId = newComp.id
+  activeCompId.value = newComp.id; // 更新本地状态
   router.push({ path: '/home/chart/' + type });
 }
 

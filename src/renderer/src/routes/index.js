@@ -66,6 +66,18 @@ const routes = [
           {
             path: 'liquidfill',
             component: () => import('../views/chart-views/Liquidfill.vue'),
+          },
+          {
+            path: 'bar',
+            component: () => import('../views/chart-views/Bar.vue'),
+          },
+          {
+            path: 'stackedarea',
+            component: () => import('../views/chart-views/Stackedarea.vue'),
+          },
+          {
+            path: 'radar',
+            component: () => import('../views/chart-views/Radar.vue'),
           }
         ]
       }

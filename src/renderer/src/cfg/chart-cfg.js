@@ -97,7 +97,14 @@ export default {
         subcommontext: {
           tp: 1,
           name: "普通文本显示",
-          icon: ""
+          icon: "",
+          props: {
+            title: "普通文本显示",
+            topic: {},
+            width: 300,
+            height: 60,
+            value: ""
+          }
         },
         sublabeltext: {
           tp: 1,
@@ -235,8 +242,8 @@ export default {
           props: {
             title: "雷达图",
             topic: {},
-            width: 350,
-            height: 200,
+            width: 400,
+            height: 250,
             hideBg: false,
             isInit: true,
             // 每个类目可配置最大值

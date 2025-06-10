@@ -22,7 +22,14 @@
         <a-checkbox v-model:checked="attrData.hideBg" />
       </a-form-item>
       <a-form-item label="主配色" v-if="attrData.colorMain">
-        <a-input v-model:value="attrData.colorMain" placeholder="#4caafe" />
+        <div style="display: flex; align-items: center;">
+          <input
+            type="color"
+            v-model="attrData.colorMain"
+            style="width: 40px; height: 32px; border: none; background: none; padding: 0;"
+          />
+          <span style="line-height: 32px; font-size: 14px; margin-left: 8px;">{{ attrData.colorMain }}</span>
+        </div>
       </a-form-item>
       <a-form-item label="总量">
         <a-input v-model:value.number="attrData.total" placeholder="100" />

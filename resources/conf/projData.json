@@ -82,26 +82,19 @@
             "left": 38.09195218704872
           },
           {
-            "id": 1749396129343.8267,
-            "type": "liquidfill",
+            "id": 1749548791639.8777,
+            "type": "subcommontext",
             "props": {
-              "title": "水波图",
-              "topic": {
-                "topic": "testtopic/num",
-                "qos": 0,
-                "color": "#f2a145",
-                "alias": ""
-              },
-              "width": 236,
-              "height": 226,
-              "hideBg": false,
-              "colorMain": "#00ddff",
-              "total": 100,
+              "title": "普通文本显示",
+              "topic": {},
+              "width": 320,
+              "height": 60,
               "value": "",
+              "hideBg": false,
               "isInit": true
             },
-            "top": 255.25819437037768,
-            "left": 126.38370388639953
+            "top": 731.8739401999823,
+            "left": 455.9627015655475
           }
         ]
       }

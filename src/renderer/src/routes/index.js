@@ -48,6 +48,10 @@ const routes = [
             component: () => import('../views/chart-views/Checkbox.vue'),
           },
           {
+            path: 'subcommontext',
+            component: () => import('../views/chart-views/Subcommontext.vue'),
+          },
+          {
             path: 'linechart',
             component: () => import('../views/chart-views/LineChart.vue'),
           },

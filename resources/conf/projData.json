@@ -82,24 +82,28 @@
             "left": 38.09195218704872
           },
           {
-            "id": 1749562437713.2417,
-            "type": "subcommontext",
+            "id": 1749567764006.1572,
+            "type": "sublabeltext",
             "props": {
-              "title": "普通文本显示",
+              "title": "标签文本显示",
               "topic": {
                 "topic": "testtopic/num",
                 "qos": 0,
                 "color": "#f2a145",
                 "alias": ""
               },
-              "width": 216,
-              "height": 126,
-              "value": "",
+              "width": 236,
+              "height": 164,
+              "labelText": "标签",
+              "labelColor": "#d2694a",
+              "unitText": "℃",
+              "unitColor": "#ffd590",
+              "isInit": true,
               "hideBg": false,
-              "isInit": true
+              "value": ""
             },
-            "top": 136.88737310466155,
-            "left": 22.577793750808723
+            "top": 196.12083995416796,
+            "left": 338.55806656841264
           }
         ]
       }

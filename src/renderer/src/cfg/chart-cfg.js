@@ -103,13 +103,29 @@ export default {
             topic: {},
             width: 300,
             height: 120,
-            value: ""
+            value: "",
+            inputType: "singleLine",
+            isInit: true, // 数据是否为初始状态
+            hideBg: false // 是否隐藏背景 
           }
         },
         sublabeltext: {
           tp: 1,
           name: "标签文本显示",
-          icon: ""
+          icon: "",
+          props: {
+            title: "标签文本显示",
+            topic: {},
+            width: 180,
+            height: 120,
+            labelText: "标签",
+            labelColor: "#d2694a",
+            unitText: "℃",
+            unitColor: "#ffd590",
+            value: "",
+            isInit: true, // 数据是否为初始状态
+            hideBg: false // 是否隐藏背景 
+          }
         },
         linechart: {
           tp: 1,

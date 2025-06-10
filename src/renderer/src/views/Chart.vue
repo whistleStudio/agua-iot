@@ -96,6 +96,7 @@ import SliderComp from '../components/chart-comps/SliderComp.vue';
 import RadioComp from '../components/chart-comps/RadioComp.vue';
 import CheckboxComp from '../components/chart-comps/CheckboxComp.vue';
 import SubcommontextComp from '../components/chart-comps/SubcommontextComp.vue';
+import SublabeltextComp from '../components/chart-comps/SublabeltextComp.vue';
 import LineChartComp from '../components/chart-comps/LineChartComp.vue';
 import GaugeComp from '../components/chart-comps/GaugeComp.vue';
 import PieComp from '../components/chart-comps/PieComp.vue'
@@ -121,6 +122,7 @@ const componentMap = {
   radio: markRaw(RadioComp),
   checkbox: markRaw(CheckboxComp),
   subcommontext: markRaw(SubcommontextComp),
+  sublabeltext: markRaw(SublabeltextComp),
   linechart: markRaw(LineChartComp),
   gauge: markRaw(GaugeComp),
   pie: markRaw(PieComp),

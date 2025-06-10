@@ -1,40 +1,35 @@
 <template>
-  <div class="component-props">
-    <div class="component-props__title">组件属性 <span>普通文本显示</span></div>
+  <div class="component-props" v-if="attrData.labelColor">
+    <div class="component-props__title">组件属性 <span>标签文本显示</span></div>
     <a-divider style="margin: 8px 0 16px 0" />
+
     <a-form :label-col="{ span: 8 }" :wrapper-col="{ span: 16 }" layout="horizontal">
       <a-form-item label="组件标题">
-        <a-input v-model:value="attrData.title" placeholder="普通文本显示" />
+        <a-input v-model:value="attrData.title" placeholder="标签文本显示" />
       </a-form-item>
       <a-form-item label="Topic">
-        <a-select
-          v-model:value="selectTopic"
-          placeholder="请选择订阅主题"
-          :options="opts"
-          @change="v => { attrData.topic = JSON.parse(v) }"
-        />
+        <a-select v-model:value="selectTopic" placeholder="请选择订阅主题" :options="opts"
+                  @change="v => { attrData.topic = JSON.parse(v) }"></a-select>
       </a-form-item>
       <a-form-item label="组件宽度">
-        <a-input
-          v-model:value.number="attrData.width"
-          placeholder="300"
-          @pressEnter="enterBlur"
-          @blur="bus.emit('subCommonTextWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})"
-        />
+        <a-input v-model:value.number="attrData.width" placeholder="180" @pressEnter="enterBlur"
+        @blur="(e) => {if (attrData.width) bus.emit('sublabeltextWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})}"/>
       </a-form-item>
       <a-form-item label="组件高度">
-        <a-input
-          v-model:value.number="attrData.height"
-          placeholder="60"
-          @pressEnter="enterBlur"
-          @blur="bus.emit('subCommonTextWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})"
-        />
+        <a-input v-model:value.number="attrData.height" placeholder="120" @pressEnter="enterBlur"
+        @blur="() => {if (attrData.height) bus.emit('sublabeltextWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})}"/>
       </a-form-item>
-      <a-form-item label="显示类型">
-        <a-radio-group v-model:value="attrData.inputType">
-          <a-radio value="singleLine">单行</a-radio>
-          <a-radio value="multiLine">多行</a-radio>
-        </a-radio-group>
+      <a-form-item label="标签描述" v-if="attrData.labelColor">
+        <div style="display: flex; align-items: center;">
+          <a-input v-model:value="attrData.labelText" placeholder="标签" style="flex:1"/>
+          <input type="color" v-model="attrData.labelColor" style="width: 32px; height: 32px; border: none; background: none; margin-left:8px;"/>
+        </div>
+      </a-form-item>
+      <a-form-item label="标签单位" v-if="attrData.unitColor">
+        <div style="display: flex; align-items: center;">
+          <a-input v-model:value="attrData.unitText" placeholder="单位" style="flex:1"/>
+          <input type="color" v-model="attrData.unitColor" style="width: 32px; height: 32px; border: none; background: none; margin-left:8px;"/>
+        </div>
       </a-form-item>
       <a-form-item label="隐藏底色">
         <a-checkbox v-model:checked="attrData.hideBg" />
@@ -43,15 +38,13 @@
     <div class="tips">
       <div class="tips-title">组件功能</div>
       <div class="tips-desc">
-        实时显示订阅主题下最新收到的内容。<br>
-        超出长度部分将以“...”显示。
+        实时显示订阅主题下最新收到的数值，并带有自定义标签描述和单位。
       </div>
     </div>
     <div class="tips">
       <div class="tips-title">订阅数据</div>
       <div class="tips-desc">
-        示例：任意文本内容<br>
-        说明：显示收到的原始内容
+        每收到一条订阅消息，内容为本次数值（如 26.5），显示为“标签 26.5 单位”
       </div>
     </div>
   </div>
@@ -72,7 +65,6 @@ const subTopics = computed(() =>
     ? bus.projList[bus.activeProjIdx].subTopics
     : []
 )
-
 const selectTopic = ref()
 const opts = computed(() => subTopics.value.map(v => ({
   label: `${v.topic}${'\u00A0'.repeat(Math.max(0, 25 - v.topic.length))} qos:${v.qos}`,
@@ -80,7 +72,6 @@ const opts = computed(() => subTopics.value.map(v => ({
 })))
 
 function enterBlur(e) { e.target.blur() }
-
 function solveTopic(topic) {
   if (topic && subTopics.value.findIndex(v => JSON.stringify(v) === JSON.stringify(topic)) !== -1) {
     return JSON.stringify(topic)
@@ -92,14 +83,14 @@ function solveTopic(topic) {
 watch(attrData, (newVal) => {
   solveTopic(newVal.topic)
   selectTopic.value = solveTopic(newVal.topic)
-  // 若没有 inputType，兼容老数据，默认设为 singleLine
-  if (!newVal.inputType) attrData.value.inputType = "singleLine"
 }, { deep: true })
-
 onBeforeMount(() => {
   solveTopic(attrData.value.topic)
   selectTopic.value = solveTopic(attrData.value.topic)
-  if (!attrData.value.inputType) attrData.value.inputType = "singleLine"
+  // 默认色值
+  if (!attrData.value.labelColor) attrData.value.labelColor = '#d2694a'
+  if (!attrData.value.unitColor) attrData.value.unitColor = '#ffd590'
+  if (typeof attrData.value.hideBg === "undefined") attrData.value.hideBg = false
 })
 </script>
 

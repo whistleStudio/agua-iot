@@ -93,6 +93,13 @@ function stopResize() {
   document.removeEventListener('mouseup', stopResize)
 }
 
+watch([width, height], () => {
+  // console.log('watch lineChart size change:', width.value, height.value)
+  activeCompProps.get().width = width.value
+  activeCompProps.get().height = height.value
+})
+
+
 // 组件属性变化时，调整宽高和背景
 watch(
   () => props.compProps,
@@ -170,7 +177,7 @@ onBeforeUnmount(() => {
   }
   .header-bar {
     width: 100%;
-    height: 32px;
+    height: 40px;
     background: #fff;
     color: #333;
     font-weight: bold;
@@ -178,7 +185,7 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
     border-bottom: 1px solid #f0f0f0;
-    font-size: 15px;
+    font-size: 18px;
     padding: 0 10px;
     box-sizing: border-box;
     user-select: none;

@@ -82,19 +82,24 @@
             "left": 38.09195218704872
           },
           {
-            "id": 1749548791639.8777,
+            "id": 1749562437713.2417,
             "type": "subcommontext",
             "props": {
               "title": "普通文本显示",
-              "topic": {},
-              "width": 320,
-              "height": 60,
+              "topic": {
+                "topic": "testtopic/num",
+                "qos": 0,
+                "color": "#f2a145",
+                "alias": ""
+              },
+              "width": 216,
+              "height": 126,
               "value": "",
               "hideBg": false,
               "isInit": true
             },
-            "top": 731.8739401999823,
-            "left": 455.9627015655475
+            "top": 136.88737310466155,
+            "left": 22.577793750808723
           }
         ]
       }

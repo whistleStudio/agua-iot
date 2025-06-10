@@ -102,7 +102,7 @@ export default {
             title: "普通文本显示",
             topic: {},
             width: 300,
-            height: 60,
+            height: 120,
             value: ""
           }
         },

@@ -12,12 +12,13 @@
                   @change="v => { attrData.topic = JSON.parse(v) }"></a-select>
       </a-form-item>
       <a-form-item label="组件宽度">
-        <a-input v-model:value.number="attrData.width" placeholder="180" @pressEnter="enterBlur"
-        @blur="(e) => {if (attrData.width) bus.emit('sublabeltextWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})}"/>
+        <a-input placeholder="180" type="number" @pressEnter="enterBlur" :value="attrData.width"
+        @focus="curActiveCompId = bus.activeCompId; curActiveCompProps = activeCompProps.get()"
+        @blur="(e) => {curActiveCompProps.width = e.target.value; bus.emit('sublabeltextWHChange', {id: curActiveCompId, newWidth:attrData.width, newHeight:attrData.height})}"/>
       </a-form-item>
       <a-form-item label="组件高度">
-        <a-input v-model:value.number="attrData.height" placeholder="120" @pressEnter="enterBlur"
-        @blur="() => {if (attrData.height) bus.emit('sublabeltextWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})}"/>
+        <a-input placeholder="120" type="number" @pressEnter="enterBlur" :value="attrData.height"
+        @blur="() => {attrData.width = e.target.value; bus.emit('sublabeltextWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})}"/>
       </a-form-item>
       <a-form-item label="标签描述" v-if="attrData.labelColor">
         <div style="display: flex; align-items: center;">
@@ -55,6 +56,7 @@ import { inject, computed, ref, watch, onBeforeMount } from 'vue'
 import bus from '../../utils/bus'
 
 const activeCompProps = inject('activeCompProps')
+let curActiveCompId = bus.activeCompId, curActiveCompProps = activeCompProps.get()
 const attrData = computed({
   get: () => activeCompProps.get(),
   set: (val) => { activeCompProps.set(val) }

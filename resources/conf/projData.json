@@ -57,7 +57,7 @@
       ],
       "canvasCache": {
         "layout": {
-          "theme": "light",
+          "theme": "dark",
           "background": "default"
         },
         "rawComponents": [
@@ -82,28 +82,23 @@
             "left": 38.09195218704872
           },
           {
-            "id": 1749567764006.1572,
+            "id": 1749629000915.95,
             "type": "sublabeltext",
             "props": {
               "title": "标签文本显示",
-              "topic": {
-                "topic": "testtopic/num",
-                "qos": 0,
-                "color": "#f2a145",
-                "alias": ""
-              },
-              "width": 236,
-              "height": 164,
+              "topic": {},
+              "width": "300",
+              "height": 144,
               "labelText": "标签",
               "labelColor": "#d2694a",
               "unitText": "℃",
               "unitColor": "#ffd590",
+              "value": "",
               "isInit": true,
-              "hideBg": false,
-              "value": ""
+              "hideBg": false
             },
-            "top": 196.12083995416796,
-            "left": 338.55806656841264
+            "top": 115.19787322224542,
+            "left": 405.5252486647338
           }
         ]
       }

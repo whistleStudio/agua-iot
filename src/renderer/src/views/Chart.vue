@@ -199,9 +199,12 @@ function addComponent(type) {
 /* 拖拽选中逻辑 */
 function startDrag(event, idx, comp) {
   if (!isDragging.value) {
-    activeComponent.value = comp;
-    bus.activeCompId = comp.id; // 更新总线上的当前组件
-    activeCompId.value = comp.id; // 更新本地状态
+    setTimeout(() => {
+      activeComponent.value = comp; // 同组件修改时，blur数据更新存在滞后，延时防止立即调用最新的属性
+      bus.activeCompId = comp.id; // 更新总线上的当前组件
+      activeCompId.value = comp.id; // 更新本地状态
+    }, 50)
+
     // 路由跳转
     router.push({ path: '/home/chart/' + comp.type});
   };
@@ -374,9 +377,13 @@ onBeforeUnmount(() => {
 // 右侧属性栏展示-布局设置
 function showLayoutSettings() {
   router.push('/home/chart/layout');
-  activeComponent.value = layoutComp;
-  bus.activeCompId = 0; // 更新总线上的当前组件
-  activeCompId.value = 0; // 更新本地状态
+
+  setTimeout(() => {
+    activeComponent.value = layoutComp;
+    bus.activeCompId = 0; // 更新总线上的当前组件
+    activeCompId.value = 0; // 更新本地状态
+  }, 20)
+  
 }
 
 </script>

@@ -1,7 +1,8 @@
 <template>
+  <!-- 修改 -->
   <div
     class="resize-container"
-    :class="{ active: props.compId === activeCompId }"
+    :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',
       height: height + 'px',
@@ -110,6 +111,7 @@ function stopResize() {
 }
 
 watch([width, height], () => {
+  if (props.compId !== props.activeCompId) return // 修改
   activeCompProps.get().width = width.value
   activeCompProps.get().height = height.value
 })
@@ -127,8 +129,10 @@ const sublabeltextWHChangeHandle = ({ id, newWidth, newHeight }) => {
   if (id !== props.compId) return
   width.value = newWidth
   height.value = newHeight
-  activeCompProps.get().width = newWidth
-  activeCompProps.get().height = newHeight
+  console.log("activeCompProps.get()", activeCompProps.get())
+  // 修改
+  // activeCompProps.get().width = newWidth
+  // activeCompProps.get().height = newHeight
   nextTick(() => { /* 可扩展：内容自适应等 */ })
 }
 bus.on('sublabeltextWHChange', sublabeltextWHChangeHandle)

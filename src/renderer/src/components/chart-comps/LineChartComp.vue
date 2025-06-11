@@ -1,6 +1,6 @@
 <template>
   <div
-    class="resize-container" :class="{ active: props.compId === activeCompId }"
+    class="resize-container" :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',
       height: height + 'px',
@@ -187,6 +187,7 @@ function processPayload(payload) {
 /* -------------------------------------- */
 watch([width, height], () => {
   // console.log('watch lineChart size change:', width.value, height.value)
+  if (props.compId !== props.activeCompId) return
   activeCompProps.get().width = width.value
   activeCompProps.get().height = height.value
   nextTick(() => myChart && myChart.resize())
@@ -230,8 +231,9 @@ watch(props.compProps, newVal => {
 
 // 属性面变化时组件DOM更新
 const lineChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
-  if (id !== props.compId) return
   console.log('lineChartWHChange match:', id, newWidth, newHeight)
+
+  if (id !== props.compId) return
   width.value = newWidth
   height.value = newHeight
   nextTick(() => myChart && myChart.resize())

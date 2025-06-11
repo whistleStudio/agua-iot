@@ -13,8 +13,8 @@
       </a-form-item>
       <a-form-item label="组件宽度">
         <a-input placeholder="180" type="number" @pressEnter="enterBlur" :value="attrData.width"
-        @focus="curActiveCompId = bus.activeCompId; curActiveCompProps = activeCompProps.get()"
-        @blur="(e) => {curActiveCompProps.width = e.target.value; bus.emit('sublabeltextWHChange', {id: curActiveCompId, newWidth:attrData.width, newHeight:attrData.height})}"/>
+        @blur="(e) => { attrData.width=parseFloat(e.target.value); bus.emit('sublabeltextWHChange', {id: activeCompId, newWidth:attrData.width, newHeight:attrData.height})}"
+        />
       </a-form-item>
       <a-form-item label="组件高度">
         <a-input placeholder="120" type="number" @pressEnter="enterBlur" :value="attrData.height"

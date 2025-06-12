@@ -11,8 +11,8 @@
       <div class="visual-editor__settings-label">背景图片</div>
       <a-radio-group v-model:value="layoutSettings.background" class="visual-editor__settings-radio" :options="bgOpts" >
       </a-radio-group>
-      <div class="visual-editor__cover-box" @click="chooseCover">
-        <span class="visual-editor__cover-placeholder">暂无封面</span>
+      <div class="visual-editor__cover-box" @click="chooseCover" :style="coverBoxStyle">
+        <span class="visual-editor__cover-placeholder">{{ layoutSettings.background ? "" : "暂无封面" }}</span>
       </div>
     </div>
   </a-layout-sider>
@@ -27,6 +27,15 @@ const layoutSettings = computed({
   get: () => activeLayoutSettings.get(),
   set: (val) => { activeLayoutSettings.set(val); }
 });
+
+const coverBoxStyle = computed(() => {
+  return {
+    backgroundImage: layoutSettings.value.bgUrl ? `url(${layoutSettings.value.bgUrl})` : 'none',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    opacity: layoutSettings.value.background === 'upload' ? 1 : 0.3,
+  };
+})
 
 const themeOpts = ref([
   { label: '浅色', value: 'light' },
@@ -44,8 +53,8 @@ function chooseCover() {
     .then((res) => {
       if (res && res.destPath) {
         res.destPath = res.destPath.replace(/\\/g, '/'); // 替换反斜杠为正斜杠
-        console.log('选择的封面路径:', res.destPath);
-        // layoutSettings.value.cover = res.filePath; // 假设cover是layoutSettings中的一个属性
+        // console.log('选择的封面路径:', res.destPath);
+        layoutSettings.value.bgUrl = res.destPath; // 更新布局设置中的封面路径
       }
     })
     .catch((err) => {
@@ -95,6 +104,7 @@ function chooseCover() {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
   .visual-editor__cover-placeholder {
     color: #bbb;
     font-size: 13px;

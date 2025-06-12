@@ -127,15 +127,10 @@ app.whenReady().then(() => {
       return { err: 1, msg: '未选择文件' }
     } else {
       const filePath = result.filePaths[0]
-      // 复制文件到项目目录下
-      const destDir = join(__dirname, '../renderer/assets/img')
-      if (!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir, { recursive: true })
-      }
-      const destPath = join(destDir, `cover_${projId}.jpg`)
-      console.log('选择的文件路径: ', destPath)
-      fs.copyFileSync(filePath, destPath)
-      return { err: 0, destPath }
+      try {
+        const data = fs.readFileSync(filePath);
+        return { err: 0, destPath: `data:image/jpeg;base64,${data.toString('base64')}` }
+      } catch (err) {console.log(err); return { err: 1, msg: '文件读取失败' } }
     }
   })
 

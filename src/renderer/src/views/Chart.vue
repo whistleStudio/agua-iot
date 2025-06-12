@@ -1,7 +1,7 @@
 <template>
   <a-layout class="visual-editor">
     <!-- Header -->
-    <a-layout-header class="visual-editor__header">
+    <a-layout-header v-show="!isFullscreen" class="visual-editor__header">
       <div class="visual-editor__header-left">
         <a-dropdown>
           <a class="ant-dropdown-link" @click.prevent>
@@ -23,7 +23,8 @@
           <img v-if="isStart" :src="getImgPath('stop.svg')" alt="">
           <img v-else :src="getImgPath('start.svg')" alt="">
         </div> 
-        <a-button type="primary" shape="round" class="visual-editor__header-fullscreen">
+        <a-button type="primary" shape="round" class="visual-editor__header-fullscreen"
+        @click="isFullscreen ? exitFullscreen() : enterFullscreen()">
           <template #icon></template>
           全屏
         </a-button>
@@ -32,7 +33,7 @@
 
     <a-layout class="visual-editor__main-layout">
       <!-- 左侧组件面板 -->
-      <a-layout-sider width="160" class="visual-editor__sider visual-editor__sider--left" ref="leftSiderRef">
+      <a-layout-sider v-show="!isFullscreen" width="160" class="visual-editor__sider visual-editor__sider--left" ref="leftSiderRef">
         <div
           class="visual-editor__panel"
           :class="{ 'visual-editor__panel--droppable': isDragging && isOverLeftSider }"
@@ -56,9 +57,9 @@
       </a-layout-sider>
 
       <!-- 中间画布部分 -->
-      <a-layout-content class="visual-editor__content">
+      <a-layout-content class="visual-editor__content" >
         <div class="visual-editor__canvas-wrapper" @mousedown="showLayoutSettings">
-          <div class="visual-editor__canvas" ref="canvasRef">
+          <div class="visual-editor__canvas" ref="canvasRef" :style="canvasStyle">
             <div
               v-for="(comp, idx) in canvasComponents"
               :key="comp.id"
@@ -74,7 +75,7 @@
       </a-layout-content>
 
       <!-- 右侧属性面板 -->
-      <a-layout-sider width="260" class="visual-editor__sider visual-editor__sider--right">
+      <a-layout-sider v-show="!isFullscreen" width="260" class="visual-editor__sider visual-editor__sider--right">
         <router-view />
       </a-layout-sider>
     </a-layout>
@@ -82,7 +83,7 @@
 </template>
 
 <script setup>
-import { ref, markRaw, provide, reactive, computed, onBeforeMount, watch, onBeforeUnmount } from 'vue';
+import { ref, markRaw, provide, reactive, computed, onBeforeMount, watch, onBeforeUnmount, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import chartCfg from '../cfg/chart-cfg';
 import { cloneDeep } from 'lodash-es';
@@ -134,7 +135,7 @@ const componentMap = {
   // ...可继续扩展其它组件
 };
 
-const isStart = ref(false);
+const isStart = ref(false), isWindowscreen = ref(true);
 const menu = ref(chartCfg.menu);
 const projList = reactive(bus.projList);
 // 直接从 bus 中获取和设置 activeProjIdx
@@ -151,6 +152,9 @@ const canvasRawComponents = computed({
     }
   }
 })
+const canvasStyle = computed(() => {
+  return { backgroundImage: (activeProj.value?.canvasCache?.layout?.bgUrl && activeProj.value.canvasCache.layout?.background == 'upload') ? `url(${activeProj.value.canvasCache.layout.bgUrl})` : 'none'};
+});
 
 const canvasComponents = ref([])
 const canvasLayout = ref({})
@@ -317,6 +321,38 @@ window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
   bus.emit('subTopicData', data)
 })
 
+// 新增：全屏状态
+const isFullscreen = ref(false);
+
+// 全屏切换
+function enterFullscreen() {
+  bus.emit("showCustomAlert", { type: "info", msg: "ESC键或双击画布区域 退出全屏模式", time: 2500 });
+  isFullscreen.value = true;
+  bus.emit('enterFullscreen'); // 通知总线进入全屏状态
+  // 监听esc退出
+  document.addEventListener('keydown', onEscExitFullscreen);
+  // 监听双击画布空白退出
+  nextTick(() => {
+    const wrapper = document.querySelector('.visual-editor__canvas-wrapper');
+    if (wrapper) wrapper.addEventListener('dblclick', exitFullscreen);
+  });
+}
+function exitFullscreen() {
+  isFullscreen.value = false;
+  bus.emit('exitFullscreen'); // 通知总线退出全屏状态
+  document.removeEventListener('keydown', onEscExitFullscreen);
+  const wrapper = document.querySelector('.visual-editor__canvas-wrapper');
+  if (wrapper) wrapper.removeEventListener('dblclick', exitFullscreen);
+}
+function onEscExitFullscreen(e) {
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    exitFullscreen();
+  }
+}
+
+
+
+
 /* ----------------------------------------------------- */
 // 同步canvasComponents到bus
 watch(canvasComponents, (newVal) => {
@@ -332,7 +368,7 @@ watch(canvasComponents, (newVal) => {
 }, { deep: true });
 // 同步canvasLayout到bus
 watch(canvasLayout, (newVal, oldVal) => {
-  console.log('Layout settings changed:', oldVal, "->",newVal);
+  // console.log('Layout settings changed:', oldVal, "->",newVal);
   if (activeProj.value && activeProj.value.canvasCache) {
     // activeProj.value.canvasCache.layout = { ...newVal }; // 这样写不行会导致canvasLayout.value 和 activeProj.value.canvasCache.layout 引用不同对象
     // console.log('==', activeProj.value.canvasCache.layout == canvasLayout.value); // false
@@ -371,6 +407,10 @@ onBeforeUnmount(() => {
   document.removeEventListener('mouseup', stopDrag);
   // 清理mqtt数据监听
   window.electron.ipcRenderer.removeAllListeners("m:mqttData");
+  // 清理全屏监听
+  document.removeEventListener('keydown', onEscExitFullscreen);
+  const wrapper = document.querySelector('.visual-editor__canvas-wrapper');
+  if (wrapper) wrapper.removeEventListener('dblclick', exitFullscreen);
 })
 
 
@@ -514,6 +554,8 @@ function showLayoutSettings() {
     width: 100%;
     overflow: auto;
     box-sizing: border-box;
+    background-size: cover;
+    background-position: center;
   }
 
   &__draggable {

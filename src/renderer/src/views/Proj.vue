@@ -160,6 +160,7 @@ function handleProjModalOk(newProj) {
       layout: {
         "theme": "light",
         "background": "default",
+        "bgUrl": "",
       },
       rawComponents: []
     }

@@ -6,7 +6,7 @@
   <a-alert class="alert" :message="alertInfo.msg" :type="alertInfo.tp" show-icon v-if="alertInfo.isShow"/>
   <div class="container">
     <!-- Menu -->
-    <div class="menu">
+    <div v-show="!isFullscreen" class="menu">
       <div class="logo">
         <img alt="logo" src="../assets/electron.svg" @click="$router.push('/')"/>
       </div>
@@ -21,11 +21,9 @@
 
 
 <script setup>
-import { reactive, onBeforeUnmount } from 'vue'
+import { ref, reactive, onBeforeUnmount } from 'vue'
 import ConnectionModal from '../components/ProjModal.vue'
 import bus from '../utils/bus'
-
-
 
 // const toHref = href => {$router.push(href)}
 const alertInfo = reactive({
@@ -33,7 +31,6 @@ const alertInfo = reactive({
   msg: '',
   tp: 'info'
 })
-
 
 const menuListInfo = reactive([
   { name: 'Device', href: "/home/device"},
@@ -51,22 +48,30 @@ const connectionModalInfo = reactive({
 })
 
 /* 显示自定义提示框 */
-const showCustomAlert = ({msg, type}) => {
-  console.log('showCustomAlert:', msg, type)
+const showCustomAlert = ({msg, type, time=1000}) => {
+  // console.log('showCustomAlert:', msg, type)
   alertInfo.isShow = true
   alertInfo.msg = msg
   alertInfo.tp = type
   setTimeout(() => {
     alertInfo.isShow = false
-  }, 1000)
+  }, time)
 }
 
-
 bus.on('showCustomAlert', showCustomAlert)
+
+/* 监听全屏事件 */
+const isFullscreen = ref(false)
+const enterFullscreen = () => { isFullscreen.value = true }
+bus.on('enterFullscreen', enterFullscreen)
+const exitFullscreen = () => { isFullscreen.value = false }
+bus.on('exitFullscreen', exitFullscreen)
 
 /* ------------------------ */
 onBeforeUnmount(() => {
   bus.off('showCustomAlert', showCustomAlert)
+  bus.off('enterFullscreen', enterFullscreen)
+  bus.off('exitFullscreen', exitFullscreen)
 })
 </script>
 

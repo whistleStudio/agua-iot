@@ -129,10 +129,7 @@ const sublabeltextWHChangeHandle = ({ id, newWidth, newHeight }) => {
   if (id !== props.compId) return
   width.value = newWidth
   height.value = newHeight
-  console.log("activeCompProps.get()", activeCompProps.get())
-  // 修改
-  // activeCompProps.get().width = newWidth
-  // activeCompProps.get().height = newHeight
+  // console.log("activeCompProps.get()", activeCompProps.get())
   nextTick(() => { /* 可扩展：内容自适应等 */ })
 }
 bus.on('sublabeltextWHChange', sublabeltextWHChangeHandle)

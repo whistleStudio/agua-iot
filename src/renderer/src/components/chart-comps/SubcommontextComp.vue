@@ -1,7 +1,7 @@
 <template>
   <div
     class="resize-container"
-    :class="{ active: props.compId === activeCompId }"
+    :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',
       height: height + 'px',
@@ -121,6 +121,7 @@ function stopResize() {
 }
 
 watch([width, height], () => {
+  if (props.compId !== props.activeCompId) return
   activeCompProps.get().width = width.value
   activeCompProps.get().height = height.value
 })

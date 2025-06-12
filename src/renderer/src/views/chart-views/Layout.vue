@@ -11,7 +11,7 @@
       <div class="visual-editor__settings-label">背景图片</div>
       <a-radio-group v-model:value="layoutSettings.background" class="visual-editor__settings-radio" :options="bgOpts" >
       </a-radio-group>
-      <div class="visual-editor__cover-box">
+      <div class="visual-editor__cover-box" @click="chooseCover">
         <span class="visual-editor__cover-placeholder">暂无封面</span>
       </div>
     </div>
@@ -20,6 +20,7 @@
 
 <script setup>
 import { computed, inject, ref } from 'vue';
+import bus from '../../utils/bus';
 
 const activeLayoutSettings = inject('activeLayoutSettings');
 const layoutSettings = computed({
@@ -35,6 +36,23 @@ const bgOpts = ref([
   { label: '无', value: 'default' },
   { label: '本地上传', value: 'upload' }
 ]);
+
+function chooseCover() {
+  console.log('选择封面按钮被点击');
+  // 触发封面选择逻辑
+  window.electron.ipcRenderer.invoke('r:chooseCover', bus.projList[bus.activeProjIdx].id)
+    .then((res) => {
+      if (res && res.destPath) {
+        res.destPath = res.destPath.replace(/\\/g, '/'); // 替换反斜杠为正斜杠
+        console.log('选择的封面路径:', res.destPath);
+        // layoutSettings.value.cover = res.filePath; // 假设cover是layoutSettings中的一个属性
+      }
+    })
+    .catch((err) => {
+      console.error('选择封面失败:', err);
+    });
+}
+
 </script>
 
 <style lang="scss" scoped>

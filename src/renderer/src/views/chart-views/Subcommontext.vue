@@ -16,18 +16,22 @@
       </a-form-item>
       <a-form-item label="组件宽度">
         <a-input
-          v-model:value.number="attrData.width"
           placeholder="300"
-          @pressEnter="enterBlur"
-          @blur="bus.emit('subCommonTextWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})"
+          type="number"
+          :value="localWidth"
+          @input="onWidthInput"
+          @pressEnter="enterBlurWidth"
+          @blur="onWidthBlur"
         />
       </a-form-item>
       <a-form-item label="组件高度">
         <a-input
-          v-model:value.number="attrData.height"
           placeholder="60"
-          @pressEnter="enterBlur"
-          @blur="bus.emit('subCommonTextWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})"
+          type="number"
+          :value="localHeight"
+          @input="onHeightInput"
+          @pressEnter="enterBlurHeight"
+          @blur="onHeightBlur"
         />
       </a-form-item>
       <a-form-item label="显示类型">
@@ -79,7 +83,49 @@ const opts = computed(() => subTopics.value.map(v => ({
   value: JSON.stringify(v)
 })))
 
-function enterBlur(e) { e.target.blur() }
+/** 只在失焦或回车时更新 width 和 height */
+const localWidth = ref(attrData.value.width)
+const localHeight = ref(attrData.value.height)
+
+watch(() => attrData.value.width, (newVal) => {
+  localWidth.value = newVal
+})
+watch(() => attrData.value.height, (newVal) => {
+  localHeight.value = newVal
+})
+
+function onWidthInput(e) {
+  localWidth.value = e.target.value
+}
+function onHeightInput(e) {
+  localHeight.value = e.target.value
+}
+function onWidthBlur(e) {
+  const newWidth = parseFloat(localWidth.value) || 300
+  attrData.value.width = newWidth
+  localWidth.value = newWidth
+  bus.emit('subCommonTextWHChange', {
+    id: bus.activeCompId,
+    newWidth,
+    newHeight: attrData.value.height
+  })
+}
+function onHeightBlur(e) {
+  const newHeight = parseFloat(localHeight.value) || 60
+  attrData.value.height = newHeight
+  localHeight.value = newHeight
+  bus.emit('subCommonTextWHChange', {
+    id: bus.activeCompId,
+    newWidth: attrData.value.width,
+    newHeight
+  })
+}
+function enterBlurWidth(e) {
+  e.target.blur()
+}
+function enterBlurHeight(e) {
+  e.target.blur()
+}
 
 function solveTopic(topic) {
   if (topic && subTopics.value.findIndex(v => JSON.stringify(v) === JSON.stringify(topic)) !== -1) {

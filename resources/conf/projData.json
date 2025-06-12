@@ -82,28 +82,24 @@
             "left": 38.09195218704872
           },
           {
-            "id": 1749653010003.8372,
-            "type": "linechart",
+            "id": 1749714511824.8708,
+            "type": "sublabeltext",
             "props": {
-              "title": "折线图",
+              "title": "标签文本显示",
               "topic": {},
-              "width": 332,
-              "height": 243,
-              "hideBg": false,
-              "yUnit": "单位",
-              "count": 10,
+              "width": 202,
+              "height": 136,
+              "labelText": "标签",
+              "labelColor": "#d2694a",
+              "unitText": "℃",
+              "unitColor": "#ffd590",
+              "value": "",
               "isInit": true,
-              "data": [
-                {
-                  "name": "折线1",
-                  "color": "#a9c5e8",
-                  "logs": []
-                }
-              ],
-              "time": []
+              "hideBg": false,
+              "inputType": "singleLine"
             },
-            "top": 76.13370238072719,
-            "left": -11.384083792098295
+            "top": 101.60525482543628,
+            "left": 360.0886672717745
           }
         ]
       }

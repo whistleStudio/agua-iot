@@ -12,13 +12,24 @@
                   @change="v => { attrData.topic = JSON.parse(v) }"></a-select>
       </a-form-item>
       <a-form-item label="组件宽度">
-        <a-input placeholder="180" type="number" @pressEnter="enterBlur" :value="attrData.width"
-        @blur="(e) => { attrData.width=parseFloat(e.target.value); bus.emit('sublabeltextWHChange', {id: activeCompId, newWidth:attrData.width, newHeight:attrData.height})}"
+        <a-input
+          placeholder="180"
+          type="number"
+          :value="localWidth"
+          @input="onWidthInput"
+          @pressEnter="enterBlurWidth"
+          @blur="onWidthBlur"
         />
       </a-form-item>
       <a-form-item label="组件高度">
-        <a-input placeholder="120" type="number" @pressEnter="enterBlur" :value="attrData.height"
-        @blur="() => {attrData.width = e.target.value; bus.emit('sublabeltextWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})}"/>
+        <a-input
+          placeholder="120"
+          type="number"
+          :value="localHeight"
+          @input="onHeightInput"
+          @pressEnter="enterBlurHeight"
+          @blur="onHeightBlur"
+        />
       </a-form-item>
       <a-form-item label="标签描述" v-if="attrData.labelColor">
         <div style="display: flex; align-items: center;">
@@ -56,7 +67,6 @@ import { inject, computed, ref, watch, onBeforeMount } from 'vue'
 import bus from '../../utils/bus'
 
 const activeCompProps = inject('activeCompProps')
-let curActiveCompId = bus.activeCompId, curActiveCompProps = activeCompProps.get()
 const attrData = computed({
   get: () => activeCompProps.get(),
   set: (val) => { activeCompProps.set(val) }
@@ -73,7 +83,50 @@ const opts = computed(() => subTopics.value.map(v => ({
   value: JSON.stringify(v)
 })))
 
-function enterBlur(e) { e.target.blur() }
+/** 只在失焦或回车时更新 width 和 height */
+const localWidth = ref(attrData.value.width)
+const localHeight = ref(attrData.value.height)
+
+watch(() => attrData.value.width, (newVal) => {
+  localWidth.value = newVal
+})
+watch(() => attrData.value.height, (newVal) => {
+  localHeight.value = newVal
+})
+
+function onWidthInput(e) {
+  localWidth.value = e.target.value
+}
+function onHeightInput(e) {
+  localHeight.value = e.target.value
+}
+function onWidthBlur(e) {
+  const newWidth = parseFloat(localWidth.value) || 180
+  attrData.value.width = newWidth
+  localWidth.value = newWidth
+  bus.emit('sublabeltextWHChange', {
+    id: bus.activeCompId,
+    newWidth,
+    newHeight: attrData.value.height
+  })
+}
+function onHeightBlur(e) {
+  const newHeight = parseFloat(localHeight.value) || 120
+  attrData.value.height = newHeight
+  localHeight.value = newHeight
+  bus.emit('sublabeltextWHChange', {
+    id: bus.activeCompId,
+    newWidth: attrData.value.width,
+    newHeight
+  })
+}
+function enterBlurWidth(e) {
+  e.target.blur()
+}
+function enterBlurHeight(e) {
+  e.target.blur()
+}
+
 function solveTopic(topic) {
   if (topic && subTopics.value.findIndex(v => JSON.stringify(v) === JSON.stringify(topic)) !== -1) {
     return JSON.stringify(topic)

@@ -184,6 +184,7 @@ function processPayload(payload) {
 }
 
 watch([width, height], () => {
+  if (props.compId !== props.activeCompId) return
   activeCompProps.get().width = width.value
   activeCompProps.get().height = height.value
   nextTick(() => myChart && myChart.resize())
@@ -231,7 +232,7 @@ const stackedareaChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
   height.value = newHeight
   nextTick(() => myChart && myChart.resize())
 }
-bus.on('stackedareaChartWHChange', stackedareaChartWHChangeHandle)
+bus.on('stackedAreaChartWHChange', stackedareaChartWHChangeHandle)
 
 // 增删类目时更新图表
 const initStackedareaDataChangeHandle = () => {

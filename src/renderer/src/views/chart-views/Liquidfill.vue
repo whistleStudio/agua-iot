@@ -11,12 +11,24 @@
         <a-select v-model:value="selectTopic" placeholder="请选择订阅主题" :options="opts" @change="v => { attrData.topic = JSON.parse(v) }"></a-select>
       </a-form-item>
       <a-form-item label="组件宽度">
-        <a-input v-model:value.number="attrData.width" placeholder="240" @pressEnter="enterBlur"
-        @blur="bus.emit('liquidfillChartWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})"/>
+        <a-input
+          placeholder="240"
+          type="number"
+          :value="localWidth"
+          @input="onWidthInput"
+          @pressEnter="enterBlurWidth"
+          @blur="onWidthBlur"
+        />
       </a-form-item>
       <a-form-item label="组件高度">
-        <a-input v-model:value.number="attrData.height" placeholder="240" @pressEnter="enterBlur"
-        @blur="bus.emit('liquidfillChartWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})"/>
+        <a-input
+          placeholder="240"
+          type="number"
+          :value="localHeight"
+          @input="onHeightInput"
+          @pressEnter="enterBlurHeight"
+          @blur="onHeightBlur"
+        />
       </a-form-item>
       <a-form-item label="隐藏底色">
         <a-checkbox v-model:checked="attrData.hideBg" />
@@ -73,7 +85,36 @@ const opts = computed(() => subTopics.value.map(v => ({
   value: JSON.stringify(v)
 })))
 
-function enterBlur(e) { e.target.blur() }
+const localWidth = ref(attrData.value.width)
+const localHeight = ref(attrData.value.height)
+watch(() => attrData.value.width, (newVal) => { localWidth.value = newVal })
+watch(() => attrData.value.height, (newVal) => { localHeight.value = newVal })
+
+function onWidthInput(e) { localWidth.value = e.target.value }
+function onHeightInput(e) { localHeight.value = e.target.value }
+function onWidthBlur(e) {
+  const newWidth = parseFloat(localWidth.value) || 240
+  attrData.value.width = newWidth
+  localWidth.value = newWidth
+  bus.emit('liquidfillChartWHChange', {
+    id: bus.activeCompId,
+    newWidth,
+    newHeight: attrData.value.height
+  })
+}
+function onHeightBlur(e) {
+  const newHeight = parseFloat(localHeight.value) || 240
+  attrData.value.height = newHeight
+  localHeight.value = newHeight
+  bus.emit('liquidfillChartWHChange', {
+    id: bus.activeCompId,
+    newWidth: attrData.value.width,
+    newHeight
+  })
+}
+function enterBlurWidth(e) { e.target.blur() }
+function enterBlurHeight(e) { e.target.blur() }
+
 function solveTopic(topic) {
   if (topic && subTopics.value.findIndex(v => JSON.stringify(v) === JSON.stringify(topic)) !== -1) {
     return JSON.stringify(topic)
@@ -81,12 +122,10 @@ function solveTopic(topic) {
     return null
   }
 }
-
 watch(attrData, (newVal) => {
   solveTopic(newVal.topic)
   selectTopic.value = solveTopic(newVal.topic)
 }, { deep: true })
-
 onBeforeMount(() => {
   solveTopic(attrData.value.topic)
   selectTopic.value = solveTopic(attrData.value.topic)

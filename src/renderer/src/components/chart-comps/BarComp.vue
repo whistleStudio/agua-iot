@@ -184,6 +184,7 @@ function processPayload(payload) {
 }
 
 watch([width, height], () => {
+  if (props.compId !== props.activeCompId) return
   activeCompProps.get().width = width.value
   activeCompProps.get().height = height.value
   nextTick(() => myChart && myChart.resize())

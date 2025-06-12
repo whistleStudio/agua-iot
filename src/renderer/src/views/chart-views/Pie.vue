@@ -11,12 +11,24 @@
         <a-select v-model:value="selectTopic" placeholder="请选择订阅主题" :options="opts" @change="v => { attrData.topic = JSON.parse(v) }"></a-select>
       </a-form-item>
       <a-form-item label="组件宽度">
-        <a-input v-model:value.number="attrData.width" placeholder="420" @pressEnter="enterBlur"
-        @blur="bus.emit('pieChartWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})"/>
+        <a-input
+          placeholder="420"
+          type="number"
+          :value="localWidth"
+          @input="onWidthInput"
+          @pressEnter="enterBlurWidth"
+          @blur="onWidthBlur"
+        />
       </a-form-item>
       <a-form-item label="组件高度">
-        <a-input v-model:value.number="attrData.height" placeholder="280" @pressEnter="enterBlur"
-        @blur="bus.emit('pieChartWHChange', {id: bus.activeCompId, newWidth:attrData.width, newHeight:attrData.height})"/>
+        <a-input
+          placeholder="280"
+          type="number"
+          :value="localHeight"
+          @input="onHeightInput"
+          @pressEnter="enterBlurHeight"
+          @blur="onHeightBlur"
+        />
       </a-form-item>
       <a-form-item label="隐藏底色">
         <a-checkbox v-model:checked="attrData.hideBg" />
@@ -75,15 +87,6 @@ const opts = computed(() => subTopics.value.map(v => ({
   value: JSON.stringify(v)
 })))
 
-// const countOpts = [
-//   { label: '1', value: 1 },
-//   { label: '2', value: 2 },
-//   { label: '3', value: 3 },
-//   { label: '4', value: 4 },
-//   { label: '5', value: 5 }
-// ]
-
-// 分块名称数组（最多5项）与attrData同步
 const segList = computed(() => (attrData.value.data || []))
 
 function addSegment() {
@@ -106,8 +109,37 @@ function removeSegment(idx) {
     bus.emit('initPieDataChange')
   }
 }
-// 输入框回车失去焦
-function enterBlur(e) { e.target.blur() }
+
+// 宽高仅在失焦/回车时更新
+const localWidth = ref(attrData.value.width)
+const localHeight = ref(attrData.value.height)
+watch(() => attrData.value.width, (newVal) => { localWidth.value = newVal })
+watch(() => attrData.value.height, (newVal) => { localHeight.value = newVal })
+
+function onWidthInput(e) { localWidth.value = e.target.value }
+function onHeightInput(e) { localHeight.value = e.target.value }
+function onWidthBlur(e) {
+  const newWidth = parseFloat(localWidth.value) || 420
+  attrData.value.width = newWidth
+  localWidth.value = newWidth
+  bus.emit('pieChartWHChange', {
+    id: bus.activeCompId,
+    newWidth,
+    newHeight: attrData.value.height
+  })
+}
+function onHeightBlur(e) {
+  const newHeight = parseFloat(localHeight.value) || 280
+  attrData.value.height = newHeight
+  localHeight.value = newHeight
+  bus.emit('pieChartWHChange', {
+    id: bus.activeCompId,
+    newWidth: attrData.value.width,
+    newHeight
+  })
+}
+function enterBlurWidth(e) { e.target.blur() }
+function enterBlurHeight(e) { e.target.blur() }
 
 function solveTopic(topic) {
   if (topic && subTopics.value.findIndex(v => JSON.stringify(v) === JSON.stringify(topic)) !== -1) {
@@ -116,13 +148,10 @@ function solveTopic(topic) {
     return null
   }
 }
-
-/* -------------------------------- */
 watch(attrData, (newVal) => {
   solveTopic(newVal.topic)
   selectTopic.value = solveTopic(newVal.topic)
 }, { deep: true })
-
 onBeforeMount(() => {
   solveTopic(attrData.value.topic)
   selectTopic.value = solveTopic(attrData.value.topic)

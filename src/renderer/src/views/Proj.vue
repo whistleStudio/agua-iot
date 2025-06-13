@@ -161,6 +161,11 @@ function handleProjModalOk(newProj) {
         "theme": "light",
         "background": "default",
         "bgUrl": "",
+        "swatch": {
+          "compBgColor": "rgb(255, 255, 255)",
+          "compFontColor": "rgb(66, 80, 107)",
+          "compPhColor": "rgb(66, 80, 107, 0.5)"
+        }
       },
       rawComponents: []
     }

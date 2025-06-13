@@ -1,6 +1,6 @@
 <template>
   <div class="input-comp" :style="inputCompStyle" >
-    <div class="input-comp__label">{{ props.compProps.title }}</div>
+    <div class="input-comp__label" :style="{color: layoutSettings.swatch.compFontColor}">{{ props.compProps.title }}</div>
     <div class="input-comp__box" @mousedown.stop>
       <a-input v-model:value="inputValue" class="input-comp__input" placeholder="请输入发布内容" :style="inputStyle"/>
       <a-button type="primary" class="input-comp__send-btn" :style="btnStyle" @mousedown.stop="bus.pubTopicData(props.compProps, inputValue)">
@@ -15,6 +15,7 @@
 <script setup>
 import { ref, computed, watch, reactive, inject } from 'vue';
 import bus from '../../utils/bus';
+import { color } from 'echarts';
 
 const inputValue = ref('');
 
@@ -42,14 +43,21 @@ const whSize = computed(() => {
   }
 });
 const inputCompStyle = computed(() => ({
-  background: props.compProps.hideBg ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 1)',
+  background: props.compProps.hideBg ? 'rgba(255, 255, 255, 0.01)' : layoutSettings.value.swatch.compBgColor,
 }))
+
+const activeLayoutSettings = inject('activeLayoutSettings');
+const layoutSettings = computed({
+  get: () => activeLayoutSettings.get(),
+  set: (val) => { activeLayoutSettings.set(val); }
+});
 const inputStyle = computed(() => ({
   width:  `calc(${whSize.value.width} - ${whSize.value.height})`,
   height: whSize.value.height,
   borderRadius: '8px 0 0 8px',
   fontSize: '14px',
-  background: props.compProps.hideBg ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 1)',
+  background: props.compProps.hideBg ? 'rgba(255, 255, 255, 0.01)' : layoutSettings.value.swatch.compBgColor,
+  '--ph-color': layoutSettings.value.swatch.compPhColor,
 }));
 const btnStyle = computed(() => ({
   width: whSize.value.height,
@@ -134,5 +142,8 @@ const iconStyle = computed(() => ({
 .input-comp__send-btn img {
   display: block;
   margin: 0 auto;
+}
+input::placeholder {
+  color: var(--ph-color, rgb(66, 80, 107, 0.5));
 }
 </style>

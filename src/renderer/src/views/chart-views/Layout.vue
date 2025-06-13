@@ -19,7 +19,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from 'vue';
+import { computed, inject, ref, watch } from 'vue';
 import bus from '../../utils/bus';
 
 const activeLayoutSettings = inject('activeLayoutSettings');
@@ -61,6 +61,26 @@ function chooseCover() {
       console.error('选择封面失败:', err);
     });
 }
+
+/* --------------------- */
+// 监听主题变化
+watch(() => layoutSettings.value.theme, (newTheme) => {
+  switch (newTheme) {
+    case 'dark':
+      layoutSettings.value.swatch = {
+        compBgColor: "rgb(33, 33, 33)",
+        compFontColor: "rgb(255, 255, 255)",
+        compPhColor: "rgb(255, 255, 255, 0.5)"
+      }
+      break;
+    default:
+      layoutSettings.value.swatch = {
+        compBgColor: "rgb(255, 255, 255)",
+        compFontColor: "rgb(66, 80, 107)",
+        compPhColor: "rgb(66, 80, 107, 0.5)"
+      }
+  }
+});
 
 </script>
 

@@ -297,7 +297,7 @@ onBeforeUnmount(() => {
     background: #eaf4fe;
     z-index: 2;
     &:hover {
-      border: 1.5px solid var(--primary-color, #238aff);
+      border: 1px solid rgba(48, 150, 245, 0.6) !important;
       background: #d6eaff;
     }
     &::after {

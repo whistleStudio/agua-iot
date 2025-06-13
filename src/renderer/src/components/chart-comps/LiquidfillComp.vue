@@ -1,31 +1,33 @@
 <template>
   <div
-    class="resize-container" :class="{ active: props.compId === activeCompId }"
+    class="resize-container"
+    :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',
       height: height + 'px',
       left: left + 'px',
       top: top + 'px',
       position: 'absolute',
-      backgroundColor: bgc
+      background: containerBg,
+      '--primary-color': (layoutSettings?.swatch?.primaryColor || '#238aff'),
+      '--header-color': (layoutSettings?.swatch?.compFontColor || '#333')
     }"
     ref="container"
   >
     <div class="chart-center">
       <div id="liquidfillMain" ref="RefMain"></div>
     </div>
-    <div
-      class="resize-handle"
-      @mousedown="startResize"
-    ></div>
+    <div class="resize-handle" @mousedown="startResize"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount } from 'vue'
+import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount, computed } from 'vue'
 import * as echarts from 'echarts'
 import 'echarts-liquidfill'
 import bus from '../../utils/bus'
+
+const layoutSettings = inject('activeLayoutSettings')?.get?.() || {}
 
 const props = defineProps({
   compProps: {
@@ -46,17 +48,19 @@ const props = defineProps({
 })
 
 const activeCompProps = inject('activeCompProps')
-
 const RefMain = ref(null)
-const container = ref(null)
-
-let myChart
 
 const width = ref(240)
 const height = ref(240)
 const left = ref(0)
 const top = ref(0)
-const bgc = ref('rgb(255,255,255)')
+const containerBg = computed(() =>
+  props.compProps.hideBg
+    ? 'rgba(255,255,255,0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)')
+)
+
+let myChart
 let resizing = false
 let origin = { x: 0, y: 0 }
 let startLeft = 0
@@ -64,7 +68,6 @@ let startTop = 0
 let startWidth = 0
 let startHeight = 0
 
-// 拖拽缩放逻辑（保持handleResize不变）
 function startResize(e) {
   e.preventDefault()
   resizing = true
@@ -99,16 +102,19 @@ function stopResize() {
   document.removeEventListener('mouseup', stopResize)
 }
 
+// 保证初始值
+function ensureValueValid() {
+  const comp = props.compProps
+  if (typeof comp.total !== 'number' || isNaN(comp.total) || comp.total <= 0) comp.total = 100
+  if (typeof comp.value !== 'number' || isNaN(comp.value)) comp.value = 0
+}
+
 // 只提供一个主色，自动生成另外两个配色
 function getColorArr() {
   const comp = props.compProps
-  // 合法性校验，只允许 #RGB 或 #RRGGBB
   const isColor = v => typeof v === 'string' && /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)
-  // 主色，或默认
   let mainColor = isColor(comp.colorMain) ? comp.colorMain : '#4caafe'
-  // 自动生成中深配色
   function shadeColor(color, percent) {
-    // 支持 #RGB 及 #RRGGBB
     let hex = color.replace('#', '')
     if (hex.length === 3) hex = hex.split('').map(x => x + x).join('')
     let r = parseInt(hex.slice(0, 2), 16)
@@ -119,17 +125,9 @@ function getColorArr() {
     b = Math.min(255, Math.max(0, Math.round(b * (1 + percent))))
     return `#${(r<<16|g<<8|b).toString(16).padStart(6, '0')}`
   }
-  // 中配色更浅，低配色更深
-  const colorMid = shadeColor(mainColor, 0.23)    // 主色+23%
-  const colorLow = shadeColor(mainColor, -0.18)   // 主色-18%
+  const colorMid = shadeColor(mainColor, 0.23)
+  const colorLow = shadeColor(mainColor, -0.18)
   return [colorLow, mainColor, colorMid]
-}
-
-// 保证初始值
-function ensureValueValid() {
-  const comp = props.compProps
-  if (typeof comp.total !== 'number' || isNaN(comp.total) || comp.total <= 0) comp.total = 100
-  if (typeof comp.value !== 'number' || isNaN(comp.value)) comp.value = 0
 }
 
 // 计算百分比
@@ -144,8 +142,10 @@ function getPercent() {
 
 function getLiquidfillOption() {
   const comp = props.compProps
-  let bg = comp.hideBg ? 'rgba(255,255,255,0.01)' : 'rgb(255,255,255)'
-  bgc.value = bg
+  const themeTitleColor = layoutSettings.swatch?.compFontColor || '#222'
+  let bg = comp.hideBg
+    ? 'rgba(255,255,255,0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)')
   const percent = getPercent()
   const colorArr = getColorArr()
   return {
@@ -153,11 +153,11 @@ function getLiquidfillOption() {
     title: {
       text: comp.title || '水波图',
       left: 'center',
-      top: 40, // 向下调整标题
+      top: 40,
       textStyle: {
         fontWeight: 'bold',
         fontSize: 16,
-        color: '#222'
+        color: themeTitleColor
       }
     },
     series: [{
@@ -199,9 +199,7 @@ function getLiquidfillOption() {
 
 function renderChart() {
   if (!RefMain.value) return
-  if (!myChart) {
-    myChart = echarts.init(RefMain.value)
-  }
+  if (!myChart) myChart = echarts.init(RefMain.value)
   ensureValueValid()
   myChart.setOption(getLiquidfillOption(), true)
   myChart.resize()
@@ -209,6 +207,8 @@ function renderChart() {
 function updateOptionData() {
   ensureValueValid()
   if (myChart) {
+    // 实时刷新背景色
+    myChart.setOption({ backgroundColor: getLiquidfillOption().backgroundColor }, false)
     myChart.setOption(getLiquidfillOption(), true)
     myChart.resize()
   }
@@ -220,9 +220,15 @@ watch([width, height], () => {
   activeCompProps.get().height = height.value
   nextTick(() => myChart && myChart.resize())
 })
-watch(props.compProps, newVal => {
-  updateOptionData()
-}, { immediate: true, deep: true })
+watch(
+  () => [
+    props.compProps,
+    layoutSettings.swatch?.compBgColor,
+    layoutSettings.swatch?.compFontColor
+  ],
+  () => updateOptionData(),
+  { immediate: true, deep: true }
+)
 
 const liquidfillChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
   if (id !== props.compId) return
@@ -250,20 +256,22 @@ onBeforeMount(() => {
   height.value = props.compProps.height || 240
   ensureValueValid()
 })
-onMounted(renderChart)
+onMounted(() => {
+  renderChart()
+  updateOptionData()
+})
 
 onBeforeUnmount(() => {
   bus.off('liquidfillChartWHChange', liquidfillChartWHChangeHandle)
   bus.off('subTopicData', subTopicDataHandle)
 })
-
 </script>
 
 <style scoped lang="scss">
 .resize-container {
   border-radius: 10px;
   box-shadow: 0 0 8px rgba(0,0,0,0.03);
-  background: rgb(255, 255, 255);
+  background: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -296,7 +304,7 @@ onBeforeUnmount(() => {
     background: #eaf4fe;
     z-index: 2;
     &:hover {
-      border: 1.5px solid #4d8af0;
+      border: 1.5px solid var(--primary-color, #238aff);
       background: #d6eaff;
     }
     &::after {

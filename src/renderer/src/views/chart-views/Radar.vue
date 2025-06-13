@@ -39,7 +39,7 @@
             <span class="cat-index">{{ idx + 1 }}.</span>
             <a-input
               class="cat-input"
-              v-model:value="categoryList[idx].axisName"
+              v-model:value="categoryList[idx].name"
               :placeholder="`类目${idx + 1}`"
               style="margin-right:8px;width:90px"
             />
@@ -102,11 +102,11 @@ const categoryList = computed(() => (attrData.value.categories || []))
 function addCategory() {
   let defaultNameList = Array(6).fill(0).map((_, i) => `类目${i + 1}`)
   categoryList.value.forEach(cat => {
-    const idx = defaultNameList.indexOf(cat.axisName)
+    const idx = defaultNameList.indexOf(cat.name)
     if (idx !== -1) defaultNameList.splice(idx, 1)
   })
   if (categoryList.value.length < 6) {
-    categoryList.value.push({axisName: defaultNameList[0], max: 100})
+    categoryList.value.push({name: defaultNameList[0], max: 100})
     bus.emit('initRadarDataChange')
   }
 }

@@ -1,30 +1,30 @@
 <template>
   <div
-    class="resize-container" :class="{ active: props.compId === activeCompId }"
+    class="resize-container"
+    :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',
       height: height + 'px',
       left: left + 'px',
       top: top + 'px',
       position: 'absolute',
-      backgroundColor: bgc
+      background: containerBg
     }"
     ref="container"
   >
     <div class="chart-center">
       <div id="main" ref="RefMain"></div>
     </div>
-    <div
-      class="resize-handle"
-      @mousedown="startResize"
-    ></div>
+    <div class="resize-handle" @mousedown="startResize"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount } from 'vue'
+import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount, computed } from 'vue'
 import * as echarts from 'echarts'
 import bus from '../../utils/bus'
+
+const layoutSettings = inject('activeLayoutSettings')?.get?.() || {}
 
 const props = defineProps({
   compProps: {
@@ -55,7 +55,11 @@ const width = ref(300)
 const height = ref(200)
 const left = ref(0)
 const top = ref(0)
-const bgc = ref('rgb(246, 250, 253)')
+const containerBg = computed(() =>
+  props.compProps.hideBg
+    ? 'rgba(255,255,255,0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)')
+)
 
 let resizing = false
 let origin = { x: 0, y: 0 }
@@ -101,7 +105,7 @@ function stopResize() {
 }
 
 const option = ref({
-  backgroundColor: 'rgb(255, 255, 255)',
+  backgroundColor: 'rgb(255,255,255)',
   title: {
     text: '雷达图',
     left: 15,
@@ -109,7 +113,7 @@ const option = ref({
     textStyle: {
       fontWeight: 700,
       fontSize: 18,
-      color: '#222'
+      color: layoutSettings?.swatch?.compFontColor || '#222'
     }
   },
   legend: {
@@ -118,14 +122,14 @@ const option = ref({
   tooltip: {
     show: true,
     formatter: function(params) {
-      if (!params || !params.value) return '';
-      let indicator = option.value.radar.indicator || [];
-      let result = '';
+      if (!params || !params.value) return ''
+      let indicator = option.value.radar.indicator || []
+      let result = ''
       for (let i = 0; i < params.value.length; ++i) {
-        let maxStr = indicator[i]?.max !== undefined ? `(最大值:${indicator[i].max})` : '';
-        result += `${indicator[i]?.axisName || ''}: ${params.value[i]} ${maxStr}<br/>`;
+        let maxStr = indicator[i]?.max !== undefined ? `(最大值:${indicator[i].max})` : ''
+        result += `${indicator[i]?.axisName || ''}: ${params.value[i]} ${maxStr}<br/>`
       }
-      return result;
+      return result
     }
   },
   radar: {
@@ -141,7 +145,7 @@ const option = ref({
     splitLine: {
       lineStyle: { color: '#d3e5f6' }
     },
-    name: {
+    axisName: {
       color: '#444',
       fontSize: 12,
       // 显示名称和最大值
@@ -175,7 +179,6 @@ function renderChart() {
   myChart.resize()
 }
 
-// 处理payload
 function processPayload(payload) {
   return payload.replace(/\s+/g, '').split(/,|，/).map(Number)
 }
@@ -187,27 +190,38 @@ watch([width, height], () => {
   nextTick(() => myChart && myChart.resize())
 })
 
-watch(props.compProps, newVal => {
-  option.value.title.text = newVal.title || '雷达图'
-  if (newVal.hideBg) {
-    bgc.value = 'rgba(255, 255, 255, 0.01)'
-    option.value.backgroundColor = 'rgba(255, 255, 255, 0.01)'
-  } else {
-    bgc.value = 'rgb(255, 255, 255)'
-    option.value.backgroundColor = 'rgb(255, 255, 255)'
-  }
-  // 更新 indicator，显示最大值，使用 axisName
-  option.value.radar.indicator = (newVal.categories || []).map(cat => ({
-    axisName: cat.name,
-    max: cat.max !== undefined ? cat.max : 100
-  }))
-  // 清空数据
-  option.value.series[0].data[0].value = []
-  if (myChart) {
-    myChart.setOption(option.value, true)
-    myChart.resize()
-  }
-}, { immediate: true, deep: true })
+watch(
+  () => [
+    props.compProps,
+    layoutSettings.swatch?.compBgColor,
+    layoutSettings.swatch?.compFontColor
+  ],
+  (newVal) => {
+    // 标题配置和背景色
+    const comp = props.compProps
+    option.value.title.text = comp.title || '雷达图'
+    option.value.title.textStyle.color = layoutSettings.swatch?.compFontColor || '#222'
+    option.value.radar.axisName.color = layoutSettings.swatch?.compFontColor || '#444'
+    if (comp.hideBg) {
+      option.value.backgroundColor = 'rgba(255,255,255,0.01)'
+    } else {
+      option.value.backgroundColor = layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)'
+    }
+    // 指示器更新
+    option.value.radar.indicator = (comp.categories || []).map(cat => ({
+      axisName: cat.name,
+      max: cat.max !== undefined ? cat.max : 100
+    }))
+    // 清空数据
+    option.value.series[0].data[0].value = []
+    if (myChart) {
+      myChart.setOption({ backgroundColor: option.value.backgroundColor }, false)
+      myChart.setOption(option.value, true)
+      myChart.resize()
+    }
+  },
+  { immediate: true, deep: true }
+)
 
 // 属性面变化时组件DOM更新
 const radarChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
@@ -218,10 +232,8 @@ const radarChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
 }
 bus.on('radarChartWHChange', radarChartWHChangeHandle)
 
-// 增删类目时更新图表
 const initRadarDataChangeHandle = () => {
-  if (bus.activeCompId !== props.compId) return 
-  // 更新指示器
+  if (bus.activeCompId !== props.compId) return
   option.value.radar.indicator = (props.compProps.categories || []).map(cat => ({
     axisName: cat.name,
     max: cat.max !== undefined ? cat.max : 100
@@ -234,25 +246,22 @@ const initRadarDataChangeHandle = () => {
 }
 bus.on('initRadarDataChange', initRadarDataChangeHandle)
 
-// 监听订阅主题的数据
 const subTopicDataHandle = ({ topic, qos, payload, time }) => {
-  if ( topic != props.compProps.topic.topic || qos != props.compProps.topic.qos ) return
+  if (topic != props.compProps.topic.topic || qos != props.compProps.topic.qos) return
   try {
     const data = processPayload(payload)
-    // 只保留最新一次
     option.value.series[0].data[0].value = data.slice(0, (props.compProps.categories || []).length)
     if (myChart) {
       myChart.setOption(option.value, true)
       myChart.resize()
     }
-  } catch(e) { console.log("radar sub data err", e); return}
+  } catch(e) { console.log("radar sub data err", e); return }
 }
 bus.on('subTopicData', subTopicDataHandle)
 
 onBeforeMount(() => {
   width.value = props.compProps.width || 420
   height.value = props.compProps.height || 280
-  // 初始化indicator，显示最大值，使用 axisName
   option.value.radar.indicator = (props.compProps.categories || []).map(cat => ({
     axisName: cat.name,
     max: cat.max !== undefined ? cat.max : 100
@@ -273,7 +282,7 @@ onBeforeUnmount(() => {
 .resize-container {
   border-radius: 7px;
   box-shadow: 0 0 8px rgba(0,0,0,0.03);
-  background: rgb(255, 255, 255);
+  background: inherit;
   display: flex;
   align-items: center;
   justify-content: center;

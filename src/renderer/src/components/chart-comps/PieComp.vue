@@ -1,62 +1,53 @@
 <template>
   <div
-    class="resize-container" :class="{ active: props.compId === activeCompId }"
+    class="resize-container"
+    :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',
       height: height + 'px',
       left: left + 'px',
       top: top + 'px',
       position: 'absolute',
-      backgroundColor: bgc
+      background: containerBg,
+      '--primary-color': (layoutSettings?.swatch?.primaryColor || '#238aff'),
+      '--header-color': (layoutSettings?.swatch?.compFontColor || '#333')
     }"
     ref="container"
   >
     <div class="chart-center">
       <div id="pieMain" ref="RefMain"></div>
     </div>
-    <div
-      class="resize-handle"
-      @mousedown="startResize"
-    ></div>
+    <div class="resize-handle" @mousedown="startResize"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount } from 'vue'
+import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount, computed } from 'vue'
 import * as echarts from 'echarts'
 import bus from '../../utils/bus'
 
+const layoutSettings = inject('activeLayoutSettings')?.get?.() || {}
+
 const props = defineProps({
-  compProps: {
-    type: Object,
-    required: false,
-    default: () => ({})
-  },
-  compId: {
-    type: Number,
-    required: false,
-    default: -1
-  },
-  activeCompId: {
-    type: Number,
-    required: false,
-    default: -1
-  }
+  compProps: Object,
+  compId: Number,
+  activeCompId: Number
 })
 
 const activeCompProps = inject('activeCompProps')
-
 const RefMain = ref(null)
-const container = ref(null)
-
-let myChart
 
 const width = ref(300)
 const height = ref(200)
 const left = ref(0)
 const top = ref(0)
-const bgc = ref('rgb(246, 250, 253)')
+const containerBg = computed(() =>
+  props.compProps.hideBg
+    ? 'rgba(255,255,255,0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)')
+)
 
+let myChart
 let resizing = false
 let origin = { x: 0, y: 0 }
 let startLeft = 0
@@ -77,7 +68,6 @@ function startResize(e) {
   document.addEventListener('mousemove', handleResize)
   document.addEventListener('mouseup', stopResize)
 }
-
 function handleResize(e) {
   if (!resizing) return
   const dx = e.clientX - origin.x
@@ -92,7 +82,6 @@ function handleResize(e) {
     if (myChart) myChart.resize()
   })
 }
-
 function stopResize() {
   resizing = false
   document.body.style.cursor = ''
@@ -101,15 +90,15 @@ function stopResize() {
 }
 
 const option = {
-  backgroundColor: 'rgb(255, 255, 255)',
+  backgroundColor: 'rgb(255,255,255)',
   title: {
-    text: '饼状图',
+    text: '',
     left: 'center',
     top: 15,
     textStyle: {
+      color: '#333',
       fontWeight: 700,
-      fontSize: 18,
-      color: '#222'
+      fontSize: 18
     }
   },
   tooltip: {
@@ -143,38 +132,23 @@ const option = {
 
 function renderChart() {
   if (!RefMain.value) return
-  if (!myChart) {
-    myChart = echarts.init(RefMain.value)
-  }
+  if (!myChart) myChart = echarts.init(RefMain.value)
   myChart.setOption(option, true)
   myChart.resize()
 }
 
-// 初始状态样例数据生成
-function genInitData() {
-  if (props.compProps.isInit) {
-    const dataL = props.compProps.data.length
-    for (let i = 0; i < dataL; i++) {
-      props.compProps.data[i].value = 20 + 10 * i
-    }
-    updateOptionData()
-  }
-}
-
-// 处理payload
-function processPayload(payload) {
-  return payload.replace(/\s+/g, '').split(/,|，/)
-}
-
 function updateOptionData() {
   const comp = props.compProps
+  // 适配主题标题色
+  const themeTitleColor = layoutSettings.swatch?.compFontColor || '#333'
+  option.backgroundColor = comp.hideBg
+    ? 'rgba(255,255,255,0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)')
   option.title.text = comp.title || '饼状图'
-  if (comp.hideBg) {
-    bgc.value = 'rgba(255,255,255,0.01)'
-    option.backgroundColor = 'rgba(255,255,255,0.01)'
-  } else {
-    bgc.value = 'rgb(255,255,255)'
-    option.backgroundColor = 'rgb(255,255,255)'
+  option.title.textStyle = {
+    color: themeTitleColor,
+    fontWeight: 700,
+    fontSize: 18
   }
   option.legend.data = []
   option.series[0].data = []
@@ -187,12 +161,12 @@ function updateOptionData() {
     })
   })
   if (myChart) {
+    myChart.setOption({ backgroundColor: option.backgroundColor }, false)
     myChart.setOption(option, true)
     myChart.resize()
   }
 }
 
-/* -------------------------------------- */
 watch([width, height], () => {
   if (props.compId !== props.activeCompId) return
   activeCompProps.get().width = width.value
@@ -200,11 +174,12 @@ watch([width, height], () => {
   nextTick(() => myChart && myChart.resize())
 })
 
-watch(props.compProps, newVal => {
-  updateOptionData()
-}, { immediate: true, deep: true })
+watch(
+  () => [props.compProps, layoutSettings.swatch?.compBgColor, layoutSettings.swatch?.compFontColor],
+  () => updateOptionData(),
+  { immediate: true, deep: true }
+)
 
-// 属性面变化时组件DOM更新
 const pieChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
   if (id !== props.compId) return
   width.value = newWidth
@@ -213,24 +188,16 @@ const pieChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
 }
 bus.on('pieChartWHChange', pieChartWHChangeHandle)
 
-// 增删分块时更新图表
 const initPieDataChangeHandle = () => {
-  if (bus.activeCompId !== props.compId) return 
-  genInitData()
+  if (bus.activeCompId !== props.compId) return
   updateOptionData()
 }
 bus.on('initPieDataChange', initPieDataChangeHandle)
 
-// 监听订阅主题的数据
-const subTopicDataHandle = ({ topic, qos, payload, time }) => {
-  if ( topic != props.compProps.topic.topic || qos != props.compProps.topic.qos ) return
-  if (props.compProps.isInit) {
-    props.compProps.data.forEach(seg => {
-      seg.value = 0 // 清空所有分块数据
-    })
-  }
+const subTopicDataHandle = ({ topic, qos, payload }) => {
+  if (topic !== props.compProps.topic.topic || qos !== props.compProps.topic.qos) return
   try {
-    const data = processPayload(payload)
+    const data = payload.replace(/\s+/g, '').split(/,|，/)
     props.compProps.data.forEach((seg, idx) => {
       if (data[idx] !== undefined) {
         seg.value = parseFloat(data[idx])
@@ -238,16 +205,15 @@ const subTopicDataHandle = ({ topic, qos, payload, time }) => {
         seg.value = 0
       }
     })
-    props.compProps.isInit = false // 标记为非初始化状态
+    props.compProps.isInit = false
     updateOptionData()
-  } catch(e) { console.log("pie sub data err", e); }
+  } catch (e) { console.log("pie sub data err", e); }
 }
 bus.on('subTopicData', subTopicDataHandle)
-/* ---------------------------------- */
+
 onBeforeMount(() => {
   width.value = props.compProps.width || 300
   height.value = props.compProps.height || 200
-  genInitData()
   updateOptionData()
 })
 onMounted(renderChart)
@@ -257,20 +223,19 @@ onBeforeUnmount(() => {
   bus.off('initPieDataChange', initPieDataChangeHandle)
   bus.off('subTopicData', subTopicDataHandle)
 })
-
 </script>
 
 <style scoped lang="scss">
 .resize-container {
   border-radius: 7px;
   box-shadow: 0 0 8px rgba(0,0,0,0.03);
-  background: rgb(255, 255, 255);
+  background: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   &.active {
-    border: 1px solid rgba(48, 150, 245, 0.6) !important;
+    border: 1.5px solid rgba(48, 150, 245, 0.6) !important;
   }
   .chart-center {
     width: 100%;
@@ -297,7 +262,7 @@ onBeforeUnmount(() => {
     background: #eaf4fe;
     z-index: 2;
     &:hover {
-      border: 1.5px solid #4d8af0;
+      border: 1.5px solid var(--primary-color, #238aff);
       background: #d6eaff;
     }
     &::after {

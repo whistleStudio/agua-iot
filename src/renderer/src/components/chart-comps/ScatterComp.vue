@@ -1,30 +1,32 @@
 <template>
   <div
-    class="resize-container" :class="{ active: props.compId === activeCompId }"
+    class="resize-container"
+    :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',
       height: height + 'px',
       left: left + 'px',
       top: top + 'px',
       position: 'absolute',
-      backgroundColor: bgc
+      background: containerBg,
+      '--primary-color': (layoutSettings?.swatch?.primaryColor || '#238aff'),
+      '--header-color': (layoutSettings?.swatch?.compFontColor || '#333')
     }"
     ref="container"
   >
     <div class="chart-center">
       <div id="scatterMain" ref="RefMain"></div>
     </div>
-    <div
-      class="resize-handle"
-      @mousedown="startResize"
-    ></div>
+    <div class="resize-handle" @mousedown="startResize"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount } from 'vue'
+import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount, computed } from 'vue'
 import * as echarts from 'echarts'
 import bus from '../../utils/bus'
+
+const layoutSettings = inject('activeLayoutSettings')?.get?.() || {}
 
 const props = defineProps({
   compProps: {
@@ -45,25 +47,25 @@ const props = defineProps({
 })
 
 const activeCompProps = inject('activeCompProps')
-
 const RefMain = ref(null)
-const container = ref(null)
-
-let myChart
 
 const width = ref(450)
 const height = ref(300)
 const left = ref(0)
 const top = ref(0)
-const bgc = ref('rgb(255,255,255)')
+const containerBg = computed(() =>
+  props.compProps.hideBg
+    ? 'rgba(255,255,255,0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)')
+)
 
+let myChart
 let resizing = false
 let origin = { x: 0, y: 0 }
 let startLeft = 0
 let startTop = 0
 let startWidth = 0
 let startHeight = 0
-let isFakeData = true
 
 function startResize(e) {
   e.preventDefault()
@@ -78,7 +80,6 @@ function startResize(e) {
   document.addEventListener('mousemove', handleResize)
   document.addEventListener('mouseup', stopResize)
 }
-
 function handleResize(e) {
   if (!resizing) return
   const dx = e.clientX - origin.x
@@ -93,7 +94,6 @@ function handleResize(e) {
     if (myChart) myChart.resize()
   })
 }
-
 function stopResize() {
   resizing = false
   document.body.style.cursor = ''
@@ -111,12 +111,35 @@ function ensureValueValid() {
   }
 }
 
+// 初始数据生成逻辑（沿用原有业务逻辑）
+onBeforeMount(() => {
+  width.value = props.compProps.width || 450
+  height.value = props.compProps.height || 300
+  const comp = props.compProps
+  if (!Array.isArray(comp.value)) comp.value = []
+  // isInit=true时，生成10个随机点，先清空
+  if (comp.isInit) {
+    comp.value = []
+    for (let i = 0; i < 10; i++) {
+      comp.value.push([
+        Number((Math.random() * 100).toFixed(2)),
+        Number((Math.random() * 100).toFixed(2))
+      ])
+    }
+  }
+  // 限制最大点数
+  if (comp.value.length > comp.maxPoints) {
+    comp.value = comp.value.slice(comp.value.length - comp.maxPoints)
+  }
+})
+
 function getScatterOption() {
   const comp = props.compProps
   let scatterColor = comp.scatterColor || '#37a2da'
-  let bg = 'rgb(255,255,255)'
-  if (comp.hideBg) bg = 'rgba(255,255,255,0.01)'
-  bgc.value = bg
+  let bg = comp.hideBg
+    ? 'rgba(255,255,255,0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)')
+  const themeTitleColor = layoutSettings.swatch?.compFontColor || '#333'
   return {
     backgroundColor: bg,
     title: {
@@ -126,7 +149,7 @@ function getScatterOption() {
       textStyle: {
         fontWeight: 'bold',
         fontSize: 16,
-        color: '#222'
+        color: themeTitleColor
       }
     },
     tooltip: {
@@ -161,22 +184,22 @@ function getScatterOption() {
 
 function renderChart() {
   if (!RefMain.value) return
-  if (!myChart) {
-    myChart = echarts.init(RefMain.value)
-  }
+  if (!myChart) myChart = echarts.init(RefMain.value)
   ensureValueValid()
   myChart.setOption(getScatterOption(), true)
   myChart.resize()
 }
-
 function updateOptionData() {
   ensureValueValid()
   if (myChart) {
+    // 实时刷新背景色
+    myChart.setOption({ backgroundColor: getScatterOption().backgroundColor }, false)
     myChart.setOption(getScatterOption(), true)
     myChart.resize()
   }
 }
 
+// 数据大小变化自适应
 watch([width, height], () => {
   if (props.compId !== props.activeCompId) return
   activeCompProps.get().width = width.value
@@ -184,10 +207,18 @@ watch([width, height], () => {
   nextTick(() => myChart && myChart.resize())
 })
 
-watch(() => props.compProps, () => {
-  updateOptionData()
-}, { deep: true, immediate: true })
+// 响应属性及主题变化刷新
+watch(
+  () => [
+    props.compProps,
+    layoutSettings.swatch?.compBgColor,
+    layoutSettings.swatch?.compFontColor
+  ],
+  () => updateOptionData(),
+  { immediate: true, deep: true }
+)
 
+// 属性面变化时组件DOM更新
 const scatterChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
   if (id !== props.compId) return
   width.value = newWidth
@@ -196,6 +227,7 @@ const scatterChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
 }
 bus.on('scatterChartWHChange', scatterChartWHChangeHandle)
 
+// 业务数据订阅逻辑（保留原有）
 const subTopicDataHandle = ({ topic, qos, payload, time }) => {
   if (topic !== props.compProps.topic.topic || qos !== props.compProps.topic.qos) return
   try {
@@ -218,40 +250,22 @@ const subTopicDataHandle = ({ topic, qos, payload, time }) => {
 }
 bus.on('subTopicData', subTopicDataHandle)
 
-onBeforeMount(() => {
-  width.value = props.compProps.width || 450
-  height.value = props.compProps.height || 300
-  const comp = props.compProps
-  if (!Array.isArray(comp.value)) comp.value = []
-  // isInit=true时，生成10个随机点，先清空
-  if (comp.isInit) {
-    comp.value = []
-    for (let i = 0; i < 10; i++) {
-      comp.value.push([
-        Number((Math.random() * 100).toFixed(2)),
-        Number((Math.random() * 100).toFixed(2))
-      ])
-    }
-  }
-  // 限制最大点数
-  if (comp.value.length > comp.maxPoints) {
-    comp.value = comp.value.slice(comp.value.length - comp.maxPoints)
-  }
+onMounted(() => {
+  renderChart()
+  updateOptionData()
 })
-onMounted(renderChart)
 
 onBeforeUnmount(() => {
   bus.off('scatterChartWHChange', scatterChartWHChangeHandle)
   bus.off('subTopicData', subTopicDataHandle)
 })
-
 </script>
 
 <style scoped lang="scss">
 .resize-container {
   border-radius: 7px;
   box-shadow: 0 0 8px rgba(0,0,0,0.03);
-  background: rgb(255, 255, 255);
+  background: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -284,7 +298,7 @@ onBeforeUnmount(() => {
     background: #eaf4fe;
     z-index: 2;
     &:hover {
-      border: 1.5px solid #4d8af0;
+      border: 1.5px solid var(--primary-color, #238aff);
       background: #d6eaff;
     }
     &::after {

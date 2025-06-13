@@ -1,30 +1,32 @@
 <template>
   <div
-    class="resize-container" :class="{ active: props.compId === activeCompId }"
+    class="resize-container"
+    :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',
       height: height + 'px',
       left: left + 'px',
       top: top + 'px',
       position: 'absolute',
-      backgroundColor: bgc
+      background: containerBg,
+      '--primary-color': (layoutSettings?.swatch?.primaryColor || '#238aff'),
+      '--header-color': (layoutSettings?.swatch?.compFontColor || '#333')
     }"
     ref="container"
   >
     <div class="chart-center">
       <div id="main" ref="RefMain"></div>
     </div>
-    <div
-      class="resize-handle"
-      @mousedown="startResize"
-    ></div>
+    <div class="resize-handle" @mousedown="startResize"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount } from 'vue'
+import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount, computed } from 'vue'
 import * as echarts from 'echarts'
 import bus from '../../utils/bus'
+
+const layoutSettings = inject('activeLayoutSettings')?.get?.() || {}
 
 const props = defineProps({
   compProps: {
@@ -47,7 +49,6 @@ const props = defineProps({
 const activeCompProps = inject('activeCompProps')
 
 const RefMain = ref(null)
-const container = ref(null)
 
 let myChart
 
@@ -55,7 +56,11 @@ const width = ref(300)
 const height = ref(200)
 const left = ref(0)
 const top = ref(0)
-const bgc = ref('rgb(246, 250, 253)')
+const containerBg = computed(() =>
+  props.compProps.hideBg
+    ? 'rgba(255,255,255,0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)')
+)
 
 let resizing = false
 let origin = { x: 0, y: 0 }
@@ -77,7 +82,6 @@ function startResize(e) {
   document.addEventListener('mousemove', handleResize)
   document.addEventListener('mouseup', stopResize)
 }
-
 function handleResize(e) {
   if (!resizing) return
   const dx = e.clientX - origin.x
@@ -92,7 +96,6 @@ function handleResize(e) {
     if (myChart) myChart.resize()
   })
 }
-
 function stopResize() {
   resizing = false
   document.body.style.cursor = ''
@@ -100,20 +103,48 @@ function stopResize() {
   document.removeEventListener('mouseup', stopResize)
 }
 
+// 初始状态样例数据生成（沿用原有isInit逻辑）
+function genInitData() {
+  if (props.compProps.isInit) {
+    const catL = props.compProps.categories.length
+    const dateNow = Date.now()
+    Array(10).fill(0).forEach((_, idx) => {
+      const timeStamp = formatTime(dateNow - (10 - idx) * 1000)
+      props.compProps.time[idx] = timeStamp
+      Array(catL).fill(0).forEach((__, catIdx) => {
+        props.compProps.categories[catIdx].logs[idx] = idx + catIdx
+      })
+    })
+    option.xAxis.data = props.compProps.time
+  }
+}
+
+function formatTime(ts) {
+  const date = new Date(ts)
+  const h = String(date.getHours()).padStart(2, '0')
+  const m = String(date.getMinutes()).padStart(2, '0')
+  const s = String(date.getSeconds()).padStart(2, '0')
+  return `${h}:${m}:${s}`
+}
+
+function processPayload(payload) {
+  return payload.replace(/\s+/g, '').split(/,|，/)
+}
+
 const option = {
-  backgroundColor: 'rgb(255, 255, 255)',
+  backgroundColor: 'rgb(255,255,255)',
   title: {
-    text: '柱状图',
+    text: '',
     left: 'center',
     top: 15,
     textStyle: {
+      color: '#333',
       fontWeight: 700,
-      fontSize: 18,
-      color: '#222'
+      fontSize: 18
     }
   },
   legend: {
-    data: ['类目1'],
+    data: [],
     top: 40,
     left: 'center',
     icon: 'rect',
@@ -140,47 +171,53 @@ const option = {
     splitLine: { lineStyle: { color: '#d3e5f6' } },
     axisLabel: { color: '#6c839a', fontWeight: 500 }
   },
-  series: [
-  ]
+  series: []
 }
 
 function renderChart() {
   if (!RefMain.value) return
-  if (!myChart) {
-    myChart = echarts.init(RefMain.value)
-  }
+  if (!myChart) myChart = echarts.init(RefMain.value)
   myChart.setOption(option, true)
   myChart.resize()
 }
 
-// 初始状态样例数据生成
-function genInitData() {
-  if (props.compProps.isInit) {
-    const catL = props.compProps.categories.length
-    const dateNow = Date.now()
-    Array(10).fill(0).forEach((_, idx) => {
-      const timeStamp = formatTime(dateNow - (10 - idx) * 1000)
-      props.compProps.time[idx] = timeStamp
-      Array(catL).fill(0).forEach((__, catIdx) => {
-        props.compProps.categories[catIdx].logs[idx] = idx + catIdx
-      })
-    })
-    option.xAxis.data = props.compProps.time
+function updateOptionData() {
+  const comp = props.compProps
+  const themeTitleColor = layoutSettings.swatch?.compFontColor || '#333'
+  option.backgroundColor = comp.hideBg
+    ? 'rgba(255,255,255,0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)')
+  option.title.text = comp.title || '柱状图'
+  option.title.textStyle = {
+    color: themeTitleColor,
+    fontWeight: 700,
+    fontSize: 18
   }
-}
-
-// 将 Date.now() 转为 "HH:mm:ss" 字符串
-function formatTime(ts) {
-  const date = new Date(ts)
-  const h = String(date.getHours()).padStart(2, '0')
-  const m = String(date.getMinutes()).padStart(2, '0')
-  const s = String(date.getSeconds()).padStart(2, '0')
-  return `${h}:${m}:${s}`
-}
-
-// 处理payload
-function processPayload(payload) {
-  return payload.replace(/\s+/g, '').split(/,|，/)
+  option.yAxis.name = comp.yUnit
+  option.legend.data = []
+  option.series = []
+  comp.categories.forEach((cat, idx) => {
+    option.legend.textStyle.color = layoutSettings.swatch?.compFontColor || '#333'
+    option.legend.data.push(cat.name || `类目${idx + 1}`)
+    // 保留最新count条
+    cat.logs.splice(0, cat.logs.length - comp.count)
+    comp.time.splice(0, comp.time.length - comp.count)
+    option.series.push({
+      name: cat.name || `类目${idx + 1}`,
+      data: cat.logs || [],
+      type: 'bar',
+      barGap: '0%',
+      barCategoryGap: '30%',
+      itemStyle: { color: cat.color }
+    })
+  })
+  option.xAxis.data = comp.time || []
+  if (myChart) {
+    // 实时刷新背景色
+    myChart.setOption({ backgroundColor: option.backgroundColor }, false)
+    myChart.setOption(option, true)
+    myChart.resize()
+  }
 }
 
 watch([width, height], () => {
@@ -190,41 +227,16 @@ watch([width, height], () => {
   nextTick(() => myChart && myChart.resize())
 })
 
-watch(props.compProps, newVal => {
-  console.log('bar comp props change:')
-  option.title.text = newVal.title || '柱状图'
-  option.yAxis.name = newVal.yUnit
-  if (newVal.hideBg) {
-    bgc.value = 'rgba(255, 255, 255, 0.01)'
-    option.backgroundColor = 'rgba(255, 255, 255, 0.01)'
-  } else {
-    bgc.value = 'rgb(255, 255, 255)'
-    option.backgroundColor = 'rgb(255, 255, 255)'
-  }
-  option.legend.data = []
-  option.series = []
-  newVal.categories.forEach((cat, idx) => {
-    option.legend.data.push(cat.name || `类目${idx + 1}`)
-    cat.logs.splice(0, cat.logs.length - newVal.count) // 保留最新count条
-    newVal.time.splice(0, newVal.time.length - newVal.count)
-    option.series.push({
-      name: cat.name || `类目${idx + 1}`,
-      data: cat.logs || [],
-      type: 'bar',
-      // barWidth: 20,
-      barGap: '0%',
-      barCategoryGap: '30%',
-      itemStyle: { color: cat.color }
-    })
-  })
-  option.xAxis.data = newVal.time || []
-  if (myChart) {
-    myChart.setOption(option, true)
-    myChart.resize()
-  }
-}, { immediate: true, deep: true })
+watch(
+  () => [
+    props.compProps,
+    layoutSettings.swatch?.compBgColor,
+    layoutSettings.swatch?.compFontColor
+  ],
+  () => updateOptionData(),
+  { immediate: true, deep: true }
+)
 
-// 属性面变化时组件DOM更新
 const barChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
   if (id !== props.compId) return
   width.value = newWidth
@@ -233,20 +245,19 @@ const barChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
 }
 bus.on('barChartWHChange', barChartWHChangeHandle)
 
-// 增删类目时更新图表
 const initBarDataChangeHandle = () => {
-  if (bus.activeCompId !== props.compId) return 
+  if (bus.activeCompId !== props.compId) return
   genInitData()
+  updateOptionData()
 }
 bus.on('initBarDataChange', initBarDataChangeHandle)
 
-// 监听订阅主题的数据
 const subTopicDataHandle = ({ topic, qos, payload, time }) => {
-  if ( topic != props.compProps.topic.topic || qos != props.compProps.topic.qos ) return
+  if (topic != props.compProps.topic.topic || qos != props.compProps.topic.qos) return
   if (props.compProps.isInit) {
-    props.compProps.time = [] // 清空时间戳
+    props.compProps.time = []
     props.compProps.categories.forEach(cat => {
-      cat.logs = [] // 清空所有类目数据
+      cat.logs = []
     })
   }
   try {
@@ -260,8 +271,9 @@ const subTopicDataHandle = ({ topic, qos, payload, time }) => {
         cat.logs.push('NaN')
       }
     })
-    props.compProps.isInit = false // 标记为非初始化状态
-  } catch(e) { console.log("bar sub data err", e); return}
+    props.compProps.isInit = false
+    updateOptionData()
+  } catch (e) { console.log("bar sub data err", e) }
 }
 bus.on('subTopicData', subTopicDataHandle)
 
@@ -270,21 +282,23 @@ onBeforeMount(() => {
   height.value = props.compProps.height || 280
   genInitData()
 })
-onMounted(renderChart)
+onMounted(() => {
+  renderChart()
+  updateOptionData()
+})
 
 onBeforeUnmount(() => {
   bus.off('barChartWHChange', barChartWHChangeHandle)
   bus.off('initBarDataChange', initBarDataChangeHandle)
   bus.off('subTopicData', subTopicDataHandle)
 })
-
 </script>
 
 <style scoped lang="scss">
 .resize-container {
   border-radius: 7px;
   box-shadow: 0 0 8px rgba(0,0,0,0.03);
-  background: rgb(255, 255, 255);
+  background: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -317,7 +331,7 @@ onBeforeUnmount(() => {
     background: #eaf4fe;
     z-index: 2;
     &:hover {
-      border: 1.5px solid #4d8af0;
+      border: 1.5px solid var(--primary-color, #238aff);
       background: #d6eaff;
     }
     &::after {

@@ -8,7 +8,11 @@
       left: left + 'px',
       top: top + 'px',
       position: 'absolute',
-      backgroundColor: bgc
+      background: containerBg,
+      '--primary-color': (layoutSettings?.swatch?.primaryColor || '#238aff'),
+      '--comp-font-color': (layoutSettings?.swatch?.compFontColor || '#222'),
+      '--header-color': layoutSettings?.swatch?.compFontColor || '#333',
+      '--ph-color': layoutSettings?.swatch?.compPhColor || '#888'
     }"
     ref="container"
   >
@@ -16,13 +20,11 @@
       {{ props.compProps.title }}
     </div>
     <div class="text-center">
-      <!-- 单行模式：省略号 -->
       <span
         v-if="inputType === 'singleLine'"
         class="text-content"
         :title="content"
       >{{ content }}</span>
-      <!-- 多行模式：多行省略号，动态行数 -->
       <span
         v-else
         class="text-content-multiline"
@@ -37,6 +39,8 @@
 <script setup>
 import { ref, watch, inject, onBeforeMount, onMounted, onBeforeUnmount, nextTick, computed } from 'vue'
 import bus from '../../utils/bus'
+
+const layoutSettings = inject('activeLayoutSettings')?.get?.() || {}
 
 const props = defineProps({
   compProps: {
@@ -62,20 +66,22 @@ const width = ref(200)
 const height = ref(50)
 const left = ref(0)
 const top = ref(0)
-const bgc = ref('rgb(246, 250, 253)')
 const content = ref('')
 
-// inputType 计算属性，兼容老数据
+const containerBg = computed(() =>
+  props.compProps.hideBg
+    ? 'rgba(255, 255, 255, 0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255, 255, 255)')
+)
+
 const inputType = computed(() => {
   return props.compProps.inputType || 'singleLine'
 })
 
-// 动态计算多行省略最大行数
-const headerBarHeight = 40; // header-bar高度，若无header可设为0
-const lineHeightPx = 24; // 16px*1.5=24px，需与样式一致
-const verticalPadding = 0; // 若有上下padding需加上
+const headerBarHeight = 40
+const lineHeightPx = 24
+const verticalPadding = 0
 const calcLineClamp = computed(() => {
-  // 可用高度 = 总高度 - 头部高度 - 上下padding
   let available = height.value - (props.compProps.title ? headerBarHeight : 0) - verticalPadding
   return Math.max(1, Math.floor(available / lineHeightPx))
 })
@@ -132,11 +138,6 @@ watch(
     if (!newVal) return
     width.value = newVal.width || 200
     height.value = newVal.height || 50
-    if (newVal.hideBg) {
-      bgc.value = 'rgba(255, 255, 255, 0.01)'
-    } else {
-      bgc.value = 'rgb(255, 255, 255)'
-    }
   },
   { immediate: true, deep: true }
 )
@@ -161,22 +162,16 @@ const subCommonTextWHChangeHandle = ({ id, newWidth, newHeight }) => {
   height.value = newHeight
   activeCompProps.get().width = newWidth
   activeCompProps.get().height = newHeight
-  nextTick(() => { /* 可扩展：内容自适应等 */ })
+  nextTick(() => { })
 }
 bus.on('subCommonTextWHChange', subCommonTextWHChangeHandle)
 
 onBeforeMount(() => {
   width.value = props.compProps.width || 200
   height.value = props.compProps.height || 50
-  if (props.compProps.hideBg) {
-    bgc.value = 'rgba(255, 255, 255, 0.01)'
-  } else {
-    bgc.value = 'rgb(255, 255, 255)'
-  }
   if (props.compProps.isInit) content.value = ''
   else content.value = props.compProps.content || ''
 })
-
 
 onBeforeUnmount(() => {
   bus.off('subTopicData', subTopicDataHandle)
@@ -188,7 +183,7 @@ onBeforeUnmount(() => {
 .resize-container {
   border-radius: 7px;
   box-shadow: 0 0 8px rgba(0,0,0,0.03);
-  background: rgb(255, 255, 255);
+  background: inherit;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -200,8 +195,8 @@ onBeforeUnmount(() => {
   .header-bar {
     width: 100%;
     height: 45px;
-    background: #fff;
-    color: #333;
+    background: transparent;
+    color: var(--header-color, #333);
     font-weight: bold;
     display: flex;
     align-items: center;
@@ -227,7 +222,7 @@ onBeforeUnmount(() => {
       text-overflow: ellipsis;
       text-align: center;
       font-size: 18px;
-      color: #222;
+      color: var(--comp-font-color, #222);
       line-height: 1.3;
       padding: 0 8px;
       box-sizing: border-box;
@@ -235,7 +230,6 @@ onBeforeUnmount(() => {
     .text-content-multiline {
       display: -webkit-box;
       -webkit-box-orient: vertical;
-      /* 行数由 style 动态设置：-webkit-line-clamp */
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: normal;
@@ -244,11 +238,10 @@ onBeforeUnmount(() => {
       max-width: 100%;
       text-align: left;
       font-size: 16px;
-      color: #222;
+      color: var(--comp-font-color, #222);
       line-height: 1.5;
       padding: 0 8px;
       box-sizing: border-box;
-      /* 建议加transition使调整更丝滑 */
       transition: -webkit-line-clamp 0.2s;
     }
   }
@@ -264,7 +257,7 @@ onBeforeUnmount(() => {
     background: #eaf4fe;
     z-index: 2;
     &:hover {
-      border: 1.5px solid #4d8af0;
+      border: 1.5px solid var(--primary-color, #238aff);
       background: #d6eaff;
     }
     &::after {
@@ -279,5 +272,8 @@ onBeforeUnmount(() => {
       bottom: 2.5px;
     }
   }
+}
+:deep(input::placeholder) {
+  color: var(--ph-color, #888);
 }
 </style>

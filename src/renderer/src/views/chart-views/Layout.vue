@@ -68,16 +68,18 @@ watch(() => layoutSettings.value.theme, (newTheme) => {
   switch (newTheme) {
     case 'dark':
       layoutSettings.value.swatch = {
-        compBgColor: "rgb(33, 33, 33)",
+        compBgColor: "rgb(55, 55, 55)",
         compFontColor: "rgb(255, 255, 255)",
-        compPhColor: "rgb(255, 255, 255, 0.5)"
+        compPhColor: "rgb(255, 255, 255, 0.5)",
+        primaryColor: "rgb(103, 161, 206)"
       }
       break;
     default:
       layoutSettings.value.swatch = {
         compBgColor: "rgb(255, 255, 255)",
         compFontColor: "rgb(66, 80, 107)",
-        compPhColor: "rgb(66, 80, 107, 0.5)"
+        compPhColor: "rgb(66, 80, 107, 0.5)",
+        primaryColor: "rgb(35, 138, 255)"
       }
   }
 });

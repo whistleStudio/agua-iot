@@ -158,13 +158,14 @@ function handleProjModalOk(newProj) {
     cache: [],
     canvasCache: {
       layout: {
-        "theme": "light",
-        "background": "default",
-        "bgUrl": "",
-        "swatch": {
-          "compBgColor": "rgb(255, 255, 255)",
-          "compFontColor": "rgb(66, 80, 107)",
-          "compPhColor": "rgb(66, 80, 107, 0.5)"
+        theme: "light",
+        background: "default",
+        bgUrl: "",
+        swatch: {
+          compBgColor: "rgb(255, 255, 255)",
+          compFontColor: "rgb(66, 80, 107)",
+          compPhColor: "rgb(66, 80, 107, 0.5)",
+          primaryColor: "rgb(35, 138, 255)",
         }
       },
       rawComponents: []

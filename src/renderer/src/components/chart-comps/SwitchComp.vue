@@ -1,58 +1,52 @@
 <template>
   <div class="comp" :style="compStyle">
-    <div class="comp__label">{{ props.compProps.title }}</div>
-    <a-switch v-model:checked="checked" @mousedown.stop @change="switchChange" 
-    :checked-children="props.compProps.onText" :un-checked-children="props.compProps.offText" />
+    <div class="comp__label" :style="{color: layoutSettings.swatch.compFontColor}">{{ props.compProps.title }}</div>
+    <a-switch v-model:checked="checked" @mousedown.stop @change="switchChange"
+      :checked-children="props.compProps.onText"
+      :un-checked-children="props.compProps.offText"
+      :style="{ color: layoutSettings.swatch.compFontColor, backgroundColor: layoutSettings.swatch.primaryColor }"
+    />
   </div>
 </template>
 
-
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, inject } from 'vue';
 import bus from '../../utils/bus';
 
 const props = defineProps({
-  compProps: {
-    type: Object,
-    required: false,
-    default: () => ({})
-  },
-  compId: {
-    type: Number,
-    required: false,
-    default: -1
-  }
+  compProps: Object,
+  compId: Number
 })
+
+const activeLayoutSettings = inject('activeLayoutSettings');
+const layoutSettings = computed({
+  get: () => activeLayoutSettings.get(),
+  set: (val) => { activeLayoutSettings.set(val); }
+});
 
 const checked = ref(true);
 
 const whSize = computed(() => {
   switch (props.compProps.size) {
-    case 'small':
-      return { minWidth: '80px', height: '80px', padding: '7px' };
-    case 'large':
-      return { minWidth: '120px', height: '120px', padding: '25px' };
-    default:
-      return { minWidth: '100px', height: '100px', padding: '16px' };  
+    case 'small': return { minWidth: '80px', height: '80px', padding: '7px' };
+    case 'large': return { minWidth: '120px', height: '120px', padding: '25px' };
+    default: return { minWidth: '100px', height: '100px', padding: '16px' };
   }
 });
 
 const compStyle = computed(() => ({
-  minWidth: whSize.value.width,
+  minWidth: whSize.value.minWidth,
   height: whSize.value.height,
   padding: whSize.value.padding,
-  background: props.compProps.hideBg ? 'rgba(255, 255, 255, 0.01)' : 'rgba(255, 255, 255, 1)',
+  background: props.compProps.hideBg
+    ? 'rgba(255, 255, 255, 0.01)'
+    : layoutSettings.value.swatch.compBgColor,
 }));
 
-/* 切换开关-发布数据 */
 function switchChange(checked) {
-  // console.log("props.compProps.topic.topic:", props.compProps.topic.topic);
   bus.pubTopicData(props.compProps, checked ? props.compProps.onPayload : props.compProps.offPayload);
 }
-
-
 </script>
-
 
 <style scoped lang="scss">
 .comp {
@@ -74,5 +68,4 @@ function switchChange(checked) {
   margin-bottom: 12px;
   letter-spacing: 2px;
 }
-
 </style>

@@ -1,5 +1,4 @@
 <template>
-  <!-- 修改 -->
   <div
     class="resize-container"
     :class="{ active: props.compId === props.activeCompId }"
@@ -9,7 +8,13 @@
       left: left + 'px',
       top: top + 'px',
       position: 'absolute',
-      backgroundColor: bgc
+      backgroundColor: bgc,
+      '--primary-color': (props.compProps.primaryColor || layoutSettings?.swatch?.primaryColor || '#238aff'),
+      '--label-color': props.compProps.labelColor || (layoutSettings?.swatch?.primaryColor || '#d2694a'),
+      '--unit-color': props.compProps.unitColor || (layoutSettings?.swatch?.primaryColor || '#ffd590'),
+      '--value-color': props.compProps.unitColor || (layoutSettings?.swatch?.primaryColor || '#ffd590'),
+      '--header-color': layoutSettings?.swatch?.compFontColor || '#333',
+      '--bg-color': bgc,
     }"
     ref="container"
   >
@@ -18,11 +23,11 @@
     </div>
     <div class="labeltext-center">
       <div class="label-row">
-        <span class="label-desc" :style="{ color: props.compProps.labelColor || '#d2694a' }">{{ props.compProps.labelText || '标签' }}</span>
+        <span class="label-desc">{{ props.compProps.labelText || '标签' }}</span>
       </div>
       <div class="label-value-row">
         <span class="label-value">{{ value }}</span>
-        <span class="label-unit" :style="{ color: props.compProps.unitColor || '#ffd590' }">{{ props.compProps.unitText || '' }}</span>
+        <span class="label-unit">{{ props.compProps.unitText || '' }}</span>
       </div>
     </div>
     <div class="resize-handle" @mousedown="startResize"></div>
@@ -32,6 +37,8 @@
 <script setup>
 import { ref, watch, inject, onBeforeMount, nextTick, onBeforeUnmount, computed } from 'vue'
 import bus from '../../utils/bus'
+
+const layoutSettings = inject('activeLayoutSettings')?.get?.() || {}
 
 const props = defineProps({
   compProps: {
@@ -59,18 +66,11 @@ const left = ref(0)
 const top = ref(0)
 const value = ref(null)
 
-// 底色
 const bgc = computed(() =>
-  props.compProps.hideBg ? 'rgba(255,255,255,0.01)' : 'rgb(255,255,255)'
+  props.compProps.hideBg
+    ? (layoutSettings.swatch?.transparentBgColor || 'rgba(255,255,255,0.01)')
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255,255,255)')
 )
-
-// const valueStr = computed(() => {
-//   if (props.compProps.isInit) return '--'
-//   if (value.value === null || value.value === undefined) return '--'
-//   if (typeof value.value === 'number' && !isNaN(value.value)) return value.value
-//   const num = parseFloat(value.value)
-//   return isNaN(num) ? value.value : num
-// })
 
 let resizing = false
 let origin = { x: 0, y: 0 }
@@ -111,7 +111,7 @@ function stopResize() {
 }
 
 watch([width, height], () => {
-  if (props.compId !== props.activeCompId) return // 修改
+  if (props.compId !== props.activeCompId) return
   activeCompProps.get().width = width.value
   activeCompProps.get().height = height.value
 })
@@ -129,12 +129,10 @@ const sublabeltextWHChangeHandle = ({ id, newWidth, newHeight }) => {
   if (id !== props.compId) return
   width.value = newWidth
   height.value = newHeight
-  // console.log("activeCompProps.get()", activeCompProps.get())
-  nextTick(() => { /* 可扩展：内容自适应等 */ })
+  nextTick(() => { })
 }
 bus.on('sublabeltextWHChange', sublabeltextWHChangeHandle)
 
-// 监听订阅消息，实时更新内容
 const subTopicDataHandle = ({ topic, qos, payload }) => {
   if (
     !props.compProps.topic ||
@@ -166,7 +164,7 @@ onBeforeUnmount(() => {
 <style scoped lang="scss">
 .resize-container {
   border-radius: 8px;
-  background: transparent;
+  background: var(--bg-color, #fff);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -179,7 +177,7 @@ onBeforeUnmount(() => {
     width: 100%;
     height: 45px;
     background: transparent;
-    color: #333;
+    color: var(--header-color, #333);
     font-weight: bold;
     display: flex;
     align-items: center;
@@ -202,11 +200,11 @@ onBeforeUnmount(() => {
       display: flex;
       align-items: flex-end;
       justify-content: center;
-      margin-top: 6px;
       margin-bottom: 0;
       .label-desc {
         font-size: 18px;
         font-weight: 500;
+        color: var(--label-color, #d2694a);
       }
     }
     .label-value-row {
@@ -214,17 +212,17 @@ onBeforeUnmount(() => {
       display: flex;
       align-items: baseline;
       justify-content: center;
-      margin-top: 4px;
       .label-value {
         font-size: 40px;
         font-weight: 600;
-        color: #ffd590;
+        color: var(--value-color, #ffd590);
         line-height: 1;
       }
       .label-unit {
         font-size: 18px;
         margin-left: 4px;
         font-weight: 400;
+        color: var(--unit-color, #ffd590);
       }
     }
   }
@@ -240,7 +238,7 @@ onBeforeUnmount(() => {
     background: #eaf4fe;
     z-index: 2;
     &:hover {
-      border: 1.5px solid #4d8af0;
+      border: 1px solid rgba(48, 150, 245, 0.6) !important;
       background: #d6eaff;
     }
     &::after {

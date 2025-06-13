@@ -63,7 +63,8 @@
           "swatch": {
             "compBgColor": "rgb(255, 255, 255)",
             "compFontColor": "rgb(66, 80, 107)",
-            "compPhColor": "rgb(66, 80, 107, 0.5)"
+            "compPhColor": "rgb(66, 80, 107, 0.5)",
+            "primaryColor": "rgb(35, 138, 255)"
           }
         },
         "rawComponents": [
@@ -78,6 +79,164 @@
             },
             "top": 57.227198440920944,
             "left": 183.7280119229182
+          },
+          {
+            "id": 1749799553392.9736,
+            "type": "checkbox",
+            "props": {
+              "title": "复选框",
+              "topic": {},
+              "size": "medium",
+              "options": [
+                {
+                  "label": "选项1",
+                  "value": "内容1"
+                },
+                {
+                  "label": "选项2",
+                  "value": "内容2"
+                }
+              ],
+              "hideBg": false
+            },
+            "top": 338.139744247547,
+            "left": 88.4681175127896
+          },
+          {
+            "id": 1749799923763.2168,
+            "type": "button",
+            "props": {
+              "title": "按钮",
+              "topic": {},
+              "size": "medium",
+              "btnText": "按钮",
+              "payload": "喵~",
+              "hideBg": false
+            },
+            "top": 54.47105382014112,
+            "left": 74.89728688397827
+          },
+          {
+            "id": 1749799925308.4944,
+            "type": "switch",
+            "props": {
+              "title": "开关",
+              "topic": {},
+              "size": "medium",
+              "onText": "ON",
+              "offText": "OFF",
+              "onPayload": "on",
+              "offPayload": "off",
+              "hideBg": false,
+              "options": [
+                {
+                  "label": "选项1",
+                  "value": "value1"
+                },
+                {
+                  "label": "选项2",
+                  "value": "value2"
+                }
+              ]
+            },
+            "top": 190.2422510436028,
+            "left": 29.50475821774097
+          },
+          {
+            "id": 1749799927183.4211,
+            "type": "slider",
+            "props": {
+              "title": "滑动条",
+              "topic": {},
+              "size": "medium",
+              "min": 0,
+              "max": 100,
+              "step": 1,
+              "vertical": false,
+              "hideBg": false,
+              "labelColor": "#d2694a",
+              "unitColor": "#ffd590",
+              "inputType": "singleLine"
+            },
+            "top": 171.4217856191908,
+            "left": 420.4803534724616
+          },
+          {
+            "id": 1749799928807.7935,
+            "type": "radio",
+            "props": {
+              "title": "单选框",
+              "topic": {},
+              "size": "medium",
+              "options": [
+                {
+                  "label": "选项1",
+                  "value": "内容1"
+                },
+                {
+                  "label": "选项2",
+                  "value": "内容2"
+                }
+              ],
+              "showType": "button",
+              "hideBg": false
+            },
+            "top": 165.7071473641396,
+            "left": 204.68072680026415
+          },
+          {
+            "id": 1749803710968.75,
+            "type": "sublabeltext",
+            "props": {
+              "title": "标签文本显示",
+              "topic": {},
+              "width": 180,
+              "height": 120,
+              "labelText": "标签",
+              "labelColor": "#31c94a",
+              "unitText": "℃",
+              "unitColor": "#ffd590",
+              "value": "",
+              "isInit": true,
+              "hideBg": false,
+              "inputType": "singleLine",
+              "options": [
+                {
+                  "label": "选项1",
+                  "value": "value1"
+                },
+                {
+                  "label": "选项2",
+                  "value": "value2"
+                }
+              ]
+            },
+            "top": 305.8631123746734,
+            "left": 352.5252003524093
+          },
+          {
+            "id": 1749806176580.1382,
+            "type": "linechart",
+            "props": {
+              "title": "折线图",
+              "topic": {},
+              "width": 450,
+              "height": 300,
+              "hideBg": false,
+              "yUnit": "单位",
+              "count": 10,
+              "isInit": true,
+              "data": [
+                {
+                  "name": "折线1",
+                  "color": "#a9c5e8",
+                  "logs": []
+                }
+              ],
+              "time": []
+            },
+            "top": 211.9840839708762,
+            "left": 266.9252783581816
           }
         ]
       }

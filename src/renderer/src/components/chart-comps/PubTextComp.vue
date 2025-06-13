@@ -15,7 +15,6 @@
 <script setup>
 import { ref, computed, watch, reactive, inject } from 'vue';
 import bus from '../../utils/bus';
-import { color } from 'echarts';
 
 const inputValue = ref('');
 
@@ -57,13 +56,15 @@ const inputStyle = computed(() => ({
   borderRadius: '8px 0 0 8px',
   fontSize: '14px',
   background: props.compProps.hideBg ? 'rgba(255, 255, 255, 0.01)' : layoutSettings.value.swatch.compBgColor,
+  color: layoutSettings.value.swatch.compFontColor,
   '--ph-color': layoutSettings.value.swatch.compPhColor,
+  '--primary-color': layoutSettings.value.swatch.primaryColor,
 }));
 const btnStyle = computed(() => ({
   width: whSize.value.height,
   height: whSize.value.height,
   borderRadius: '0 8px 8px 0',
-  background: props.compProps.hideBg ? 'rgba(35, 138, 255, 0.2)' : 'rgba(35, 138, 255, 1)',
+  background: props.compProps.hideBg ? 'rgba(35, 138, 255, 0.2)' : layoutSettings.value.swatch.primaryColor,
 }));
 const iconStyle = computed(() => ({
   width: `calc(${whSize.value.height} / 2)`,
@@ -123,7 +124,12 @@ const iconStyle = computed(() => ({
   border-radius: 8px 0 0 8px !important;
   border-right: none !important;
   box-shadow: 4px 8px 18px 0 rgba(36,137,202,0.09); 
-
+  &:hover {
+    border-color: var(--primary-color) !important;
+  }
+  &:focus {
+    border-color: var(--primary-color) !important;
+  }
 }
 .input-comp__send-btn {
   /* width: 45px;
@@ -137,7 +143,7 @@ const iconStyle = computed(() => ({
   border: none;
 }
 .input-comp__send-btn:hover {
-  background: #156fd1 !important;
+  filter: brightness(0.9);
 }
 .input-comp__send-btn img {
   display: block;

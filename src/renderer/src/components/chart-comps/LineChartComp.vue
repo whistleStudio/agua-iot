@@ -1,62 +1,53 @@
 <template>
   <div
-    class="resize-container" :class="{ active: props.compId === props.activeCompId }"
+    class="resize-container"
+    :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',
       height: height + 'px',
       left: left + 'px',
       top: top + 'px',
       position: 'absolute',
-      backgroundColor: bgc
+      background: containerBg,
+      '--primary-color': (layoutSettings?.swatch?.primaryColor || '#238aff'),
+      '--header-color': layoutSettings?.swatch?.compFontColor || '#333'
     }"
     ref="container"
   >
     <div class="chart-center">
       <div id="main" ref="RefMain"></div>
     </div>
-    <div
-      class="resize-handle"
-      @mousedown="startResize"
-    ></div>
+    <div class="resize-handle" @mousedown="startResize"></div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount } from 'vue'
+import { ref, onMounted, nextTick, watch, inject, onBeforeMount, onBeforeUnmount, computed } from 'vue'
 import * as echarts from 'echarts'
 import bus from '../../utils/bus'
 
+const layoutSettings = inject('activeLayoutSettings')?.get?.() || {}
+
 const props = defineProps({
-  compProps: {
-    type: Object,
-    required: false,
-    default: () => ({})
-  },
-  compId: {
-    type: Number,
-    required: false,
-    default: -1
-  },
-  activeCompId: {
-    type: Number,
-    required: false,
-    default: -1
-  }
+  compProps: Object,
+  compId: Number,
+  activeCompId: Number
 })
 
 const activeCompProps = inject('activeCompProps')
-
 const RefMain = ref(null)
-const container = ref(null)
-
-let myChart
 
 const width = ref(300)
 const height = ref(200)
 const left = ref(0)
 const top = ref(0)
-const bgc = ref('rgb(246, 250, 253)')
+const containerBg = computed(() =>
+  props.compProps.hideBg
+    ? 'rgba(255, 255, 255, 0.01)'
+    : (layoutSettings.swatch?.compBgColor || 'rgb(255, 255, 255)')
+)
 
+let myChart
 let resizing = false
 let origin = { x: 0, y: 0 }
 let startLeft = 0
@@ -100,17 +91,14 @@ function stopResize() {
   document.removeEventListener('mouseup', stopResize)
 }
 
+// -------- ECharts 配置及数据处理 --------
 const option = {
-  backgroundColor: 'rgb(255, 255, 255)',
+  backgroundColor: 'rgb(255,255,255)',
   title: {
     text: '多折线图',
     left: 'center',
     top: 15,
-    textStyle: {
-      fontWeight: 700,
-      fontSize: 18,
-      color: '#222'
-    }
+    textStyle: { fontWeight: 700, fontSize: 18, color: layoutSettings.swatch?.compFontColor || '#222' }
   },
   legend: {
     data: ['折线1'],
@@ -119,12 +107,10 @@ const option = {
     icon: 'circle',
     itemWidth: 20,
     itemHeight: 10,
-    textStyle: { fontSize: 15, color: '#444', padding: [0,0,0,3] }
+    textStyle: { fontSize: 15, color: layoutSettings.swatch?.compFontColor || '#333', padding: [0, 0, 0, 3] }
   },
   grid: { top: 70, left: 48, right: 16, bottom: 38, containLabel: true },
-  tooltip: {
-    trigger: 'axis'
-  },
+  tooltip: { trigger: 'axis' },
   xAxis: {
     type: 'category',
     data: [],
@@ -134,26 +120,23 @@ const option = {
   yAxis: {
     type: 'value',
     name: '℃',
-    nameTextStyle: { color: '#6c839a', fontWeight: 500, align: 'right', padding: [0,0,0,0] },
+    nameTextStyle: { color: '#6c839a', fontWeight: 500, align: 'right' },
     axisLine: { show: false },
     axisTick: { show: false },
     splitLine: { lineStyle: { color: '#d3e5f6' } },
     axisLabel: { color: '#6c839a', fontWeight: 500 }
   },
-  series: [
-  ]
+  series: []
 }
 
 function renderChart() {
   if (!RefMain.value) return
-  if (!myChart) {
-    myChart = echarts.init(RefMain.value)
-  }
+  if (!myChart) myChart = echarts.init(RefMain.value)
   myChart.setOption(option, true)
   myChart.resize()
 }
 
-// 初始状态样例数据生成
+// 样例数据生成
 function genInitData() {
   if (props.compProps.isInit) {
     const dataL = props.compProps.data.length, dateNow = Date.now()
@@ -161,16 +144,13 @@ function genInitData() {
       const timeStamp = formatTime(dateNow - (10 - idx) * 1000)
       props.compProps.time[idx] = timeStamp
       Array(dataL).fill(0).forEach((__, lineIdx) => {
-        props.compProps.data[lineIdx].logs[idx]=idx+lineIdx
+        props.compProps.data[lineIdx].logs[idx] = idx + lineIdx
       })
     })
     option.xAxis.data = props.compProps.time
-  } else {
-
   }
 }
 
-// 将 Date.now() 转为 "HH:mm:ss" 字符串
 function formatTime(ts) {
   const date = new Date(ts)
   const h = String(date.getHours()).padStart(2, '0')
@@ -179,60 +159,56 @@ function formatTime(ts) {
   return `${h}:${m}:${s}`
 }
 
-// 处理payload
 function processPayload(payload) {
   return payload.replace(/\s+/g, '').split(/,|，/)
 }
 
-/* -------------------------------------- */
+// -------- 响应式和事件 --------
 watch([width, height], () => {
-  // console.log('watch lineChart size change:', width.value, height.value)
   if (props.compId !== props.activeCompId) return
   activeCompProps.get().width = width.value
   activeCompProps.get().height = height.value
   nextTick(() => myChart && myChart.resize())
 })
 
-watch(props.compProps, newVal => {
-  // console.log('linechart props.compProps changed')
-  option.title.text = newVal.title || '折线图'
-  option.yAxis.name = newVal.yUnit
-  if (newVal.hideBg) {
-    bgc.value = 'rgba(255, 255, 255, 0.01)'
-    option.backgroundColor = 'rgba(255, 255, 255, 0.01)'
-  } else {
-    bgc.value = 'rgb(255, 255, 255)'
-    option.backgroundColor = 'rgb(255, 255, 255)'
-  }
-  option.legend.data = []
-  option.series = []
-  newVal.data.forEach((line, idx) => {
-    option.legend.data.push(line.name || `折线${idx + 1}`)
-    line.logs.splice(0, line.logs.length - newVal.count) // 保留最新的count条数据
-    newVal.time.splice(0, newVal.time.length - newVal.count) // 保留最新的count条时间戳
-    option.series.push({
-      name: line.name || `折线${idx + 1}`,
-      data: line.logs || [],
-      // data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], // 临时数据
-      type: 'line',
-      symbol: 'circle',
-      symbolSize: 7,
-      itemStyle: { color: line.color, borderColor: '#fff', borderWidth: 2 },
-      lineStyle: { color: line.color, width: 2 }
+watch(
+  () => [props.compProps, layoutSettings.swatch],
+  ([newVal, swatch]) => {
+    option.title.text = newVal.title || '折线图'
+    option.title.textStyle.color = swatch?.compFontColor || '#222'
+    option.yAxis.name = newVal.yUnit
+    option.backgroundColor = newVal.hideBg
+      ? 'rgba(255,255,255,0.01)'
+      : (swatch?.compBgColor || 'rgb(255,255,255)')
+    // legend/series
+    option.legend.data = []
+    option.series = []
+    newVal.data.forEach((line, idx) => {
+      option.legend.data.push(line.name || `折线${idx + 1}`)
+      option.legend.textStyle.color = swatch?.compFontColor || '#333'
+      line.logs.splice(0, line.logs.length - newVal.count)
+      newVal.time.splice(0, newVal.time.length - newVal.count)
+      option.series.push({
+        name: line.name || `折线${idx + 1}`,
+        data: line.logs || [],
+        type: 'line',
+        symbol: 'circle',
+        symbolSize: 7,
+        itemStyle: { color: line.color, borderColor: '#fff', borderWidth: 2 },
+        lineStyle: { color: line.color, width: 2 }
+      })
     })
-  })
-  option.xAxis.data = newVal.time || []
-  // console.log('linechart props.compProps changed:', newVal)
-  if (myChart) {
-    myChart.setOption(option, true)
-    myChart.resize()
-  }
-}, { immediate: true, deep: true })
+    option.xAxis.data = newVal.time || []
+    if (myChart) {
+      myChart.setOption({ backgroundColor: option.backgroundColor }, false)
+      myChart.setOption(option, true)
+      myChart.resize()
+    }
+  },
+  { immediate: true, deep: true }
+)
 
-// 属性面变化时组件DOM更新
 const lineChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
-  console.log('lineChartWHChange match:', id, newWidth, newHeight)
-
   if (id !== props.compId) return
   width.value = newWidth
   height.value = newHeight
@@ -240,46 +216,36 @@ const lineChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
 }
 bus.on('lineChartWHChange', lineChartWHChangeHandle)
 
-// 增删折线时更新图表
 const initDataChangeHandle = () => {
-  if (bus.activeCompId !== props.compId) return 
+  if (bus.activeCompId !== props.compId) return
   genInitData()
 }
 bus.on('initDataChange', initDataChangeHandle)
 
-// 监听订阅主题的数据
-const subTopicDataHandle = ({ topic, qos, payload, time }) => {
-  // console.log('bus1 subTopicData received:', topic, qos, payload, time)
-  if ( topic != props.compProps.topic.topic || qos != props.compProps.topic.qos ) return
-  // console.log('bus2 subTopicData received:', topic, qos, payload, time)
+const subTopicDataHandle = ({ topic, qos, payload }) => {
+  if (topic != props.compProps.topic.topic || qos != props.compProps.topic.qos) return
   if (props.compProps.isInit) {
-    props.compProps.time = [] // 清空时间戳
+    props.compProps.time = []
     props.compProps.data.forEach(line => {
-      line.logs = [] // 清空所有折线数据
+      line.logs = []
     })
   }
   try {
     const data = processPayload(payload)
     const timeStamp = formatTime(Date.now())
     props.compProps.time.push(timeStamp)
-    // if (props.compProps.time.length > 100) {
-    //   props.compProps.time.shift() // 保持最新的100条时间戳
-    // }
     props.compProps.data.forEach((line, idx) => {
       if (data[idx] !== undefined) {
-        line.logs.push(parseFloat(data[idx]).toFixed(2)) // 保留两位小数
-        // if (line.logs.length > 100) {
-        //   line.logs.shift() // 保持最新的100条数据
-        // }
+        line.logs.push(parseFloat(data[idx]).toFixed(2))
       } else {
-        line.logs.push('NaN') // 如果没有数据，填充0
+        line.logs.push('NaN')
       }
     })
-    props.compProps.isInit = false // 标记为非初始化状态
-  } catch(e) { console.log("sub data err", e); return}
+    props.compProps.isInit = false
+  } catch (e) { console.log("sub data err", e) }
 }
 bus.on('subTopicData', subTopicDataHandle)
-/* ---------------------------------- */
+
 onBeforeMount(() => {
   width.value = props.compProps.width || 300
   height.value = props.compProps.height || 200
@@ -292,14 +258,13 @@ onBeforeUnmount(() => {
   bus.off('initDataChange', initDataChangeHandle)
   bus.off('subTopicData', subTopicDataHandle)
 })
-
 </script>
 
 <style scoped lang="scss">
 .resize-container {
   border-radius: 7px;
   box-shadow: 0 0 8px rgba(0,0,0,0.03);
-  background: rgb(255, 255, 255);
+  background: inherit;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -332,7 +297,7 @@ onBeforeUnmount(() => {
     background: #eaf4fe;
     z-index: 2;
     &:hover {
-      border: 1.5px solid #4d8af0;
+      border: 1.5px solid var(--primary-color, #238aff);
       background: #d6eaff;
     }
     &::after {

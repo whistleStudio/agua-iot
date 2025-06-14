@@ -1,6 +1,6 @@
 <template>
-  <div
-    class="resize-container"
+  <div 
+    class="resize-container comp-border"
     :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',
@@ -276,4 +276,8 @@ onBeforeUnmount(() => {
 :deep(input::placeholder) {
   color: var(--ph-color, #888);
 }
+// .white-border {
+//   box-shadow: 0 4px 8px 1px rgba(36, 137, 202, 0.13);
+//   border: 1px solid #e6e6e6;
+// }
 </style>

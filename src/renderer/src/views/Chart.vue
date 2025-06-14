@@ -57,7 +57,7 @@
       </a-layout-sider>
 
       <!-- 中间画布部分 -->
-      <a-layout-content class="visual-editor__content" >
+      <a-layout-content class="visual-editor__content" :style="editorContentStyle">
         <div class="visual-editor__canvas-wrapper" @mousedown="showLayoutSettings">
           <div class="visual-editor__canvas" ref="canvasRef" :style="canvasStyle">
             <div
@@ -152,8 +152,13 @@ const canvasRawComponents = computed({
     }
   }
 })
+const editorContentStyle = computed(() => ({ backgroundColor: activeProj.value?.canvasCache?.layout?.theme == 'dark' ? '#a8a8a8' : '#f5f5f5' }))
+
 const canvasStyle = computed(() => {
-  return { backgroundImage: (activeProj.value?.canvasCache?.layout?.bgUrl && activeProj.value.canvasCache.layout?.background == 'upload') ? `url(${activeProj.value.canvasCache.layout.bgUrl})` : 'none'};
+  return { 
+    backgroundImage: (activeProj.value?.canvasCache?.layout?.bgUrl && activeProj.value.canvasCache.layout?.background == 'upload') ? `url(${activeProj.value.canvasCache.layout.bgUrl})` : 'none',
+    backgroundColor: (activeProj.value?.canvasCache?.layout?.theme == 'dark') ? '#444' : '#f0f2f5',
+  };
 });
 
 const canvasComponents = ref([])
@@ -587,6 +592,10 @@ function showLayoutSettings() {
       font-size: 13px;
       line-height: 20px;
     }
+  }
+  :deep(.comp-border) {
+    box-shadow: 0 4px 8px 1px rgba(36, 137, 202, 0.13);
+    border: 1px solid #e6e6e6;
   }
 }
 

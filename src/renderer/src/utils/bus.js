@@ -47,7 +47,7 @@ const bus = {
   },
   // 更新本地存储
   changeProjInfo() {
-    // console.log('changeProjInfo', this.projList)
+    console.log('changeProjInfo')
     window.electron?.ipcRenderer.invoke('r:changeProjList', JSON.parse(JSON.stringify(this.projList)))
     .then(() => {
       // Successfully updated project info

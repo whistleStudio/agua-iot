@@ -1,6 +1,6 @@
 <template>
   <div
-    class="resize-container"
+    class="resize-container comp-border"
     :class="{ active: props.compId === props.activeCompId }"
     :style="{
       width: width + 'px',

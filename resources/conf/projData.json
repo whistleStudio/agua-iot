@@ -110,11 +110,11 @@
     {
       "id": 1749986391893,
       "name": "ccb",
-      "mode": "local",
-      "clientID": "",
-      "ip": "192.168.2.14",
-      "port": 1883,
-      "username": "",
+      "mode": "remote",
+      "clientID": "w",
+      "ip": "122312",
+      "port": "12312",
+      "username": "22",
       "password": "",
       "subTopics": [],
       "pubTopics": [],
@@ -132,7 +132,8 @@
           }
         },
         "rawComponents": []
-      }
+      },
+      "connected": false
     }
   ]
 }

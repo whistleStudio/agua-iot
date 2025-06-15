@@ -1,6 +1,3 @@
-<!-- 
- 1 未校验订阅本地化异常处理
--->
 <template>
   <ProjModal :open="isProjModalOpen" @ok="handleProjModalOk" @cancel="isProjModalOpen=false" :edit-form="editProjForm"/>
   <SubscriptionModal :open="isSubModalOpen" @ok="handleSubModalOk" @cancel="isSubModalOpen=0" :passform="passform"/>
@@ -9,16 +6,16 @@
     <div class="sidebar">
       <div>
         <span>项目</span>
-        <span class="add" @click="()=>{openAddProjModal()}">+</span>
+        <span class="add" @click="openAddProjModal">+</span>
       </div>
       <ul>
         <li v-for="v in projList" :key="v.id" @click="() => {activeProjID = v.id; console.log('v.id ---', v.id, v.name)}"
           :class="{ 'active': activeProjID == v.id }">
-          <span class="proj-name">{{ v.name }}</span> 
+          <span class="proj-name">{{ v.name }}</span>
           <span class="delete-proj" @click.stop="handleDeleteProj(v.id)">-</span>
         </li>
       </ul>
-      <div class="localIP">{{ activeProj.ip }}:{{ activeProj.port }}</div>
+      <div class="localIP">{{ activeProjMqttServer }}</div>
     </div>
 
     <!-- Main Panel -->
@@ -35,14 +32,21 @@
             @click="openEditProjModal"
             style="width: 20px; height: 20px; margin-left: 8px; cursor: pointer;"
           />
+          <template v-if="activeProjID !== -999 && activeProj.mode === 'remote'">
+            <img
+              :src="getImgPath(activeProj.connected ? 'disconnect.svg' : 'connect.svg')"
+              class="proj-conn-btn"
+              :alt="activeProj.connected ? '断开连接' : '连接'"
+              @click="toggleRemoteConnection"
+              style="width: 30px; height: 30px; margin-left: 8px; cursor: pointer;"
+            />
+          </template>
         </h1>
         <div class="header-btns">
-          <!-- <img :src="getImgPath('chart.svg')" class="chart-btn" @click="clickChartBtn"/> -->
           <div @click="clickReadingBtn" class="reading-btn">
             <img v-if="isReading" :src="getImgPath('stop.svg')" alt="">
             <img v-else :src="getImgPath('start.svg')" alt="">
-          </div>          
-          <!-- <a-button type="text">⋯</a-button> -->
+          </div>
         </div>
       </div>
       <div class="data-panel">
@@ -59,7 +63,7 @@
             </li>
           </ul>
         </div>
-        
+
         <div class="right-panel">
           <!-- Messages List -->
           <div class="messages" ref="messagesRef">
@@ -85,7 +89,7 @@
               </a-select>
               <a-checkbox v-model:checked="pubTopic.retain" class="retain-checkbox">Retain</a-checkbox>
               <a-button type="primary" @click="handleSend">发布</a-button>
-            </div>        
+            </div>
             <a-input v-model:value.trim="pubTopic.topic" class="text-sm" placeholder="请输入主题名称..."
             @blur="blurPubTopic">
               <template #suffix >
@@ -99,7 +103,7 @@
                         <span>retain: {{ Number(v.retain) }}</span>
                         <span class="delete" :class="{display: i==hoverPubIndex}" @click.stop="clickDeletePub(i)">❌</span>
                       </p>
-                    </template> 
+                    </template>
                     <p v-else>暂无发布主题</p>
                   </template>
                   <img :src="getImgPath('pubhistory.svg')" alt="" class="pubhistory-btn" ref="pubHistoryBtnRef"/>
@@ -114,7 +118,6 @@
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { onMounted, onBeforeMount, reactive, ref, computed, watch, onBeforeUnmount } from 'vue'
@@ -142,7 +145,7 @@ const isProjModalOpen = ref(false), isSubModalOpen = ref(0), isReading = ref(fal
 const activeProjID = ref(-999), hoverSubIndex = ref(-1), hoverPubIndex = ref(-1)
 let projList = reactive([])
 const passform = ref({})
-const editProjForm = ref(null) // 新增
+const editProjForm = ref(null)
 
 const activeProjIndex = computed(() => {
   const idx = projList.findIndex((item) => item.id === activeProjID.value)
@@ -153,15 +156,18 @@ const activeProj = computed(() => {
   if (activeProjID.value === -999) return {}
   return projList[activeProjIndex.value]
 })
+const activeProjMqttServer = computed(() => {
+  if (activeProjID.value === -999) return ""
+  return `${activeProj.value.ip} : ${ activeProj.value.port }`
+})
 
 /* 新增项目-确定 或 编辑项目-确定 */
 function handleProjModalOk(newProj) {
   isProjModalOpen.value = false
   if (!newProj.name.trim()) return
 
-  // 判断是否为编辑操作
+  // 编辑
   if (editProjForm.value && editProjForm.value.id !== undefined) {
-    // 编辑: 替换对应项目内容
     const idx = projList.findIndex(p => p.id === editProjForm.value.id)
     if (idx !== -1) {
       projList[idx].name = newProj.name.trim()
@@ -171,6 +177,12 @@ function handleProjModalOk(newProj) {
       projList[idx].port = newProj.port || ""
       projList[idx].username = newProj.username || ""
       projList[idx].password = newProj.password || ""
+      // 连接状态同步
+      if (newProj.mode === 'local') {
+        projList[idx].connected = true
+      } else {
+        projList[idx].connected = false
+      }
       bus.changeProjInfo()
     }
     editProjForm.value = null
@@ -187,6 +199,7 @@ function handleProjModalOk(newProj) {
     port: newProj.port || "",
     username: newProj.username || "",
     password: newProj.password || "",
+    connected: newProj.mode === 'local', // local模式true, remote模式false
     subTopics: [],
     pubTopics: [],
     cache: [],
@@ -220,7 +233,6 @@ function openAddProjModal() {
 /* 打开编辑项目弹窗 */
 function openEditProjModal() {
   if (activeProjID.value === -999) return
-  // 只传递当前项目的配置字段
   editProjForm.value = {
     id: activeProj.value.id,
     name: activeProj.value.name,
@@ -234,19 +246,25 @@ function openEditProjModal() {
   isProjModalOpen.value = true
 }
 
+/* 切换remote项目连接状态 */
+function toggleRemoteConnection() {
+  if (activeProjID.value === -999) return
+  if (activeProj.value.mode !== 'remote') return
+  activeProj.value.connected = !activeProj.value.connected
+  bus.changeProjInfo()
+}
+
 /* 删除项目 */
 function handleDeleteProj(id) {
-  // 删除bus.projList中的项目
   const index = bus.projList.findIndex((item) => item.id === id)
   if (index !== -1) {
     projList.splice(index, 1)
     bus.changeProjInfo()
-    // 修正activeProjID
     if (activeProjID.value == id) {
       if (projList.length > 0) {
-        activeProjID.value = projList[0].id // 默认选中第一个项目
+        activeProjID.value = projList[0].id
       } else {
-        activeProjID.value = -999 // 没有项目时设置为-999
+        activeProjID.value = -999
       }
     }
   }
@@ -264,13 +282,9 @@ function clickAddSubscription() {
 
 /* 新增/编辑订阅-确定 */
 function handleSubModalOk(newSub) {
-  // newSub = newSub.value
-  console.log('handleSubModalOk ---', newSub)
   isSubModalOpen.value = 0
   if (newSub.topic === '' || activeProjID.value === -999) return
-  // 相同订阅主题不添加
   const index = activeProj.value.subTopics.findIndex((item) => item.topic === newSub.topic)
-  console.log('index ---', index)
   if (index === -1) {
     activeProj.value.subTopics.push({
       topic: newSub.topic,
@@ -278,7 +292,6 @@ function handleSubModalOk(newSub) {
       color: newSub.color,
       alias: newSub.alias
     })
-    console.log('activeProj.subTopics ---', activeProj.value.subTopics)
     bus.changeProjInfo()
     changeMqttCache(newSub.topic)
   }
@@ -286,7 +299,6 @@ function handleSubModalOk(newSub) {
 
 /* 删除订阅 */
 function clickDeleteSub(index) {
-  console.log('clickDeleteSub ---', index)
   if (activeProjID.value === -999) return
   activeProj.value.subTopics.splice(index, 1)
   bus.changeProjInfo()
@@ -294,7 +306,6 @@ function clickDeleteSub(index) {
 
 /* 删除发布 */
 function clickDeletePub(index) {
-  console.log('clickDeletePub ---', index)
   if (activeProjID.value === -999) return
   activeProj.value.pubTopics.splice(index, 1)
   bus.changeProjInfo()
@@ -303,7 +314,6 @@ function clickDeletePub(index) {
 /* 发布主题输入框模糊 */
 function blurPubTopic() {
   if (pubTopic.value.topic === '') return
-  // 相同发布主题不添加
   const index = activeProj.value.pubTopics.findIndex((item) => item.topic === pubTopic.value.topic && item.qos === pubTopic.value.qos && item.retain === pubTopic.value.retain)
   if (index === -1) {
     if (activeProj.value.pubTopics.length > 9) {
@@ -342,19 +352,14 @@ function emptyCache() {
 // 修改mqtt缓存
 function changeMqttCache(topic) {
   window.electron.ipcRenderer.invoke('r:changeMqttCache', topic)
-    .then((res) => {
-      // console.log('mqttCache---', res)
-    })
-    .catch((err) => {
-      console.error(err)
-    })
+    .then((res) => {})
+    .catch((err) => { console.error(err) })
 }
 
 /* 开始/暂停监听 */
 function clickReadingBtn() {
   isReading.value = !isReading.value
 }
-// 监听mqtt数据
 window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
   const { topic, qos, payload, time } = data
   if (activeProjID.value === -999 || !isReading.value) return
@@ -363,25 +368,21 @@ window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
   bus.changeProjInfo()
 })
 
-// 获取图片路径
 function getImgPath(imgName) {
   return new URL(`../assets/img/${imgName}`, import.meta.url).href
 }
 
-/* ---------------------------- */
 watch(() => activeProj.value.cache, (newVal) => {
-  console.log('activeProj.cache ---')
   if (messagesRef.value) {
     messagesRef.value.scrollTop = messagesRef.value.scrollHeight
   }
 }, { deep: true })
 
-/* ---------------------------------- */
 onBeforeMount(() => {
   projList = reactive(bus.projList)
   if (projList.length > 0) {
-    if (bus.activeProjIdx === -1) activeProjID.value = projList[0].id // 默认选中第一个项目
-    else activeProjID.value = projList[bus.activeProjIdx].id 
+    if (bus.activeProjIdx === -1) activeProjID.value = projList[0].id
+    else activeProjID.value = projList[bus.activeProjIdx].id
   }
 })
 
@@ -393,6 +394,9 @@ onBeforeUnmount(() => {
 <style scoped lang="scss">
 @import url("../assets/css/proj.scss");
 .proj-setting-btn {
+  vertical-align: middle;
+}
+.proj-conn-btn {
   vertical-align: middle;
 }
 </style>

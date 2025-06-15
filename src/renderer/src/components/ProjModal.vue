@@ -52,6 +52,7 @@ import bus from "../utils/bus";
 
 const props = defineProps({
   open: Boolean,
+  editForm: Object // 新增：可传入编辑内容
 });
 const emit = defineEmits(["ok", "cancel"]);
 
@@ -68,11 +69,20 @@ const defaultForm = () => ({
 const form = reactive(defaultForm());
 const formRef = ref(null);
 
-watch(() => props.open, (val) => {
-  if (val) {
-    Object.assign(form, defaultForm());
+watch(
+  () => props.open,
+  (val) => {
+    if (val) {
+      if (props.editForm && typeof props.editForm === "object") {
+        // 编辑
+        Object.assign(form, defaultForm(), props.editForm);
+      } else {
+        // 新增
+        Object.assign(form, defaultForm());
+      }
+    }
   }
-});
+);
 
 function handleOk() {
   // 校验
@@ -107,9 +117,30 @@ function handleOk() {
       return;
     }
   }
-  emit("ok", { ...form });
+  emit("ok", { ...form, id: props.editForm && props.editForm.id });
 }
 function handleCancel() {
   emit("cancel");
 }
+
+/* -------------------------- */
+// 模式切换时，重设IP、端口等字段
+watch(
+  () => form.mode,
+  (newMode) => {
+    if (newMode === "local") {
+      form.clientID = "";
+      form.ip = bus.mqttServer.localIP;
+      form.port = bus.mqttServer.port;
+      form.username = "";
+      form.password = "";
+    } else {
+      form.clientID = "";
+      form.ip = "";
+      form.port = "";
+      form.username = "";
+      form.password = "";
+    }
+  }
+);
 </script>

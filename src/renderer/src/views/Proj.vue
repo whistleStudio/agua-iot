@@ -2,14 +2,14 @@
  1 未校验订阅本地化异常处理
 -->
 <template>
-  <ProjModal :open="isProjModalOpen" @ok="handleProjModalOk" @cancel="isProjModalOpen=false"/>
+  <ProjModal :open="isProjModalOpen" @ok="handleProjModalOk" @cancel="isProjModalOpen=false" :edit-form="editProjForm"/>
   <SubscriptionModal :open="isSubModalOpen" @ok="handleSubModalOk" @cancel="isSubModalOpen=0" :passform="passform"/>
   <div class="container">
     <!-- Sidebar -->
     <div class="sidebar">
       <div>
         <span>项目</span>
-        <span class="add" @click="()=>{isProjModalOpen=true}">+</span>
+        <span class="add" @click="()=>{openAddProjModal()}">+</span>
       </div>
       <ul>
         <li v-for="v in projList" :key="v.id" @click="() => {activeProjID = v.id; console.log('v.id ---', v.id, v.name)}"
@@ -18,14 +18,24 @@
           <span class="delete-proj" @click.stop="handleDeleteProj(v.id)">-</span>
         </li>
       </ul>
-      <div class="localIP">{{ bus.mqttServer.localIP }}:{{ bus.mqttServer.port }}</div>
+      <div class="localIP">{{ activeProj.ip }}:{{ activeProj.port }}</div>
     </div>
 
     <!-- Main Panel -->
     <div class="main">
       <!-- Header -->
       <div class="header">
-        <h1>{{ activeProjID==-999 ? "" : activeProj.name }}</h1>
+        <h1>
+          {{ activeProjID==-999 ? "" : activeProj.name }}
+          <img
+            v-if="activeProjID !== -999"
+            :src="getImgPath('settings.svg')"
+            class="proj-setting-btn"
+            alt="设置"
+            @click="openEditProjModal"
+            style="width: 20px; height: 20px; margin-left: 8px; cursor: pointer;"
+          />
+        </h1>
         <div class="header-btns">
           <!-- <img :src="getImgPath('chart.svg')" class="chart-btn" @click="clickChartBtn"/> -->
           <div @click="clickReadingBtn" class="reading-btn">
@@ -126,13 +136,13 @@ const pubMsg = ref({
   format: 'plaintext'
 })
 
-
 const messagesRef = ref(null), pubHistoryBtnRef = ref(null)
 
 const isProjModalOpen = ref(false), isSubModalOpen = ref(0), isReading = ref(false)
 const activeProjID = ref(-999), hoverSubIndex = ref(-1), hoverPubIndex = ref(-1)
 let projList = reactive([])
 const passform = ref({})
+const editProjForm = ref(null) // 新增
 
 const activeProjIndex = computed(() => {
   const idx = projList.findIndex((item) => item.id === activeProjID.value)
@@ -144,15 +154,39 @@ const activeProj = computed(() => {
   return projList[activeProjIndex.value]
 })
 
-
-
-/* 新增项目-确定 */
+/* 新增项目-确定 或 编辑项目-确定 */
 function handleProjModalOk(newProj) {
   isProjModalOpen.value = false
-  if (newProj.name.trim() === '') return
+  if (!newProj.name.trim()) return
+
+  // 判断是否为编辑操作
+  if (editProjForm.value && editProjForm.value.id !== undefined) {
+    // 编辑: 替换对应项目内容
+    const idx = projList.findIndex(p => p.id === editProjForm.value.id)
+    if (idx !== -1) {
+      projList[idx].name = newProj.name.trim()
+      projList[idx].mode = newProj.mode
+      projList[idx].clientID = newProj.clientID || ""
+      projList[idx].ip = newProj.ip || ""
+      projList[idx].port = newProj.port || ""
+      projList[idx].username = newProj.username || ""
+      projList[idx].password = newProj.password || ""
+      bus.changeProjInfo()
+    }
+    editProjForm.value = null
+    return
+  }
+
+  // 新增项目
   projList.push({
     id: new Date().getTime(),
     name: newProj.name.trim(),
+    mode: newProj.mode,
+    clientID: newProj.clientID || "",
+    ip: newProj.ip || "",
+    port: newProj.port || "",
+    username: newProj.username || "",
+    password: newProj.password || "",
     subTopics: [],
     pubTopics: [],
     cache: [],
@@ -175,6 +209,29 @@ function handleProjModalOk(newProj) {
   if (activeProjID.value === -999) {
     activeProjID.value = projList[0].id // 默认选中第一个项目
   }
+}
+
+/* 打开新增项目弹窗 */
+function openAddProjModal() {
+  editProjForm.value = null
+  isProjModalOpen.value = true
+}
+
+/* 打开编辑项目弹窗 */
+function openEditProjModal() {
+  if (activeProjID.value === -999) return
+  // 只传递当前项目的配置字段
+  editProjForm.value = {
+    id: activeProj.value.id,
+    name: activeProj.value.name,
+    mode: activeProj.value.mode || "local",
+    clientID: activeProj.value.clientID || "",
+    ip: activeProj.value.ip || "",
+    port: activeProj.value.port || "",
+    username: activeProj.value.username || "",
+    password: activeProj.value.password || "",
+  }
+  isProjModalOpen.value = true
 }
 
 /* 删除项目 */
@@ -335,4 +392,7 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 @import url("../assets/css/proj.scss");
+.proj-setting-btn {
+  vertical-align: middle;
+}
 </style>

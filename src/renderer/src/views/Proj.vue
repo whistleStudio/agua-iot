@@ -12,7 +12,14 @@
         <li v-for="v in projList" :key="v.id" @click="() => {activeProjID = v.id; console.log('v.id ---', v.id, v.name)}"
           :class="{ 'active': activeProjID == v.id }">
           <span class="proj-name">{{ v.name }}</span>
-          <span class="delete-proj" @click.stop="handleDeleteProj(v.id)">-</span>
+          <a-popconfirm
+            title="确定要删除该项目吗？"
+            ok-text="确定"
+            cancel-text="取消"
+            @confirm="handleDeleteProj(v.id)"
+          >
+            <span class="delete-proj" @click.stop> - </span>
+          </a-popconfirm>
         </li>
       </ul>
       <div class="localIP">{{ activeProjMqttServer }}</div>
@@ -34,9 +41,9 @@
           />
           <template v-if="activeProjID !== -999 && activeProj.mode === 'remote'">
             <img
-              :src="getImgPath(activeProj.connected ? 'disconnect.svg' : 'connect.svg')"
+              :src="getImgPath(activeProj.connected ? 'connect.svg' : 'disconnect.svg')"
               class="proj-conn-btn"
-              :alt="activeProj.connected ? '断开连接' : '连接'"
+              :alt="activeProj.connected ? '已连接' : '断开连接'"
               @click="toggleRemoteConnection"
               style="width: 30px; height: 30px; margin-left: 8px; cursor: pointer;"
             />
@@ -195,8 +202,8 @@ function handleProjModalOk(newProj) {
     name: newProj.name.trim(),
     mode: newProj.mode,
     clientID: newProj.clientID || "",
-    ip: newProj.ip || "",
-    port: newProj.port || "",
+    ip: newProj.mode === 'local' ? (bus.mqttServer.localIP || "") : (newProj.ip || ""),
+    port: newProj.mode === 'local' ? (bus.mqttServer.port || "") : (newProj.port || ""),
     username: newProj.username || "",
     password: newProj.password || "",
     connected: newProj.mode === 'local', // local模式true, remote模式false
@@ -328,8 +335,16 @@ function blurPubTopic() {
 function handleSend() {
   if (pubTopic.value.topic === '' || pubMsg.value.payload === '' || activeProjID.value === -999) return
   window.electron.ipcRenderer.invoke('r:publishMqtt', {
-    ...pubTopic.value,
-    payload: pubMsg.value.payload,
+    packet: {
+      ...pubTopic.value,
+      payload: pubMsg.value.payload,
+    },
+    mqttMode: activeProj.value.mode,
+    clientID: activeProj.value.clientID,
+    ip: activeProj.value.ip,
+    port: activeProj.value.port,
+    username: activeProj.value.username,
+    password: activeProj.value.password
   })
   .then((res) => {
     if (res.err) {
@@ -351,7 +366,15 @@ function emptyCache() {
 
 // 修改mqtt缓存
 function changeMqttCache(topic) {
-  window.electron.ipcRenderer.invoke('r:changeMqttCache', topic)
+  window.electron.ipcRenderer.invoke('r:changeMqttCache', {
+    topic, 
+    mqttMode: activeProj.value.mode,
+    clientID: activeProj.value.clientID,
+    ip: activeProj.value.ip,
+    port: activeProj.value.port,
+    username: activeProj.value.username,
+    password: activeProj.value.password
+  })
     .then((res) => {})
     .catch((err) => { console.error(err) })
 }
@@ -393,10 +416,5 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 @import url("../assets/css/proj.scss");
-.proj-setting-btn {
-  vertical-align: middle;
-}
-.proj-conn-btn {
-  vertical-align: middle;
-}
+
 </style>

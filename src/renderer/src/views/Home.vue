@@ -72,6 +72,19 @@ onBeforeUnmount(() => {
   bus.off('showCustomAlert', showCustomAlert)
   bus.off('enterFullscreen', enterFullscreen)
   bus.off('exitFullscreen', exitFullscreen)
+  // 更新本地LocalIp
+  let updateFlag = fasle
+  const localIp = bus.mqttServer.localIP || "", port = bus.mqttServer.port || 1883;
+  bus.projList.forEach(proj => {
+    if (proj.mode === 'local') {
+      if (proj.localIp !== localIp || proj.port !== port) {
+        proj.localIp = localIp; 
+        proj.port = port; 
+        updateFlag = true;
+      }
+    }
+  });
+  if (updateFlag) bus.changeProjInfo() 
 })
 </script>
 

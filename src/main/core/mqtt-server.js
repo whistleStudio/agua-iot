@@ -57,7 +57,7 @@ function subscribeTopic(topic) {
         }
         cb()
       },
-      () => { console.log('subscribe success: ', topic) }
+      () => { console.log('local subscribe success: ', topic) }
     )
   }
 } 

@@ -95,6 +95,7 @@ app.whenReady().then(() => {
             comp.props.isInit = true
           }
         })
+        if (proj.hasOwnProperty('connected')) proj.connected = false // 重置连接状态
       })
       projData.list = projList
       fs.writeFileSync(projDataUrl, JSON.stringify(projData, null, 2))
@@ -102,15 +103,16 @@ app.whenReady().then(() => {
     } catch (err) { console.log(err); return {err: 1, msg: '本地文件同步异常'} }
   })
   /* mqtt订阅+修改缓存 */
-  ipcMain.handle('r:changeMqttCache', (_, topic) => {
-    try {mqttServer.subscribeTopic(topic); return {err: 0}}
+  ipcMain.handle('r:changeMqttCache', (_, payload) => {
+    try {
+      if (payload.mqttMode == "local") { mqttServer.subscribeTopic(payload.topic); return {err: 0} }
+    }
     catch (err) { console.log(err); return {err: 1, msg: '订阅主题失败'} }
   })
   /* maqtt发布 */
-  ipcMain.handle('r:publishMqtt', (_, packet) => {
+  ipcMain.handle('r:publishMqtt', (_, payload) => {
     try {
-      mqttServer.publishTopic(packet)
-      return {err: 0}
+      if (payload.mqttMode == "local") { mqttServer.publishTopic(payload.packet); return {err: 0} }
     } catch (err) { console.log(err); return {err: 1, msg: '发布主题失败'} }
   })
   /* 选择背景图片 */

@@ -5,8 +5,8 @@
   },
   "devices": [
     {
-      "key": 0,
-      "name": "设备A",
+      "key": 1749994485834,
+      "name": "abc",
       "clientID": "clientA",
       "password": "pwd"
     }

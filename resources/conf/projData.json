@@ -11,15 +11,15 @@
           "alias": ""
         },
         {
-          "topic": "abc",
-          "qos": 0,
-          "color": "#A5280E",
-          "alias": ""
-        },
-        {
           "topic": "customtopic/#wewqeqw",
           "qos": 0,
           "color": "#F97860",
+          "alias": ""
+        },
+        {
+          "topic": "test/str",
+          "qos": 0,
+          "color": "#2C6F19",
           "alias": ""
         }
       ],
@@ -102,20 +102,22 @@
       },
       "mode": "local",
       "clientID": "",
-      "ip": "192.168.2.14",
+      "ip": "169.254.108.148",
       "port": 1883,
       "username": "",
-      "password": ""
+      "password": "",
+      "connected": false
     },
     {
-      "id": 1749986391893,
-      "name": "ccb",
-      "mode": "remote",
-      "clientID": "w",
-      "ip": "122312",
-      "port": "12312",
-      "username": "22",
+      "id": 1749995603866,
+      "name": "avada",
+      "mode": "local",
+      "clientID": "",
+      "ip": "169.254.108.148",
+      "port": 1883,
+      "username": "",
       "password": "",
+      "connected": false,
       "subTopics": [],
       "pubTopics": [],
       "cache": [],
@@ -132,8 +134,7 @@
           }
         },
         "rawComponents": []
-      },
-      "connected": false
+      }
     }
   ]
 }

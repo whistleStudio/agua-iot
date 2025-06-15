@@ -9,12 +9,6 @@
       "name": "设备A",
       "clientID": "clientA",
       "password": "pwd"
-    },
-    {
-      "key": 1747634853669,
-      "name": "undefined",
-      "clientID": "undefined",
-      "password": "123456"
     }
   ]
 }

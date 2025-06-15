@@ -1,21 +1,14 @@
-<!-- 
-待解决:
-1 查询检索
-2 key重复问题
-3 输入左右去除空白
-4 增加输入框复制功能 
--->
 <template>
   <div class="device-list-container">
     <!-- 检索工具栏（无密码字段） -->
     <div class="device-list-toolbar">
       <a-input
-        v-model:value="filters.name"
+        v-model:value.trim="filters.name"
         placeholder="设备名称"
         class="toolbar-item"
       />
       <a-input
-        v-model:value="filters.clientID"
+        v-model:value.trim="filters.clientID"
         placeholder="客户端ID"
         class="toolbar-item"
       />
@@ -35,20 +28,20 @@
         <template v-if="['name', 'clientID', 'password'].includes(column.dataIndex)">
           <a-input
             v-if="editableData[record.key]" 
-            v-model:value="editableData[record.key][column.dataIndex]"
+            v-model:value.trim="editableData[record.key][column.dataIndex]"
             :placeholder="`请输入${column.title}`"
             size="small"
           />
           <template v-else >
-            <span style="user-select: text; cursor: text;">{{ text }}</span>
+            <span style="user-select: text; cursor: text;">{{ column.dataIndex === 'password' ? (headerPwdVisible ? text : '*'.repeat(String(text).length)) : text }}</span>
           </template>
         </template>
         <template v-else-if="column.key === 'action'">
           <div class="device-action">
-            <span v-if="editableData[record.key]">
-              <a-typography-link @click="save(record.key)">保存</a-typography-link>
+            <span v-if="editableData[record.key]" style="margin-right: 10px;">
+              <a-typography-link @click="save(record.key)" style="margin-right: 10px;">保存</a-typography-link>
               <a-popconfirm title="确定取消编辑吗？" @confirm="cancel(record.key)">
-              <a>取消</a>
+                <a>取消</a>
               </a-popconfirm>
             </span>
             <span v-else class="device-action-edit">
@@ -59,7 +52,20 @@
               @click="deleteDevice(record.key)"
             >删除</a>
           </div>
-
+        </template>
+      </template>
+      <template #headerCell="{ column }">
+        <template v-if="column.dataIndex === 'password'">
+          <span style="vertical-align:middle;">{{ column.title }}</span>
+          <img
+            :src="headerPwdVisible ? getImgPath('eye-open.svg') : getImgPath('eye-close.svg')"
+            alt="切换密码显示"
+            class="pwd-eye-icon"
+            @click="toggleHeaderPwdVisible"
+          />
+        </template>
+        <template v-else>
+          {{ column.title }}
         </template>
       </template>
     </a-table>
@@ -69,7 +75,7 @@
       class="add-device-btn"
       @click="addDevice"
     >
-      添加设备
+      添加设备（本地服务模式）
     </a-button>
   </div>
 </template>
@@ -88,6 +94,9 @@ const filters = ref({
 });
 
 const dataSource = ref([...bus.devices]);
+const fullData = ref([...bus.devices]);
+
+const headerPwdVisible = ref(false);
 
 const columns = [
   {
@@ -113,6 +122,10 @@ const columns = [
     key: "action",
   },
 ];
+// 获取图片路径
+function getImgPath(imgName) {
+  return new URL(`../assets/img/${imgName}`, import.meta.url).href
+}
 
 // 检索仅针对设备名称和客户端ID
 const onSearch = () => {
@@ -177,14 +190,20 @@ function changeDevInfo({successMsg, errMsg, preDataSource}) {
   .then((res) => {
     if (!res.err) {
       emit("alert", { type: "success", msg: successMsg });
+      fullData.value = cloneDeep(dataSource.value);
     } else {
       emit("alert", { type: "error", msg: errMsg });
       // 如果同步失败，恢复数据
       dataSource.value = preDataSource;
+      fullData.value = cloneDeep(preDataSource);
     }
   })
 }
 
+// 密码显示切换
+const toggleHeaderPwdVisible = () => {
+  headerPwdVisible.value = !headerPwdVisible.value;
+};
 
 </script>
 
@@ -236,7 +255,6 @@ function changeDevInfo({successMsg, errMsg, preDataSource}) {
         }
       }
     }
-
   }
 
   .add-device-btn {
@@ -252,6 +270,15 @@ function changeDevInfo({successMsg, errMsg, preDataSource}) {
       background: #389e0d !important;
       border-color: #389e0d !important;
     }
+  }
+
+  .pwd-eye-icon {
+    width: 18px;
+    height: 18px;
+    margin-left: 6px;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
   }
 }
 </style>

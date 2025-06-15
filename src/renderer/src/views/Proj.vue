@@ -38,7 +38,7 @@
       <div class="data-panel">
         <!-- Subscription Section -->
         <div class="left-panel subscription">
-          <a-button type="primary" @click="clickAddSubscription">+ New Subscription</a-button>
+          <a-button type="primary" @click="clickAddSubscription">+ 创建新的订阅</a-button>
           <ul>
             <li v-for="(v, i) in activeProj.subTopics" :style="{backgroundColor: v.color + '15'}" :key="v.topic"
             @mouseover="hoverSubIndex = i" @mouseleave="hoverSubIndex = -1">
@@ -57,7 +57,7 @@
             :style="{ borderColor: msg.type === 0 ? msg.color : '#fff' }">
               <div class="time">{{ msg.time }}</div>
               <div class="topic">
-                Topic: {{ msg.topic }} <span class="qos">QoS: {{ msg.qos }}</span>
+                主题: {{ msg.topic }} <span class="qos">QoS: {{ msg.qos }}</span>
               </div>
               <div class="content">{{ msg.content }}</div>
             </div>
@@ -74,9 +74,9 @@
                 <a-select-option v-for="(v, i) in Array(3)" :value="i">QoS {{ i }}</a-select-option>
               </a-select>
               <a-checkbox v-model:checked="pubTopic.retain" class="retain-checkbox">Retain</a-checkbox>
-              <a-button type="primary" @click="handleSend">Send</a-button>
+              <a-button type="primary" @click="handleSend">发布</a-button>
             </div>        
-            <a-input v-model:value.trim="pubTopic.topic" class="text-sm" placeholder="Enter topic..."
+            <a-input v-model:value.trim="pubTopic.topic" class="text-sm" placeholder="请输入主题名称..."
             @blur="blurPubTopic">
               <template #suffix >
                 <a-popover trigger="click" placement="topRight">
@@ -97,7 +97,7 @@
               </template>
             </a-input>
             <a-textarea class="publish-area" v-model:value.trim="pubMsg.payload" :bordered="false"
-            :rows="3" placeholder="Enter message..." />
+            :rows="3" placeholder="请输入主题内容..." />
           </div>
         </div>
       </div>

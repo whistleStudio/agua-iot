@@ -317,6 +317,7 @@ function getImgPath(imgName) {
 
 function clickReadingBtn() {
   isStart.value = !isStart.value;
+  bus.emit("showCustomAlert", { type: "info", msg: isStart.value ? "开始监听消息" : "暂停监听消息", time: 1500 });
 }
 
 // 监听mqtt数据
@@ -331,7 +332,7 @@ const isFullscreen = ref(false);
 
 // 全屏切换
 function enterFullscreen() {
-  bus.emit("showCustomAlert", { type: "info", msg: "ESC键或双击画布区域 退出全屏模式", time: 2500 });
+  bus.emit("showCustomAlert", { type: "info", msg: "ESC键或双击画布区域 退出全屏模式; Ctrl+P开始/暂停监听消息", time: 3000 });
   isFullscreen.value = true;
   bus.emit('enterFullscreen'); // 通知总线进入全屏状态
   // 监听esc退出
@@ -355,7 +356,16 @@ function onEscExitFullscreen(e) {
   }
 }
 
+// 开始/暂停接收消息快捷键
+function onToggleReading(e) {
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+    e.preventDefault();
+    isStart.value = !isStart.value;
+    bus.emit("showCustomAlert", { type: "info", msg: isStart.value ? "开始监听消息" : "暂停监听消息", time: 1500 });
+  }
+}
 
+document.addEventListener('keydown', onToggleReading);
 
 
 /* ----------------------------------------------------- */
@@ -414,6 +424,11 @@ onBeforeUnmount(() => {
   window.electron.ipcRenderer.removeAllListeners("m:mqttData");
   // 清理全屏监听
   document.removeEventListener('keydown', onEscExitFullscreen);
+  isFullscreen.value = false; // 重置全屏状态
+  const canvasWrapper = document.querySelector('.visual-editor__canvas-wrapper');
+  if (canvasWrapper) canvasWrapper.removeEventListener('dblclick', exitFullscreen);
+  // 清理快捷键监听
+  document.removeEventListener('keydown', onToggleReading);
   const wrapper = document.querySelector('.visual-editor__canvas-wrapper');
   if (wrapper) wrapper.removeEventListener('dblclick', exitFullscreen);
 })

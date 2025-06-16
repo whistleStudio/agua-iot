@@ -361,11 +361,12 @@ function handleSend() {
       payload: pubMsg.value.payload,
     },
     mqttMode: activeProj.value.mode,
-    clientID: activeProj.value.clientID,
-    ip: activeProj.value.ip,
-    port: activeProj.value.port,
-    username: activeProj.value.username,
-    password: activeProj.value.password
+    projId: activeProj.value.id,
+    // clientID: activeProj.value.clientID,
+    // ip: activeProj.value.ip,
+    // port: activeProj.value.port,
+    // username: activeProj.value.username,
+    // password: activeProj.value.password
   })
   .then((res) => {
     if (res.err) {
@@ -390,11 +391,12 @@ function changeMqttCache(topic) {
   window.electron.ipcRenderer.invoke('r:changeMqttCache', {
     topic, 
     mqttMode: activeProj.value.mode,
-    clientID: activeProj.value.clientID,
-    ip: activeProj.value.ip,
-    port: activeProj.value.port,
-    username: activeProj.value.username,
-    password: activeProj.value.password
+    projId: activeProj.value.id,
+    // clientID: activeProj.value.clientID,
+    // ip: activeProj.value.ip,
+    // port: activeProj.value.port,
+    // username: activeProj.value.username,
+    // password: activeProj.value.password
   })
     .then((res) => {})
     .catch((err) => { console.error(err) })

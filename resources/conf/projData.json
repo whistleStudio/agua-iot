@@ -3,6 +3,13 @@
     {
       "id": 1747714729398,
       "name": "aaaa",
+      "mode": "local",
+      "clientID": "",
+      "ip": "192.168.0.102",
+      "port": 1883,
+      "username": "",
+      "password": "",
+      "connected": false,
       "subTopics": [
         {
           "topic": "testtopic/num",
@@ -99,26 +106,26 @@
             "left": 225.0141813207174
           }
         ]
-      },
-      "mode": "local",
-      "clientID": "",
-      "ip": "169.254.108.148",
-      "port": 1883,
-      "username": "",
-      "password": "",
-      "connected": false
+      }
     },
     {
       "id": 1749995603866,
       "name": "avada",
-      "mode": "local",
-      "clientID": "",
-      "ip": "169.254.108.148",
-      "port": 1883,
+      "mode": "remote",
+      "clientID": "ssd",
+      "ip": "121312",
+      "port": "2132",
       "username": "",
       "password": "",
       "connected": false,
-      "subTopics": [],
+      "subTopics": [
+        {
+          "topic": "test/sss",
+          "qos": 0,
+          "color": "#51271A",
+          "alias": ""
+        }
+      ],
       "pubTopics": [],
       "cache": [],
       "canvasCache": {

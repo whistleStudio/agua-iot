@@ -115,6 +115,11 @@ app.whenReady().then(() => {
       if (payload.mqttMode == "local") { mqttServer.publishTopic(payload.packet); return {err: 0} }
     } catch (err) { console.log(err); return {err: 1, msg: '发布主题失败'} }
   })
+
+  /* 建立远程服务连接 */
+  ipcMain.handle("r:connectRemoteMqtt", async (_, payload) => {
+
+  })
   /* 选择背景图片 */
   ipcMain.handle("r:chooseCover", async (_, projId) => {
     //打开文件选择对话框
@@ -159,9 +164,11 @@ function init () {
     config = JSON.parse(fs.readFileSync(configUrl, 'utf8'))
     projData = JSON.parse(fs.readFileSync(projDataUrl, 'utf8'))
     projData.list.forEach(el => {
-      el.subTopics.forEach((item, index) => {
-        mqttServer.subscribeTopic(item.topic) 
-      })
+      if (el.mode == "local") { // 仅本地模式项目的主题才自动订阅
+        el.subTopics.forEach((item, index) => {
+          mqttServer.subscribeTopic(item.topic) 
+        })
+      }
     });
   } catch (err) { console.log('init error: ', err) }
 }

@@ -257,6 +257,27 @@ function openEditProjModal() {
 function toggleRemoteConnection() {
   if (activeProjID.value === -999) return
   if (activeProj.value.mode !== 'remote') return
+  // 连接
+  if (!activeProj.value.connected) {
+    window.electron.ipcRenderer.invoke('r:connectRemoteMqtt', {
+      projId: activeProj.value.id,
+      clientID: activeProj.value.clientID,
+      ip: activeProj.value.ip,
+      port: activeProj.value.port,
+      username: activeProj.value.username,
+      password: activeProj.value.password,
+      subTopics: activeProj.value.subTopics.map(item => item.topic)
+    })
+    .then((res) => {
+      if (res.err) {
+        bus.showCustomAlert({ type: "error", msg: res.msg })
+      } else {
+        activeProj.value.connected = true
+        bus.changeProjInfo()
+      }
+    })
+    return
+  }
   activeProj.value.connected = !activeProj.value.connected
   bus.changeProjInfo()
 }

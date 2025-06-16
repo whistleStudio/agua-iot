@@ -21,7 +21,8 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "aedes": "^0.51.3",
-    "electron-updater": "^6.3.9"
+    "electron-updater": "^6.3.9",
+    "mqtt": "^5.13.1"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.0.0",

@@ -21,7 +21,7 @@
 
 
 <script setup>
-import { ref, reactive, onBeforeUnmount } from 'vue'
+import { ref, reactive, onBeforeMount, onBeforeUnmount } from 'vue'
 import ConnectionModal from '../components/ProjModal.vue'
 import bus from '../utils/bus'
 
@@ -68,23 +68,27 @@ const exitFullscreen = () => { isFullscreen.value = false }
 bus.on('exitFullscreen', exitFullscreen)
 
 /* ------------------------ */
-onBeforeUnmount(() => {
-  bus.off('showCustomAlert', showCustomAlert)
-  bus.off('enterFullscreen', enterFullscreen)
-  bus.off('exitFullscreen', exitFullscreen)
+onBeforeMount(() => {
   // 更新本地LocalIp
-  let updateFlag = fasle
+  let updateFlag = false
   const localIp = bus.mqttServer.localIP || "", port = bus.mqttServer.port || 1883;
+  console.log('update localIp:', localIp, 'port:', port)
   bus.projList.forEach(proj => {
     if (proj.mode === 'local') {
-      if (proj.localIp !== localIp || proj.port !== port) {
-        proj.localIp = localIp; 
+      if (proj.ip !== localIp || proj.port !== port) {
+        proj.ip = localIp; 
         proj.port = port; 
         updateFlag = true;
       }
     }
   });
   if (updateFlag) bus.changeProjInfo() 
+})
+
+onBeforeUnmount(() => {
+  bus.off('showCustomAlert', showCustomAlert)
+  bus.off('enterFullscreen', enterFullscreen)
+  bus.off('exitFullscreen', exitFullscreen)
 })
 </script>
 

@@ -41,9 +41,9 @@
           />
           <template v-if="activeProjID !== -999 && activeProj.mode === 'remote'">
             <img
-              :src="getImgPath(activeProj.connected ? 'connect.svg' : 'disconnect.svg')"
+              :src="getImgPath(activeProj.connected == 1 ? 'connect_1.gif' : `connect_${activeProj.connected}.svg`)"
               class="proj-conn-btn"
-              :alt="activeProj.connected ? '已连接' : '断开连接'"
+              alt="连接状态"
               @click="toggleRemoteConnection"
               style="width: 30px; height: 30px; margin-left: 8px; cursor: pointer;"
             />
@@ -127,7 +127,7 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeMount, reactive, ref, computed, watch, onBeforeUnmount } from 'vue'
+import { onMounted, onBeforeMount, reactive, ref, computed, watch, onBeforeUnmount, nextTick } from 'vue'
 import ProjModal from '../components/ProjModal.vue'
 import SubscriptionModal from '../components/SubscriptionModal.vue';
 import bus from '../utils/bus'
@@ -184,12 +184,8 @@ function handleProjModalOk(newProj) {
       projList[idx].port = newProj.port || ""
       projList[idx].username = newProj.username || ""
       projList[idx].password = newProj.password || ""
-      // 连接状态同步
-      if (newProj.mode === 'local') {
-        projList[idx].connected = true
-      } else {
-        projList[idx].connected = false
-      }
+      // 连接直接断开
+      projList[idx].connected = 0
       bus.changeProjInfo()
     }
     editProjForm.value = null
@@ -206,7 +202,7 @@ function handleProjModalOk(newProj) {
     port: newProj.mode === 'local' ? (bus.mqttServer.port || "") : (newProj.port || ""),
     username: newProj.username || "",
     password: newProj.password || "",
-    connected: newProj.mode === 'local', // local模式true, remote模式false
+    connected: 0, // 0: 未连接, 1: 连接中, 2: 已连接
     subTopics: [],
     pubTopics: [],
     cache: [],
@@ -240,6 +236,7 @@ function openAddProjModal() {
 /* 打开编辑项目弹窗 */
 function openEditProjModal() {
   if (activeProjID.value === -999) return
+  console.log(activeProj.value)
   editProjForm.value = {
     id: activeProj.value.id,
     name: activeProj.value.name,
@@ -250,36 +247,53 @@ function openEditProjModal() {
     username: activeProj.value.username || "",
     password: activeProj.value.password || "",
   }
-  isProjModalOpen.value = true
+  nextTick(() => {
+    isProjModalOpen.value = true
+  }) 
 }
 
 /* 切换remote项目连接状态 */
 function toggleRemoteConnection() {
   if (activeProjID.value === -999) return
   if (activeProj.value.mode !== 'remote') return
+  if (activeProj.value.connected === 1) return 
   // 连接
-  if (!activeProj.value.connected) {
-    window.electron.ipcRenderer.invoke('r:connectRemoteMqtt', {
+  if (activeProj.value.connected < 2) {
+    window.electron.ipcRenderer.invoke('r:connectRemoteMqtt', JSON.stringify({
       projId: activeProj.value.id,
       clientID: activeProj.value.clientID,
       ip: activeProj.value.ip,
       port: activeProj.value.port,
       username: activeProj.value.username,
       password: activeProj.value.password,
-      subTopics: activeProj.value.subTopics.map(item => item.topic)
-    })
+      subTopics: activeProj.value.subTopics
+    }))
     .then((res) => {
       if (res.err) {
-        bus.showCustomAlert({ type: "error", msg: res.msg })
+        bus.emit("showCustomAlert", { type: "error", msg: res.msg })
+        activeProj.value.connected = 0
       } else {
-        activeProj.value.connected = true
-        bus.changeProjInfo()
+        activeProj.value.connected = 2
+        bus.emit("showCustomAlert", { type: "success", msg: "连接成功" })
+        // bus.changeProjInfo()
       }
     })
     return
+  } else {
+    // 断开连接
+    window.electron.ipcRenderer.invoke('r:disconnectRemoteMqtt', {
+      projId: activeProj.value.id,
+      clientID: activeProj.value.clientID,
+    })
+    .then((res) => {
+      if (res.err) {
+        bus.emit("showCustomAlert", { type: "error", msg: res.msg })
+      } else {
+        activeProj.value.connected = 0
+        bus.emit("showCustomAlert", { type: "success", msg: "已断开连接" })
+      }
+    })
   }
-  activeProj.value.connected = !activeProj.value.connected
-  bus.changeProjInfo()
 }
 
 /* 删除项目 */

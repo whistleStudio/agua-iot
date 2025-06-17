@@ -77,32 +77,35 @@ app.whenReady().then(() => {
       return {err: 0}
     } catch (err) { return {err: 1, msg: '本地文件同步异常'} }
   })
-  /* 更改项目列表 */
+  /* 修改本地静态数据 */
+  function sysncLocalProjData(proj) {
+    proj.canvasCache.rawComponents.forEach(comp => {
+      if (comp?.props && comp.props.hasOwnProperty('data')) {
+        // 如果存在yData属性，则清空
+        comp.props.data.forEach(item => {
+          if (item.hasOwnProperty('logs')) item.logs = []
+        })
+        if (comp.props.hasOwnProperty("time")) comp.props.time = []
+        comp.props.isInit = true // 重置为初始状态
+      }
+      if (comp?.props && comp.props.hasOwnProperty('value')) {
+        // 如果存在value属性，则重置为0
+        comp.props.value = ""
+        comp.props.isInit = true
+      }
+    })
+    if (proj.hasOwnProperty('connected')) proj.connected = 0 // 重置连接状态
+  }
+
   ipcMain.handle('r:changeProjList', (_, projList) => {
     try {
-      projList.forEach(proj => { // 清空yData属性
-        proj.canvasCache.rawComponents.forEach(comp => {
-          if (comp?.props && comp.props.hasOwnProperty('data')) {
-            // 如果存在yData属性，则清空
-            comp.props.data.forEach(item => {
-              if (item.hasOwnProperty('logs')) item.logs = []
-            })
-            if (comp.props.hasOwnProperty("time")) comp.props.time = []
-            comp.props.isInit = true // 重置为初始状态
-          }
-          if (comp?.props && comp.props.hasOwnProperty('value')) {
-            // 如果存在value属性，则重置为0
-            comp.props.value = ""
-            comp.props.isInit = true
-          }
-        })
-        if (proj.hasOwnProperty('connected')) proj.connected = false // 重置连接状态
-      })
+      projList.forEach(proj => {sysncLocalProjData(proj)})
       projData.list = projList
       fs.writeFileSync(projDataUrl, JSON.stringify(projData, null, 2))
       return {err: 0}
     } catch (err) { console.log(err); return {err: 1, msg: '本地文件同步异常'} }
   })
+
   /* mqtt订阅+修改缓存 */
   ipcMain.handle('r:changeMqttCache', (_, payload) => {
     try {
@@ -119,8 +122,42 @@ app.whenReady().then(() => {
 
   /* 建立远程服务连接 */
   ipcMain.handle("r:connectRemoteMqtt", async (_, payload) => {
-
+    try {
+      payload = JSON.parse(payload)
+      console.log(payload)
+      const { projId, ip, port, clientID, username, password, subTopics } = payload;
+      const res = await mqttClient.connectRemoteMqtt({ projId, ip, port, clientID, username, password, subTopics });
+      if (res.err) return res; // 连接失败
+      // 更新项目列表
+      projData.list.forEach(proj => {
+        if (proj.id == projId) {
+          proj.connected = 0;
+          proj.mqttMode = "remote";
+          proj.clientID = clientID;
+          proj.ip = ip;
+          proj.port = port;
+          proj.username = username;
+          proj.password = password;
+        }
+        // sysncLocalProjData(proj)
+      })
+      fs.writeFileSync(projDataUrl, JSON.stringify(projData, null, 2))
+      return { err: 0 }
+    } catch (err) { 
+      // console.log(err);
+       return { err: 1, msg: err.msg || '连接失败' } }
   })
+
+  /* 断开远程服务连接 */
+  ipcMain.handle("r:disconnectRemoteMqtt", async (_, payload) => {
+    try {
+      mqttClient.disconnectRemoteMqtt(payload)
+    } catch (err) {
+      console.log(err);
+      return { err: 1, msg: '断开连接失败' }
+    }
+  })
+
   /* 选择背景图片 */
   ipcMain.handle("r:chooseCover", async (_, projId) => {
     //打开文件选择对话框

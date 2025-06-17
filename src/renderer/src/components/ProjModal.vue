@@ -70,19 +70,19 @@ const form = reactive(defaultForm());
 const formRef = ref(null);
 
 watch(
-  () => props.open,
-  (val) => {
-    if (val) {
-      if (props.editForm && typeof props.editForm === "object") {
-        // 编辑
-        Object.assign(form, defaultForm(), props.editForm);
+  [() => props.open, () => props.editForm],
+  ([open, editForm]) => {
+    console.log("watch open:", open, "editForm:", editForm);
+    if (open) {
+      if (editForm && typeof editForm === "object") {
+        Object.assign(form, defaultForm(), editForm);
       } else {
-        // 新增
         Object.assign(form, defaultForm());
       }
     }
-  }
-);
+  },
+  { immediate: true, deep: true }
+)
 
 function handleOk() {
   // 校验
@@ -125,22 +125,24 @@ function handleCancel() {
 
 /* -------------------------- */
 // 模式切换时，重设IP、端口等字段
-watch(
-  () => form.mode,
-  (newMode) => {
-    if (newMode === "local") {
-      form.clientID = "";
-      form.ip = bus.mqttServer.localIP;
-      form.port = bus.mqttServer.port;
-      form.username = "";
-      form.password = "";
-    } else {
-      form.clientID = "";
-      form.ip = "";
-      form.port = "";
-      form.username = "";
-      form.password = "";
-    }
-  }
-);
+// watch(
+//   () => form.mode,
+//   (newMode) => {
+//     if (!open) return; // 如果模态框未打开，则不执行
+//     console.log("模式切换:", newMode);
+//     if (newMode === "local") {
+//       form.clientID = "";
+//       form.ip = bus.mqttServer.localIP;
+//       form.port = bus.mqttServer.port;
+//       form.username = "";
+//       form.password = "";
+//     } else {
+//       form.clientID = "";
+//       form.ip = "";
+//       form.port = "";
+//       form.username = "";
+//       form.password = "";
+//     }
+//   }
+// );
 </script>

@@ -1,7 +1,7 @@
 import mqtt from 'mqtt';
 
 const clientGroup = {
-  // clientId: <mqttClientObject>,
+  // clientID: <mqttClientObject>,
 }; 
 
 const clientIdList = []
@@ -35,33 +35,35 @@ const clientIdList = []
 // });
 
 /* 远程连接（创建客户端） */
-function connectRemoteMqtt({projId, ip, port, clientId, username, password, subTopics}) {
+function connectRemoteMqtt({projId, ip, port, clientID, username, password, subTopics}) {
+  console.log(`Connecting to remote MQTT server at ${ip}:${port} with clientID: ${clientID}`);
   return new Promise((rsv, rej) => {
     // 检查是否已存在同名客户端
     if (clientGroup.hasOwnProperty(projId)) rej({err: 1, msg: '项目已存在，请勿重复连接'});
-    if (clientIdList.includes(clientId)) rej({err: 1, msg: '客户端ID已存在，请更换ID'});
+    if (clientIdList.includes(clientID)) rej({err: 1, msg: '客户端ID已存在，请更换ID'});
     // 创建新的客户端
     const client = mqtt.connect(`mqtt://${ip}:${port}`, {
-      clientId,
+      clientId: clientID,
       username,
       password,
       clean: true,
       connectTimeout: 4000,
-      reconnectPeriod: 1000
+      reconnectPeriod: 0
     });
     
     // 监听连接成功
     const onConnectHandle = () => {
-      console.log(`Client ${clientId} connected to ${ip}:${port}`);
-      clientGroup[projId] = client; // 存储客户端
-      // 订阅主题
+      console.log(`remote Client ${clientID} connected to ${ip}:${port}`);
+      clientGroup[projId] = {client, onConnectHandle, onMessageHandle, onErrorHandle}; // 存储客户端
+      clientIdList.push(clientID); // 存储客户端ID
+      // 成功时订阅主题
       subTopics.forEach(topic => {
-        client.subscribe(topic, (err) => {
+        client.subscribe(topic.topic, {qos: topic.qos}, (err) => {
           if (err) {
-            console.error(`Client ${clientId} failed to subscribe to ${topic}:`, err);
-            rej({err: 1, msg: `订阅主题失败: ${topic}`});
+            console.error(`remote Client ${clientID} failed to subscribe to ${topic.topic} - QOS${topic.qos}:`, err);
+            rej({err: 1, msg: `订阅主题失败: ${topic.topic}`});
           } else {
-            console.log(`Client ${clientId} subscribed to ${topic}`);
+            console.log(`Client ${clientID} subscribed to ${topic.topic} - QOS${topic.qos}`);
           }
         });
       });
@@ -69,22 +71,38 @@ function connectRemoteMqtt({projId, ip, port, clientId, username, password, subT
     }
     client.on('connect', onConnectHandle);
 
-    // 监听异常
-    const onErrorHandle = (err) => {
-      console.error(`Client ${clientId} connection error:`, err);
-      rej({err: 1, msg: err});
-    }
-    client.on('error', onErrorHandle);
-
     // 监听订阅消息
     const onMessageHandle = (topic, message, packet) => {
-      console.log(`Client ${clientId} received message on ${topic} QOS${packet.qos}: ${message.toString()}`);
+      console.log(`Client ${clientID} received message on ${topic} QOS${packet.qos}: ${message.toString()}`);
       // 这里可以添加处理接收到消息的逻辑
     }
     client.on('message', onMessageHandle);
-  }) 
+
+    // 监听异常
+    const onErrorHandle = (err) => {
+      console.error(`Client ${clientID} connection error:`, err);
+      disconnectRemoteMqtt({projId, clientID, client, onConnectHandle, onMessageHandle, onErrorHandle}); // 断开连接
+      rej({err: 1, msg: `连接失败: ${err.message}`});
+    }
+    client.on('error', onErrorHandle);
+  })
+}
+
+// 断开事件
+function disconnectRemoteMqtt ({projId, clientID, client, onConnectHandle, onMessageHandle, onErrorHandle}) {
+  client.removeListener('connect', onConnectHandle); // 移除连接成功监听
+  client.removeListener('message', onMessageHandle); // 移除消息监听
+  client.removeListener('error', onErrorHandle); // 移除错误监听
+  client.end(); // 关闭连接
+  if (clientGroup.hasOwnProperty(projId)) {
+    delete clientGroup[projId]; // 从客户端组中删除
+  }
+  if (clientIdList.includes(clientID)) {
+    clientIdList.splice(clientIdList.indexOf(clientID), 1); // 从客户端ID列表中删除
+  }
 }
 
 export default {
-  connectRemoteMqtt
+  connectRemoteMqtt,
+  disconnectRemoteMqtt
 }

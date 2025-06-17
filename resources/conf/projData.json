@@ -5,11 +5,11 @@
       "name": "aaaa",
       "mode": "local",
       "clientID": "",
-      "ip": "169.254.108.148",
+      "ip": "192.168.0.101",
       "port": 1883,
       "username": "",
       "password": "",
-      "connected": false,
+      "connected": 0,
       "subTopics": [
         {
           "topic": "testtopic/num",
@@ -110,14 +110,14 @@
     },
     {
       "id": 1749995603866,
-      "name": "avada",
+      "name": "whistle/3",
       "mode": "remote",
-      "clientID": "ssd",
-      "ip": "121312",
-      "port": "2132",
-      "username": "",
-      "password": "",
-      "connected": false,
+      "clientID": "whistle/3",
+      "ip": "47.111.165.17",
+      "port": "1883",
+      "username": "agua",
+      "password": "mlh52S7prq",
+      "connected": 0,
       "subTopics": [
         {
           "topic": "test/sss",
@@ -141,7 +141,8 @@
           }
         },
         "rawComponents": []
-      }
+      },
+      "mqttMode": "remote"
     }
   ]
 }

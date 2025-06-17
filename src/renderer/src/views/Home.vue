@@ -2,7 +2,7 @@
 1 menu选中
 -->
 <template>
-  <ConnectionModal :open="connectionModalInfo.isOpen" @cancel="connectionModalInfo.isOpen=false"/>
+  <!-- <ConnectionModal :open="connectionModalInfo.isOpen" @cancel="connectionModalInfo.isOpen=false"/> -->
   <a-alert class="alert" :message="alertInfo.msg" :type="alertInfo.tp" show-icon v-if="alertInfo.isShow"/>
   <div class="container">
     <!-- Menu -->
@@ -22,7 +22,7 @@
 
 <script setup>
 import { ref, reactive, onBeforeMount, onBeforeUnmount } from 'vue'
-import ConnectionModal from '../components/ProjModal.vue'
+// import ConnectionModal from '../components/ProjModal.vue'
 import bus from '../utils/bus'
 
 // const toHref = href => {$router.push(href)}
@@ -41,11 +41,11 @@ const menuListInfo = reactive([
 function getMenuIconPath(index) {
   return new URL(`../assets/img/menu_${index}.svg`, import.meta.url).href
 }
-const connectionModalInfo = reactive({
-  title: '设备列表',
-  content: 'Connection content',
-  isOpen: false
-})
+// const connectionModalInfo = reactive({
+//   title: '设备列表',
+//   content: 'Connection content',
+//   isOpen: false
+// })
 
 /* 显示自定义提示框 */
 const showCustomAlert = ({msg, type, time=1000}) => {

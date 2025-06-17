@@ -3,7 +3,6 @@
 </template>
 
 <script setup>
-import Versions from './components/Versions.vue'
 import { onMounted, ref } from 'vue'
 import bus from './utils/bus'
 

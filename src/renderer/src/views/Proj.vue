@@ -177,15 +177,23 @@ function handleProjModalOk(newProj) {
   if (editProjForm.value && editProjForm.value.id !== undefined) {
     const idx = projList.findIndex(p => p.id === editProjForm.value.id)
     if (idx !== -1) {
-      projList[idx].name = newProj.name.trim()
-      projList[idx].mode = newProj.mode
-      projList[idx].clientID = newProj.clientID || ""
-      projList[idx].ip = newProj.ip || ""
-      projList[idx].port = newProj.port || ""
-      projList[idx].username = newProj.username || ""
-      projList[idx].password = newProj.password || ""
+      let isChangeFlag = false
+      Object.keys(newProj).forEach(key => {
+        if (newProj[key] !== projList[idx][key]) {
+          isChangeFlag = true
+        }
+        projList[idx][key] = newProj[key]
+      })
+      // projList[idx].name = newProj.name.trim()
+      // projList[idx].mode = newProj.mode
+      // projList[idx].clientID = newProj.clientID || ""
+      // projList[idx].ip = newProj.ip || ""
+      // projList[idx].port = newProj.port || ""
+      // projList[idx].username = newProj.username || ""
+      // projList[idx].password = newProj.password || ""
       // 连接直接断开
-      projList[idx].connected = 0
+      if (projList[idx].connected === 2 && isChangeFlag) { disconnectRemoteMqtt({type:"warning", msg: "配置更改，请重新连接"}) }
+      // projList[idx].connected = 0
       bus.changeProjInfo()
     }
     editProjForm.value = null
@@ -270,7 +278,7 @@ function toggleRemoteConnection() {
     }))
     .then((res) => {
       if (res.err) {
-        bus.emit("showCustomAlert", { type: "error", msg: res.msg })
+        bus.emit("showCustomAlert", { type: "error", msg: res.msg, time: 1500 })
         activeProj.value.connected = 0
       } else {
         activeProj.value.connected = 2
@@ -281,18 +289,7 @@ function toggleRemoteConnection() {
     return
   } else {
     // 断开连接
-    window.electron.ipcRenderer.invoke('r:disconnectRemoteMqtt', {
-      projId: activeProj.value.id,
-      clientID: activeProj.value.clientID,
-    })
-    .then((res) => {
-      if (res.err) {
-        bus.emit("showCustomAlert", { type: "error", msg: res.msg })
-      } else {
-        activeProj.value.connected = 0
-        bus.emit("showCustomAlert", { type: "success", msg: "已断开连接" })
-      }
-    })
+    disconnectRemoteMqtt()
   }
 }
 
@@ -300,6 +297,9 @@ function toggleRemoteConnection() {
 function handleDeleteProj(id) {
   const index = bus.projList.findIndex((item) => item.id === id)
   if (index !== -1) {
+    if (bus.projList[index].connected === 2) {
+      disconnectRemoteMqtt({type:"hide", projId: bus.projList[index].id, clientID: bus.projList[index].clientID})
+    }
     projList.splice(index, 1)
     bus.changeProjInfo()
     if (activeProjID.value == id) {
@@ -310,6 +310,24 @@ function handleDeleteProj(id) {
       }
     }
   }
+}
+
+// 断开连接
+function disconnectRemoteMqtt({type="success", msg="已断开连接", projId=activeProj.value.id, clientID=activeProj.value.clientID}={}) {
+  // 断开连接
+  window.electron.ipcRenderer.invoke('r:disconnectRemoteMqtt', {
+    projId,
+    clientID,
+  })
+  .then((res) => {
+    console.log("disconnectRemoteMqtt res:", res, type, msg)
+    if (res.err) {
+      bus.emit("showCustomAlert", { type: "error", msg: res.msg })
+    } else if (type !== "hide") { // 删除项目时不显示
+      bus.emit("showCustomAlert", { type: type, msg: msg })
+    }
+    activeProj.value.connected = 0
+  })
 }
 
 /* 点击add Subscription  */

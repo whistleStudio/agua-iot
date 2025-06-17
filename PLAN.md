@@ -1,13 +1,13 @@
 # Proj
 
-- ① remote mode，connect 
+- ① remote mode，connect ✔
 params: projId, clientInfo, subTopics（full）
 
-- ② disconnect: 
+- ② disconnect: ✔
 params: projId, clientId
 
-- ③ changeProj:
-proj.isConnected = false
+- ③ changeProj: ✔
+proj.isConnected = 0
 params: projId, clientInfo, subTopics（full）
 local -> remote
 
@@ -27,11 +27,11 @@ remote !isConnected disable addSub/publish/monitor
 
 # main index
 
-- ① ipcMain handle connectRemoteClient
+- ① ipcMain handle connectRemoteClient ✔
 
-- ② ipcMain handle disconnectRemoteClient
+- ② ipcMain handle disconnectRemoteClient ✔
 
-- ③ ipcMain handle changeProj
+- ③ ipcMain handle changeProj 
 local -> disconnectRemoteClient, subscribeLocal
 remote -> unsubscribeLocal; 
 
@@ -42,12 +42,12 @@ remote -> unsubscribeLocal;
 - ⑦
  # mqttClient
 
- - ① connectRemoteClient
+ - ① connectRemoteClient ✔
 onSuccess: changes clientGroup {projId: clientObj}, subscribe
 onErr: [disconnectHandle]remove clientObj, clientId & event
 onMsg: send to renderer
 
-- ② disconnectRemoteClient
+- ② disconnectRemoteClient ✔
 [disconnectHandle]remove clientObj, clientId & event
 
 - ④ modifySubscription

@@ -50,12 +50,10 @@ function connectRemoteMqtt({projId, ip, port, clientID, username, password, subT
       connectTimeout: 4000,
       reconnectPeriod: 0
     });
-    
-    // 监听连接成功
+
+    // 回调：连接成功
     const onConnectHandle = () => {
       console.log(`remote Client ${clientID} connected to ${ip}:${port}`);
-      clientGroup[projId] = {client, onConnectHandle, onMessageHandle, onErrorHandle}; // 存储客户端
-      clientIdList.push(clientID); // 存储客户端ID
       // 成功时订阅主题
       subTopics.forEach(topic => {
         client.subscribe(topic.topic, {qos: topic.qos}, (err) => {
@@ -69,31 +67,39 @@ function connectRemoteMqtt({projId, ip, port, clientID, username, password, subT
       });
       rsv({err: 0, msg: '连接成功'});
     }
-    client.on('connect', onConnectHandle);
 
-    // 监听订阅消息
+    // 回调：接收消息
     const onMessageHandle = (topic, message, packet) => {
       console.log(`Client ${clientID} received message on ${topic} QOS${packet.qos}: ${message.toString()}`);
       // 这里可以添加处理接收到消息的逻辑
     }
-    client.on('message', onMessageHandle);
 
-    // 监听异常
+    // 回调：异常
     const onErrorHandle = (err) => {
       console.error(`Client ${clientID} connection error:`, err);
-      disconnectRemoteMqtt({projId, clientID, client, onConnectHandle, onMessageHandle, onErrorHandle}); // 断开连接
+      console.log(err.message);
+      disconnectRemoteMqtt({projId, clientID, client}); // 断开连接
       rej({err: 1, msg: `连接失败: ${err.message}`});
     }
+        
+    clientGroup[projId] = {client, onConnectHandle, onMessageHandle, onErrorHandle}; // 存储客户端
+    clientIdList.push(clientID); // 存储客户端ID
+
+    client.on('connect', onConnectHandle);
+    client.on('message', onMessageHandle);
     client.on('error', onErrorHandle);
   })
 }
 
 // 断开事件
-function disconnectRemoteMqtt ({projId, clientID, client, onConnectHandle, onMessageHandle, onErrorHandle}) {
-  client.removeListener('connect', onConnectHandle); // 移除连接成功监听
-  client.removeListener('message', onMessageHandle); // 移除消息监听
-  client.removeListener('error', onErrorHandle); // 移除错误监听
-  client.end(); // 关闭连接
+function disconnectRemoteMqtt ({projId, clientID}) {
+  const client = clientGroup[projId]?.client;
+  if (client) {
+    client.removeListener('connect', clientGroup[projId].onConnectHandle); // 移除连接成功监听
+    client.removeListener('message', clientGroup[projId].onMessageHandle); // 移除消息监听
+    client.removeListener('error', clientGroup[projId].onErrorHandle); // 移除错误监听
+    client.end(); // 关闭连接
+  }
   if (clientGroup.hasOwnProperty(projId)) {
     delete clientGroup[projId]; // 从客户端组中删除
   }

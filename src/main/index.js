@@ -144,7 +144,7 @@ app.whenReady().then(() => {
       fs.writeFileSync(projDataUrl, JSON.stringify(projData, null, 2))
       return { err: 0 }
     } catch (err) { 
-      // console.log(err);
+      console.log(err);
        return { err: 1, msg: err.msg || '连接失败' } }
   })
 
@@ -152,9 +152,10 @@ app.whenReady().then(() => {
   ipcMain.handle("r:disconnectRemoteMqtt", async (_, payload) => {
     try {
       mqttClient.disconnectRemoteMqtt(payload)
+      return { err: 0 }
     } catch (err) {
       console.log(err);
-      return { err: 1, msg: '断开连接失败' }
+      return { err: 1, msg: '操作异常' }
     }
   })
 

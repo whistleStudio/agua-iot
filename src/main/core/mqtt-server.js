@@ -17,8 +17,6 @@ server.listen(PORT, function () {
 
 /* 连接验证，设备管理 */
 aedes.authenticate = function (client, username, password, callback) {
-  // console.log(client.id, username, password.toString())
-  // 打开配置文件
   const config = JSON.parse(fs.readFileSync(configUrl, 'utf8'))
   for (let dev of config.devices) {
     if (dev.clientID === client.id && dev.password == password.toString()) {
@@ -31,36 +29,52 @@ aedes.authenticate = function (client, username, password, callback) {
 }
 
 const browserWindows = []
+
 /* 订阅主题 */
 function subscribeTopic(topic) {
-  // 多个项目订阅时，计数加1；确保unsubscribe时能正确删除
-  if (mqttCache[topic]) mqttCache[topic].subCount++
-  else {
-    mqttCache[topic] = { subCount: 1, dataList: [] }
-    // 同个主题只注册一次回调
+  if (mqttCache[topic]) {
+    mqttCache[topic].subCount++
+  } else {
+    // 保存deliverfunc以便后续unsubscribe
+    const deliverfunc = function (packet, cb) {
+      console.log('local subscribe: ', packet.topic, packet.qos)
+      const topic = packet.topic, qos = packet.qos, payload = packet.payload.toString()
+      const time = new Date().toISOString().replace('T', ' ').replace('Z', '')
+      if (mqttCache[topic].dataList.length >= 50) {
+        mqttCache[topic].dataList.shift();
+      }
+      mqttCache[topic].dataList.push({ time, qos, payload })
+      if (browserWindows.length) {
+        for (const win of browserWindows) {
+          win.webContents.send('m:mqttData', { topic, qos, payload, time })
+        }
+      }
+      cb()
+    }
+    mqttCache[topic] = { subCount: 1, dataList: [], deliverfunc }
     aedes.subscribe(
-      topic, 
-      (packet, cb) => {
-        const topic = packet.topic, qos = packet.qos, payload = packet.payload.toString()
-        const time = new Date().toISOString().replace('T', ' ').replace('Z', '')
-        // 修改缓存
-        if (mqttCache[topic].dataList.length >= 50) {
-          mqttCache[topic].dataList.shift();
-        }
-        mqttCache[topic].dataList.push({ time, qos, payload })
-        console.log('msg recv: ', topic, qos, payload, time)
-        if (browserWindows.length) {
-          // 发送消息到浏览器窗口
-          for (const win of browserWindows) {
-            win.webContents.send('m:mqttData', { topic, qos, payload, time })
-          }
-        }
-        cb()
-      },
+      topic,
+      deliverfunc,
       () => { console.log('local subscribe success: ', topic) }
     )
   }
-} 
+}
+
+/* 取消订阅主题 */
+function unsubscribeTopic(topic) {
+  if (mqttCache[topic]) {
+    mqttCache[topic].subCount--
+    if (mqttCache[topic].subCount <= 0) {
+      // 取消订阅必须使用相同的deliverfunc
+      aedes.unsubscribe(
+        topic,
+        mqttCache[topic].deliverfunc,
+        () => { console.log('local unsubscribe success: ', topic) }
+      )
+      delete mqttCache[topic]
+    }
+  }
+}
 
 /* 发布主题 */
 function publishTopic(packet) {
@@ -73,7 +87,6 @@ function publishTopic(packet) {
     console.log('publish success: ', packet.topic, packet.payload)
   })
 }
-
 
 /* -------------------------------- */
 /* 获取ip地址 */
@@ -92,11 +105,11 @@ function getLocalIPAddress() {
 const localIP = getLocalIPAddress()
 console.log('Local IP Address:', localIP)
 
-
 export default {
   port: PORT,
   localIP: localIP,
   subscribeTopic,
+  unsubscribeTopic,
   publishTopic,
   browserWindows
 }

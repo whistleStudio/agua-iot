@@ -159,6 +159,21 @@ app.whenReady().then(() => {
     }
   })
 
+  /* 删除项目时调整 */
+  ipcMain.on("r:deleteProj", (_, proj) => {
+    proj = JSON.parse(proj)
+    try {
+      if (proj.mode === "local") {
+        proj.subTopics.forEach(item => {
+          mqttServer.unsubscribeTopic(item.topic) // 本地取消订阅主题
+        })
+      } else {
+        if (proj.connected < 2) return; // 未连接时不用断开连接
+        mqttClient.disconnectRemoteMqtt({projId: proj.id, clientID: proj.clientID})
+      }
+    } catch(e) {console.log(e)}
+  })
+
   /* 选择背景图片 */
   ipcMain.handle("r:chooseCover", async (_, projId) => {
     //打开文件选择对话框

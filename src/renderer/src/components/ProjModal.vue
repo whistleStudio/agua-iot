@@ -1,7 +1,7 @@
 <template>
   <a-modal
     :open="open"
-    title="创建/编辑项目"
+    :title="modalTitle"
     @ok="handleOk"
     @cancel="handleCancel"
     :maskClosable="false"
@@ -47,12 +47,12 @@
 </template>
 
 <script setup>
-import { ref, watch, reactive } from "vue";
+import { ref, watch, reactive, computed } from "vue";
 import bus from "../utils/bus";
 
 const props = defineProps({
   open: Boolean,
-  editForm: Object // 新增：可传入编辑内容
+  editForm: Object // 可传入编辑内容
 });
 const emit = defineEmits(["ok", "cancel"]);
 
@@ -69,10 +69,14 @@ const defaultForm = () => ({
 const form = reactive(defaultForm());
 const formRef = ref(null);
 
+// 计算modal标题（新建 or 编辑）
+const modalTitle = computed(() =>
+  props.editForm && props.editForm.id !== undefined ? "编辑" : "新建"
+);
+
 watch(
   [() => props.open, () => props.editForm],
   ([open, editForm]) => {
-    console.log("watch open:", open, "editForm:", editForm);
     if (open) {
       if (editForm && typeof editForm === "object") {
         Object.assign(form, defaultForm(), editForm);
@@ -87,7 +91,6 @@ watch(
 function handleOk() {
   // 校验
   if (!form.name.trim()) {
-    console.warn("项目名称不能为空");
     bus.emit("showCustomAlert", {
       type: "warning",
       msg: "请输入项目名称",
@@ -122,27 +125,4 @@ function handleOk() {
 function handleCancel() {
   emit("cancel");
 }
-
-/* -------------------------- */
-// 模式切换时，重设IP、端口等字段
-// watch(
-//   () => form.mode,
-//   (newMode) => {
-//     if (!open) return; // 如果模态框未打开，则不执行
-//     console.log("模式切换:", newMode);
-//     if (newMode === "local") {
-//       form.clientID = "";
-//       form.ip = bus.mqttServer.localIP;
-//       form.port = bus.mqttServer.port;
-//       form.username = "";
-//       form.password = "";
-//     } else {
-//       form.clientID = "";
-//       form.ip = "";
-//       form.port = "";
-//       form.username = "";
-//       form.password = "";
-//     }
-//   }
-// );
 </script>

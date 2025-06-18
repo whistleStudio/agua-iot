@@ -1,21 +1,30 @@
 <template>
-  <a-modal :open="Boolean(open)" title="New Subscription" @ok="emit('ok', newSub)" @cancel="emit('cancel')" width="540px" class="subscription-modal" :okText="'确定'" :cancelText="'取消'">
+  <a-modal
+    :open="Boolean(open)"
+    :title="subModalTitle"
+    @ok="handleOk"
+    @cancel="emit('cancel')"
+    width="540px"
+    class="subscription-modal"
+    :okText="'确定'"
+    :cancelText="'取消'"
+  >
     <a-form :model="newSub" :rules="rules" ref="subscriptionForm" layout="vertical">
       <!-- Topic -->
-      <a-form-item label="Topic" name="topic" required :rules="[{ required: true, message: 'Please input topic!' }]">
+      <a-form-item label="主题" name="topic" required :rules="[{ required: true, message: 'Please input topic!' }]">
         <a-input v-model:value.trim="newSub.topic" placeholder="Enter topic" suffix-icon="info-circle" />
       </a-form-item>
 
       <!-- QoS & Color -->
       <div class="row-flex">
-        <a-form-item label="QoS" name="qos" required :rules="[{ required: true, message: 'Please select QoS!' }]" class="qos-item">
+        <a-form-item v-if="mode === 'remote'" label="QoS" name="qos" required :rules="[{ required: true, message: 'Please select QoS!' }]" class="qos-item">
           <a-select v-model:value="newSub.qos">
             <a-select-option :value="0">0 At most once</a-select-option>
             <a-select-option :value="1">1 At least once</a-select-option>
             <a-select-option :value="2">2 Exactly once</a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item label="Color" name="color" class="color-item">
+        <a-form-item label="颜色" name="color" class="color-item">
           <div class="color-inline-group">
             <a-input v-model:value.trim="newSub.color" class="color-input">
               <template #suffix><span @click="randomColor" style="cursor: pointer;">🎲</span></template>
@@ -26,15 +35,15 @@
       </div>
 
       <!-- Alias -->
-      <a-form-item label="Alias" name="alias" :extra="aliasHint">
-        <a-input v-model:value="newSub.alias" placeholder="Enter alias (optional)" suffix-icon="info-circle" />
+      <a-form-item label="备注" name="alias" :extra="aliasHint">
+        <a-input v-model:value="newSub.alias" placeholder="请输入备注信息" suffix-icon="info-circle" />
       </a-form-item>
     </a-form>
   </a-modal>
 </template>
 
 <script setup>
-import { ref, onBeforeMount, onMounted, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 
 const emit = defineEmits(['ok', 'cancel'])
 const props = defineProps({
@@ -45,6 +54,14 @@ const props = defineProps({
   passform: {
     type: Object,
     default: null
+  },
+  subModalTitle: {
+    type: String,
+    default: '创建/编辑订阅主题'
+  },
+  mode: {
+    type: String,
+    default: 'local' // create or edit
   }
 })
 
@@ -70,16 +87,36 @@ function randomColor() {
   newSub.value.color = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0').toUpperCase()
 }
 
-/* ------------------ */
-// 监听 props.open 的变化; 0表示关闭，1表示新建，2表示编辑
-watch( 
+// 弹窗打开时初始化
+watch(
   () => props.open,
   (newVal) => {
-    console.log('SubscriptionModal props.open changed:', newVal)  
-    if (newVal === 1) { randomColor() }
-  }
-) 
+    if (newVal === 1) {
+      // 新建订阅
+      newSub.value = {
+        topic: 'customtopic/#',
+        qos: 0,
+        color: '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0').toUpperCase(),
+        alias: ''
+      }
+    }
+    if (newVal === 2 && props.passform) {
+      // 编辑订阅，初始化表单为当前主题属性
+      // 防止 passform 缺字段
+      newSub.value = {
+        topic: props.passform.topic ?? '',
+        qos: typeof props.passform.qos === 'number' ? props.passform.qos : 0,
+        color: props.passform.color ?? '#97CE54',
+        alias: props.passform.alias ?? ''
+      }
+    }
+  },
+  { immediate: true }
+)
 
+function handleOk() {
+  emit('ok', { ...newSub.value })
+}
 </script>
 
 <style lang="scss" scoped>

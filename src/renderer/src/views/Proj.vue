@@ -1,6 +1,19 @@
 <template>
-  <ProjModal :open="isProjModalOpen" @ok="handleProjModalOk" @cancel="isProjModalOpen=false" :edit-form="editProjForm"/>
-  <SubscriptionModal :open="isSubModalOpen" @ok="handleSubModalOk" @cancel="isSubModalOpen=0" :passform="passform"/>
+  <ProjModal
+    :open="isProjModalOpen"
+    :title="projModalTitle"
+    @ok="handleProjModalOk"
+    @cancel="isProjModalOpen=false"
+    :edit-form="editProjForm"
+  />
+  <SubscriptionModal
+    :open="isSubModalOpen"
+    :title="subModalTitle"
+    @ok="handleSubModalOk"
+    @cancel="isSubModalOpen=0"
+    :passform="passform"
+    :mode="activeProj.mode"
+  />
   <div class="container">
     <!-- Sidebar -->
     <div class="sidebar">
@@ -9,8 +22,13 @@
         <span class="add" @click="openAddProjModal">+</span>
       </div>
       <ul>
-        <li v-for="v in projList" :key="v.id" @click="() => {activeProjID = v.id; console.log('v.id ---', v.id, v.name)}"
-          :class="{ 'active': activeProjID == v.id }">
+        <li
+          v-for="v in projList"
+          :key="v.id"
+          @click="() => {activeProjID = v.id; console.log('v.id ---', v.id, v.name)}"
+          @dblclick="editProjItem(v)"
+          :class="{ 'active': activeProjID == v.id }"
+        >
           <span class="proj-name">{{ v.name }}</span>
           <a-popconfirm
             title="确定要删除该项目吗？"
@@ -61,16 +79,28 @@
         <div class="left-panel subscription">
           <a-button type="primary" @click="clickAddSubscription">+ 创建新的订阅</a-button>
           <ul>
-            <li v-for="(v, i) in activeProj.subTopics" :style="{backgroundColor: v.color + '15'}" :key="v.topic"
-            @mouseover="hoverSubIndex = i" @mouseleave="hoverSubIndex = -1">
+            <li
+              v-for="(v, i) in activeProj.subTopics"
+              :style="{backgroundColor: v.color + '15'}"
+              :key="v.topic"
+              @mouseover="hoverSubIndex = i"
+              @mouseleave="hoverSubIndex = -1"
+              @dblclick="editSubTopic(i)"
+            >
               <div :style="{backgroundColor: v.color}"></div>
               <div :style="{color: v.color}">{{ v.topic }}</div>
-              <div>QoS {{ v.qos }}</div>
-              <div class="delete" :class="{display: i==hoverSubIndex}" @click.stop="clickDeleteSub(i)">❌</div>
+              <div v-show="activeProj.mode==='remote'">QoS {{ v.qos }}</div>
+              <a-popconfirm
+                title="确定要删除该订阅主题吗？"
+                ok-text="确定"
+                cancel-text="取消"
+                @confirm="clickDeleteSub(i)"
+              >
+                <div class="delete" :class="{display: i==hoverSubIndex}" @click.stop>❌</div>
+              </a-popconfirm>
             </li>
           </ul>
         </div>
-
         <div class="right-panel">
           <!-- Messages List -->
           <div class="messages" ref="messagesRef">
@@ -84,7 +114,6 @@
             </div>
             <img class="trashbin" :src="getImgPath('trashbin.svg')" @click="emptyCache"/>
           </div>
-
           <!-- Message Publisher -->
           <div class="publisher" >
             <div class="options">
@@ -153,6 +182,7 @@ const activeProjID = ref(-999), hoverSubIndex = ref(-1), hoverPubIndex = ref(-1)
 let projList = reactive([])
 const passform = ref({})
 const editProjForm = ref(null)
+const editSubIndex = ref(-1)
 
 const activeProjIndex = computed(() => {
   const idx = projList.findIndex((item) => item.id === activeProjID.value)
@@ -167,6 +197,15 @@ const activeProjMqttServer = computed(() => {
   if (activeProjID.value === -999) return ""
   return `${activeProj.value.ip} : ${ activeProj.value.port }`
 })
+
+// ProjModal标题
+const projModalTitle = computed(() =>
+  editProjForm.value && editProjForm.value.id !== undefined ? '编辑' : '新建'
+)
+// SubscriptionModal标题
+const subModalTitle = computed(() =>
+  isSubModalOpen.value === 2 ? '编辑' : '新建'
+)
 
 /* 新增项目-确定 或 编辑项目-确定 */
 function handleProjModalOk(newProj) {
@@ -184,16 +223,8 @@ function handleProjModalOk(newProj) {
         }
         projList[idx][key] = newProj[key]
       })
-      // projList[idx].name = newProj.name.trim()
-      // projList[idx].mode = newProj.mode
-      // projList[idx].clientID = newProj.clientID || ""
-      // projList[idx].ip = newProj.ip || ""
-      // projList[idx].port = newProj.port || ""
-      // projList[idx].username = newProj.username || ""
-      // projList[idx].password = newProj.password || ""
       // 连接直接断开
       if (projList[idx].connected === 2 && isChangeFlag) { disconnectRemoteMqtt({type:"warning", msg: "配置更改，请重新连接"}) }
-      // projList[idx].connected = 0
       bus.changeProjInfo()
     }
     editProjForm.value = null
@@ -210,7 +241,7 @@ function handleProjModalOk(newProj) {
     port: newProj.mode === 'local' ? (bus.mqttServer.port || "") : (newProj.port || ""),
     username: newProj.username || "",
     password: newProj.password || "",
-    connected: 0, // 0: 未连接, 1: 连接中, 2: 已连接
+    connected: 0,
     subTopics: [],
     pubTopics: [],
     cache: [],
@@ -241,10 +272,9 @@ function openAddProjModal() {
   isProjModalOpen.value = true
 }
 
-/* 打开编辑项目弹窗 */
+/* 打开编辑项目弹窗（设置按钮/项目双击均可用）*/
 function openEditProjModal() {
   if (activeProjID.value === -999) return
-  console.log(activeProj.value)
   editProjForm.value = {
     id: activeProj.value.id,
     name: activeProj.value.name,
@@ -260,12 +290,28 @@ function openEditProjModal() {
   }) 
 }
 
+/** 项目列表双击进入编辑 */
+function editProjItem(v) {
+  editProjForm.value = {
+    id: v.id,
+    name: v.name,
+    mode: v.mode || "local",
+    clientID: v.clientID || "",
+    ip: v.ip || "",
+    port: v.port || "",
+    username: v.username || "",
+    password: v.password || "",
+  }
+  nextTick(() => {
+    isProjModalOpen.value = true
+  })
+}
+
 /* 切换remote项目连接状态 */
 function toggleRemoteConnection() {
   if (activeProjID.value === -999) return
   if (activeProj.value.mode !== 'remote') return
   if (activeProj.value.connected === 1) return 
-  // 连接
   if (activeProj.value.connected < 2) {
     window.electron.ipcRenderer.invoke('r:connectRemoteMqtt', JSON.stringify({
       projId: activeProj.value.id,
@@ -283,12 +329,10 @@ function toggleRemoteConnection() {
       } else {
         activeProj.value.connected = 2
         bus.emit("showCustomAlert", { type: "success", msg: "连接成功" })
-        // bus.changeProjInfo()
       }
     })
     return
   } else {
-    // 断开连接
     disconnectRemoteMqtt()
   }
 }
@@ -297,10 +341,11 @@ function toggleRemoteConnection() {
 function handleDeleteProj(id) {
   const index = bus.projList.findIndex((item) => item.id === id)
   if (index !== -1) {
-    if (bus.projList[index].connected === 2) {
-      disconnectRemoteMqtt({type:"hide", projId: bus.projList[index].id, clientID: bus.projList[index].clientID})
-    }
-    projList.splice(index, 1)
+    // if (bus.projList[index].connected === 2) {
+    //   disconnectRemoteMqtt({type:"hide", projId: bus.projList[index].id, clientID: bus.projList[index].clientID})
+    // }
+    const spliceProj = projList.splice(index, 1)
+    window.electron.ipcRenderer.send("r:deleteProj", JSON.stringify(spliceProj[0])) // 删除项目时发送到主进程
     bus.changeProjInfo()
     if (activeProjID.value == id) {
       if (projList.length > 0) {
@@ -323,11 +368,46 @@ function disconnectRemoteMqtt({type="success", msg="已断开连接", projId=act
     console.log("disconnectRemoteMqtt res:", res, type, msg)
     if (res.err) {
       bus.emit("showCustomAlert", { type: "error", msg: res.msg })
-    } else if (type !== "hide") { // 删除项目时不显示
-      bus.emit("showCustomAlert", { type: type, msg: msg })
-    }
+    } else bus.emit("showCustomAlert", { type: type, msg: msg })
     activeProj.value.connected = 0
   })
+}
+
+/* 删除订阅 */
+function clickDeleteSub(index) {
+  if (activeProjID.value === -999) return
+  activeProj.value.subTopics.splice(index, 1)
+  bus.changeProjInfo()
+}
+
+/* 新增/编辑订阅-确定 */
+function handleSubModalOk(newSub) {
+  isSubModalOpen.value = 0
+  if (newSub.topic === '' || activeProjID.value === -999) return
+  if (editSubIndex.value === -1) {
+    const index = activeProj.value.subTopics.findIndex((item) => item.topic === newSub.topic)
+    if (index === -1) {
+      activeProj.value.subTopics.push({
+        topic: newSub.topic,
+        qos: newSub.qos,
+        color: newSub.color,
+        alias: newSub.alias
+      })
+      bus.changeProjInfo()
+      changeMqttCache(newSub.topic)
+    }
+  } else {
+    const sub = activeProj.value.subTopics[editSubIndex.value]
+    if (sub) {
+      sub.topic = newSub.topic
+      sub.qos = newSub.qos
+      sub.color = newSub.color
+      sub.alias = newSub.alias
+      bus.changeProjInfo()
+      changeMqttCache(newSub.topic)
+    }
+    editSubIndex.value = -1
+  }
 }
 
 /* 点击add Subscription  */
@@ -338,30 +418,17 @@ function clickAddSubscription() {
   }
   passform.value = null;
   isSubModalOpen.value = 1
+  editSubIndex.value = -1
 }
 
-/* 新增/编辑订阅-确定 */
-function handleSubModalOk(newSub) {
-  isSubModalOpen.value = 0
-  if (newSub.topic === '' || activeProjID.value === -999) return
-  const index = activeProj.value.subTopics.findIndex((item) => item.topic === newSub.topic)
-  if (index === -1) {
-    activeProj.value.subTopics.push({
-      topic: newSub.topic,
-      qos: newSub.qos,
-      color: newSub.color,
-      alias: newSub.alias
-    })
-    bus.changeProjInfo()
-    changeMqttCache(newSub.topic)
-  }
-}
-
-/* 删除订阅 */
-function clickDeleteSub(index) {
+/* 主题编辑 */
+function editSubTopic(index) {
   if (activeProjID.value === -999) return
-  activeProj.value.subTopics.splice(index, 1)
-  bus.changeProjInfo()
+  const sub = activeProj.value.subTopics[index]
+  if (!sub) return
+  passform.value = { ...sub }
+  isSubModalOpen.value = 2
+  editSubIndex.value = index
 }
 
 /* 删除发布 */
@@ -394,11 +461,6 @@ function handleSend() {
     },
     mqttMode: activeProj.value.mode,
     projId: activeProj.value.id,
-    // clientID: activeProj.value.clientID,
-    // ip: activeProj.value.ip,
-    // port: activeProj.value.port,
-    // username: activeProj.value.username,
-    // password: activeProj.value.password
   })
   .then((res) => {
     if (res.err) {
@@ -424,11 +486,6 @@ function changeMqttCache(topic) {
     topic, 
     mqttMode: activeProj.value.mode,
     projId: activeProj.value.id,
-    // clientID: activeProj.value.clientID,
-    // ip: activeProj.value.ip,
-    // port: activeProj.value.port,
-    // username: activeProj.value.username,
-    // password: activeProj.value.password
   })
     .then((res) => {})
     .catch((err) => { console.error(err) })
@@ -471,5 +528,4 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 @import url("../assets/css/proj.scss");
-
 </style>

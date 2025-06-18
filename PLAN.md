@@ -23,7 +23,9 @@ remote isConnected
 
 remote !isConnected disable addSub/publish/monitor
 
-- ⑦ delete proj (projId)
+- ⑦ delete proj (projId) ✔
+
+- ⑧ delete sub
 
 # main index
 

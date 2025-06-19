@@ -387,33 +387,59 @@ function clickDeleteSub(index) {
 }
 
 /* 新增/编辑订阅-确定 */
-function handleSubModalOk(newSub) {
-  isSubModalOpen.value = 0
-  if (newSub.topic === '' || activeProjID.value === -999) return
-  if (editSubIndex.value === -1) {
-    const index = activeProj.value.subTopics.findIndex((item) => item.topic === newSub.topic)
-    if (index === -1) {
-      activeProj.value.subTopics.push({
-        topic: newSub.topic,
-        qos: newSub.qos,
-        color: newSub.color,
-        alias: newSub.alias
-      })
-    } else { // 新增同名，覆盖原有
+async function handleSubModalOk(newSub) {
+  try {
+    isSubModalOpen.value = 0
+    if (newSub.topic === '' || activeProjID.value === -999) return
+    newSub = cloneDeep(newSub) // 深拷贝，避免直接修改传入的对象
+    if (editSubIndex.value === -1) {
+      const index = activeProj.value.subTopics.findIndex((item) => item.topic === newSub.topic)
+      if (index === -1) {
+        const res = await subscribeMqttTopic(JSON.stringify(newSub))
+        if (res.err) {
+          bus.emit("showCustomAlert", { type: "error", msg: res.msg })
+          return
+        }
+        activeProj.value.subTopics.push(newSub)
+      } else { 
+        bus.emit("showCustomAlert", { type: "warning", msg: "主题已存在" })
+        return
+      }
+    } else {
       const sub = activeProj.value.subTopics[editSubIndex.value]
+      const res = await modifyMqttTopic({newTopic: JSON.stringify(newSub), oldTopic: JSON.stringify(sub)})
+      editSubIndex.value = -1
+      if (res.err) {
+          bus.emit("showCustomAlert", { type: "error", msg: res.msg })
+          return
+        }
       if (sub) Object.assign(sub, cloneDeep(newSub))
-      bus.emit("showCustomAlert", { type: "warning", msg: "同名订阅主题已修改", time: 1500 })
-      return
     }
-  } else {
-    const sub = activeProj.value.subTopics[editSubIndex.value]
-    if (sub) Object.assign(sub, cloneDeep(newSub))
+    bus.changeProjInfo()
+  } catch (error) {
     editSubIndex.value = -1
+    console.error("handleSubModalOk error:", error)
   }
-  bus.changeProjInfo()
-  changeMqttSubTopic(newSub.topic)
 }
 
+// 订阅主题
+function subscribeMqttTopic(topic) {
+  return window.electron.ipcRenderer.invoke('r:subscribeMqttTopic', {
+    topic, 
+    mqttMode: activeProj.value.mode,
+    projId: activeProj.value.id,
+  })
+}
+
+// 修改主题
+function modifyMqttTopic({newTopic, oldTopic}) {
+  return window.electron.ipcRenderer.invoke('r:modifyMqttTopic', {
+    newTopic,
+    oldTopic,
+    mqttMode: activeProj.value.mode,
+    projId: activeProj.value.id,
+  })
+}
 
 /* 点击add Subscription  */
 function clickAddSubscription() {
@@ -483,17 +509,6 @@ function emptyCache() {
   if (activeProjID.value === -999) return
   activeProj.value.cache = []
   bus.changeProjInfo()
-}
-
-// 修改mqtt缓存
-function changeMqttSubTopic(topic) {
-  window.electron.ipcRenderer.invoke('r:changeMqttSubTopic', {
-    topic, 
-    mqttMode: activeProj.value.mode,
-    projId: activeProj.value.id,
-  })
-    .then((res) => {})
-    .catch((err) => { console.error(err) })
 }
 
 /* 开始/暂停监听 */

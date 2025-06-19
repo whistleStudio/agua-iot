@@ -25,7 +25,7 @@ remote !isConnected disable addSub/publish/monitor
 
 - ⑦ delete proj (projId) ✔
 
-- ⑧ delete sub
+- ⑧ delete sub ✔
 
 # main index
 
@@ -33,11 +33,11 @@ remote !isConnected disable addSub/publish/monitor
 
 - ② ipcMain handle disconnectRemoteClient ✔
 
-- ③ ipcMain handle changeProj 
+- ③ ipcMain handle changeProj ✔
 local -> disconnectRemoteClient, subscribeLocal
 remote -> unsubscribeLocal; 
 
-- ④ ipcMain handle modifySubscription
+- ④ ipcMain handle modifySubscription ✔
 
 - ⑤ ipcMain handle pub
 
@@ -52,6 +52,9 @@ onMsg: send to renderer
 - ② disconnectRemoteClient ✔
 [disconnectHandle]remove clientObj, clientId & event
 
-- ④ modifySubscription
+- ④ modifySubscription ✔
 
 - ⑦
+
+
+client异常时断开页面同步

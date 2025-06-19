@@ -104,16 +104,36 @@ app.whenReady().then(() => {
       projData.list = projList
       fs.writeFileSync(projDataUrl, JSON.stringify(projData, null, 2))
       return {err: 0}
-    } catch (err) { console.log(err); return {err: 1, msg: '本地文件同步异常'} }
+    } catch (err) { console.log(err); return {err: 1, msg: '本地文件同步异常'} }s
   })
 
-  /* mqtt订阅+修改缓存 */
-  ipcMain.handle('r:changeMqttSubTopic', async (_, payload) => {
+  /* mqtt订阅 */
+  ipcMain.handle('r:subscribeMqttTopic', async (_, {topic, mqttMode, projId}) => {
+    topic = JSON.parse(topic)
     try {
-      if (payload.mqttMode == "local") { mqttServer.subscribeTopic(payload.topic); return {err: 0} }
-      else mqttClient.subscribeRemoteTopic(payload)
+      if (mqttMode == "local") { mqttServer.subscribeTopic(topic.topic); return {err: 0} } // 本地订阅为服务器broker订阅，不需要qos
+      else { // 远程订阅需要qos
+       return await mqttClient.subscribeRemoteTopic({topic, projId})
+      } 
     }
     catch (err) { console.log(err); return {err: 1, msg: '订阅主题失败'} }
+  })
+  /* 修改订阅 */
+  ipcMain.handle('r:modifyMqttTopic', async (_, {newTopic, oldTopic, mqttMode, projId}) => {
+    newTopic = JSON.parse(newTopic)
+    oldTopic = JSON.parse(oldTopic)
+    try {
+      if (mqttMode == "local") {
+        mqttServer.modifyTopic({newTopic: newTopic.topic, oldTopic: oldTopic.topic}) // 本地订阅为服务器broker订阅，不需要qos
+        return {err: 0}
+      } else {
+        mqttClient.unsubscribeRemoteTopic({topic: oldTopic.topic, projId}) // 取消订阅直接给topic
+        return await mqttClient.subscribeRemoteTopic({topic: newTopic, projId}) // 远程订阅需要qos
+      }
+    } catch (err) {
+      console.log(err); 
+      return {err: 1, msg: '修改订阅失败'}
+    }
   })
   /* maqtt发布 */
   ipcMain.handle('r:publishMqtt', (_, payload) => {
@@ -126,7 +146,7 @@ app.whenReady().then(() => {
   ipcMain.handle("r:connectRemoteMqtt", async (_, payload) => {
     try {
       payload = JSON.parse(payload)
-      console.log(payload)
+      // console.log(payload)
       const { projId, ip, port, clientID, username, password, subTopics } = payload;
       const res = await mqttClient.connectRemoteMqtt({ projId, ip, port, clientID, username, password, subTopics });
       if (res.err) return res; // 连接失败
@@ -181,9 +201,9 @@ app.whenReady().then(() => {
     payload = JSON.parse(payload)
     try {
       if (payload.mqttMode == "local") {
-        mqttServer.unsubscribeTopic(payload.topic)
+        mqttServer.unsubscribeTopic(payload.topic.topic)
       } else {
-        mqttClient.unsubscribeRemoteTopic({projId: payload.projId, topic: payload.topic})
+        mqttClient.unsubscribeRemoteTopic({projId: payload.projId, topic: payload.topic.topic})
       }
       return { err: 0 }
     } catch (err) {

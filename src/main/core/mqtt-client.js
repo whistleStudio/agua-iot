@@ -108,42 +108,42 @@ function disconnectRemoteMqtt ({projId, clientID}) {
   }
 }
 
-/* 新增/修改订阅 */
+/* 新增订阅 */
 function subscribeRemoteTopic ({projId, topic}) {
-  const client = clientGroup[projId]?.client;
-  if (client) {
-    // // 检查是否已订阅该主题
-    // if (client.options.subscriptions && client.options.subscriptions.some(sub => sub.topic === topic.topic)) {
-    //   console.log(`Client already subscribed to ${topic.topic}`);
-    //   return;
-    // }
-    // 订阅新主题, 同名新覆盖旧
-    client.subscribe(topic.topic, {qos: topic.qos}, (err) => {
-      if (err) {
-        console.error(`Client failed to subscribe to ${topic.topic} - QOS${topic.qos}:`, err);
-      } else {
-        console.log(`Client subscribed to ${topic.topic} - QOS${topic.qos}`);
-      }
-    });
-  } else {
-    console.log(`subscribeRemoteTopic - Client not found for project ${projId}`);
-  }
+  return new Promise((rsv, rej) => {
+    const client = clientGroup[projId]?.client;
+    if (client) {
+      // 订阅新主题
+      client.subscribe(topic.topic, {qos: topic.qos}, (err) => {
+        if (err) {
+          console.error(`Client failed to subscribe to ${topic.topic} - QOS${topic.qos}:`, err);
+          rej({err: 1, msg: `订阅主题失败`});
+        } else {
+          console.log(`Client subscribed to ${topic.topic} - QOS${topic.qos}`);
+          rsv({err: 0, msg: '订阅成功'});
+        }
+      });
+    } else {
+      console.log(`subscribeRemoteTopic - Client not found for project ${projId}`);
+      rsv({err: 0}) // 未连接的状态下添加主题
+    }
+  })
 }
 
 /* 取消订阅 */
 function unsubscribeRemoteTopic ({projId, topic}) {
+  // console.log(topic)
   const client = clientGroup[projId]?.client;
-  console.log(clientGroup);
   if (client) {
     client.unsubscribe(topic, (err) => {
       if (err) {
-        console.error(`Client failed to unsubscribe from ${topic}:`, err);
+        console.log(`Client failed to unsubscribe from ${topic}:`, err);
       } else {
         console.log(`Client unsubscribed from ${topic}`);
       }
     });
   } else {
-    console.error(`unsubscribeRemoteTopic - Client not found for project ${projId}`);
+    console.log(`unsubscribeRemoteTopic - Client not found for project ${projId}`);
   }
 
 }

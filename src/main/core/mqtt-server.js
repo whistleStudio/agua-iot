@@ -34,6 +34,7 @@ const browserWindows = []
 function subscribeTopic(topic) {
   if (mqttCache[topic]) {
     mqttCache[topic].subCount++
+    console.log(`mqttCache[${topic}].subCount:`, mqttCache[topic].subCount)
   } else {
     // 保存deliverfunc以便后续unsubscribe
     const deliverfunc = function (packet, cb) {
@@ -60,10 +61,28 @@ function subscribeTopic(topic) {
   }
 }
 
+/* 修改订阅主题 */
+function modifyTopic({newTopic, oldTopic}) {
+  if (mqttCache[oldTopic]) {
+    mqttCache[oldTopic].subCount--
+    console.log(`mqttCache[${topic}].subCount:`, mqttCache[topic].subCount)
+    if (mqttCache[oldTopic].subCount <= 0) {  
+      aedes.unsubscribe(
+        oldTopic,
+        mqttCache[oldTopic].deliverfunc,
+        () => { console.log('local unsubscribe success: ', oldTopic) }
+      )
+      delete mqttCache[oldTopic]
+    }
+  }
+  subscribeTopic(newTopic) // 重新订阅新主题
+}
+
 /* 取消订阅主题 */
 function unsubscribeTopic(topic) {
   if (mqttCache[topic]) {
     mqttCache[topic].subCount--
+    console.log(`mqttCache[${topic}].subCount:`, mqttCache[topic].subCount)
     if (mqttCache[topic].subCount <= 0) {
       // 取消订阅必须使用相同的deliverfunc
       aedes.unsubscribe(
@@ -109,6 +128,7 @@ export default {
   port: PORT,
   localIP: localIP,
   subscribeTopic,
+  modifyTopic,
   unsubscribeTopic,
   publishTopic,
   browserWindows

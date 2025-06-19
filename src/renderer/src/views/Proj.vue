@@ -376,7 +376,13 @@ function disconnectRemoteMqtt({type="success", msg="已断开连接", projId=act
 /* 删除订阅 */
 function clickDeleteSub(index) {
   if (activeProjID.value === -999) return
-  activeProj.value.subTopics.splice(index, 1)
+  const spliceTopic = activeProj.value.subTopics.splice(index, 1)[0]
+  if (!spliceTopic) return
+  window.electron.ipcRenderer.send("r:deleteSubTopic", JSON.stringify({
+    projId: activeProj.value.id,
+    mqttMode: activeProj.value.mode,
+    topic: spliceTopic
+  }))
   bus.changeProjInfo()
 }
 
@@ -393,22 +399,21 @@ function handleSubModalOk(newSub) {
         color: newSub.color,
         alias: newSub.alias
       })
-      bus.changeProjInfo()
-      changeMqttCache(newSub.topic)
+    } else { // 新增同名，覆盖原有
+      const sub = activeProj.value.subTopics[editSubIndex.value]
+      if (sub) Object.assign(sub, cloneDeep(newSub))
+      bus.emit("showCustomAlert", { type: "warning", msg: "同名订阅主题已修改", time: 1500 })
+      return
     }
   } else {
     const sub = activeProj.value.subTopics[editSubIndex.value]
-    if (sub) {
-      sub.topic = newSub.topic
-      sub.qos = newSub.qos
-      sub.color = newSub.color
-      sub.alias = newSub.alias
-      bus.changeProjInfo()
-      changeMqttCache(newSub.topic)
-    }
+    if (sub) Object.assign(sub, cloneDeep(newSub))
     editSubIndex.value = -1
   }
+  bus.changeProjInfo()
+  changeMqttSubTopic(newSub.topic)
 }
+
 
 /* 点击add Subscription  */
 function clickAddSubscription() {
@@ -481,8 +486,8 @@ function emptyCache() {
 }
 
 // 修改mqtt缓存
-function changeMqttCache(topic) {
-  window.electron.ipcRenderer.invoke('r:changeMqttCache', {
+function changeMqttSubTopic(topic) {
+  window.electron.ipcRenderer.invoke('r:changeMqttSubTopic', {
     topic, 
     mqttMode: activeProj.value.mode,
     projId: activeProj.value.id,

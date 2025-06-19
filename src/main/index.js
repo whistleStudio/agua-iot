@@ -7,6 +7,7 @@ import mqttClient from './core/mqtt-client'
 import configUrl from '../../resources/conf/config.json?commonjs-external&asset'
 import projDataUrl from '../../resources/conf/projData.json?commonjs-external&asset'
 import fs from 'fs'
+import mqtt from 'mqtt'
 
 let config = {}, projData = {}
 init() // 初始化
@@ -107,9 +108,10 @@ app.whenReady().then(() => {
   })
 
   /* mqtt订阅+修改缓存 */
-  ipcMain.handle('r:changeMqttCache', (_, payload) => {
+  ipcMain.handle('r:changeMqttSubTopic', async (_, payload) => {
     try {
       if (payload.mqttMode == "local") { mqttServer.subscribeTopic(payload.topic); return {err: 0} }
+      else mqttClient.subscribeRemoteTopic(payload)
     }
     catch (err) { console.log(err); return {err: 1, msg: '订阅主题失败'} }
   })
@@ -172,6 +174,22 @@ app.whenReady().then(() => {
         mqttClient.disconnectRemoteMqtt({projId: proj.id, clientID: proj.clientID})
       }
     } catch(e) {console.log(e)}
+  })
+
+  /* 删除订阅 */
+  ipcMain.on("r:deleteSubTopic", (_, payload) => {
+    payload = JSON.parse(payload)
+    try {
+      if (payload.mqttMode == "local") {
+        mqttServer.unsubscribeTopic(payload.topic)
+      } else {
+        mqttClient.unsubscribeRemoteTopic({projId: payload.projId, topic: payload.topic})
+      }
+      return { err: 0 }
+    } catch (err) {
+      console.log(err);
+      return { err: 1, msg: '取消订阅失败' }
+    }
   })
 
   /* 选择背景图片 */

@@ -108,7 +108,49 @@ function disconnectRemoteMqtt ({projId, clientID}) {
   }
 }
 
+/* 新增/修改订阅 */
+function subscribeRemoteTopic ({projId, topic}) {
+  const client = clientGroup[projId]?.client;
+  if (client) {
+    // // 检查是否已订阅该主题
+    // if (client.options.subscriptions && client.options.subscriptions.some(sub => sub.topic === topic.topic)) {
+    //   console.log(`Client already subscribed to ${topic.topic}`);
+    //   return;
+    // }
+    // 订阅新主题, 同名新覆盖旧
+    client.subscribe(topic.topic, {qos: topic.qos}, (err) => {
+      if (err) {
+        console.error(`Client failed to subscribe to ${topic.topic} - QOS${topic.qos}:`, err);
+      } else {
+        console.log(`Client subscribed to ${topic.topic} - QOS${topic.qos}`);
+      }
+    });
+  } else {
+    console.log(`subscribeRemoteTopic - Client not found for project ${projId}`);
+  }
+}
+
+/* 取消订阅 */
+function unsubscribeRemoteTopic ({projId, topic}) {
+  const client = clientGroup[projId]?.client;
+  console.log(clientGroup);
+  if (client) {
+    client.unsubscribe(topic, (err) => {
+      if (err) {
+        console.error(`Client failed to unsubscribe from ${topic}:`, err);
+      } else {
+        console.log(`Client unsubscribed from ${topic}`);
+      }
+    });
+  } else {
+    console.error(`unsubscribeRemoteTopic - Client not found for project ${projId}`);
+  }
+
+}
+
 export default {
   connectRemoteMqtt,
-  disconnectRemoteMqtt
+  disconnectRemoteMqtt,
+  subscribeRemoteTopic,
+  unsubscribeRemoteTopic
 }

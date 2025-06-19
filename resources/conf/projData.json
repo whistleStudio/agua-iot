@@ -5,7 +5,7 @@
       "name": "aaaa",
       "mode": "local",
       "clientID": "",
-      "ip": "169.254.108.148",
+      "ip": "192.168.0.103",
       "port": 1883,
       "username": "",
       "password": "",
@@ -21,12 +21,6 @@
           "topic": "customtopic/#wewqeqw",
           "qos": 0,
           "color": "#F97860",
-          "alias": ""
-        },
-        {
-          "topic": "test/str",
-          "qos": 0,
-          "color": "#2C6F19",
           "alias": ""
         },
         {
@@ -126,7 +120,7 @@
       "connected": 0,
       "subTopics": [
         {
-          "topic": "test/sss",
+          "topic": "test/abc",
           "qos": 0,
           "color": "#51271A",
           "alias": ""

@@ -161,6 +161,8 @@ import ProjModal from '../components/ProjModal.vue'
 import SubscriptionModal from '../components/SubscriptionModal.vue';
 import bus from '../utils/bus'
 import { cloneDeep } from "lodash-es";
+import mqtt from 'mqtt';
+import { time } from 'echarts';
 
 const emit = defineEmits(['alert'])
 
@@ -208,7 +210,7 @@ const subModalTitle = computed(() =>
 )
 
 /* 新增项目-确定 或 编辑项目-确定 */
-function handleProjModalOk(newProj) {
+async function handleProjModalOk(newProj) {
   isProjModalOpen.value = false
   if (!newProj.name.trim()) return
 
@@ -217,15 +219,36 @@ function handleProjModalOk(newProj) {
     const idx = projList.findIndex(p => p.id === editProjForm.value.id)
     if (idx !== -1) {
       let isChangeFlag = false
+      const oldProj = cloneDeep(projList[idx]) // 深拷贝原项目
       Object.keys(newProj).forEach(key => {
         if (newProj[key] !== projList[idx][key]) {
           isChangeFlag = true
         }
         projList[idx][key] = newProj[key]
       })
-      // 连接直接断开
-      if (projList[idx].connected === 2 && isChangeFlag) { disconnectRemoteMqtt({type:"warning", msg: "配置更改，请重新连接"}) }
-      bus.changeProjInfo()
+      // 连接且发生变化时，断开连接
+      if (oldProj.connected === 2 && isChangeFlag) disconnectRemoteMqtt({type:"warning", msg: "配置更改，请重新连接"}) 
+      if (isChangeFlag) {
+        if (newProj.mode === 'remote' && oldProj.mode === 'local') { // 本地切远程，删除原本地项目订阅
+          window.electron.ipcRenderer.send("r:deleteProj", JSON.stringify(oldProj)) 
+        } else if (newProj.mode === 'local' && oldProj.mode === 'remote') { // 远程切本地，增加本地项目订阅
+          try {
+            let isOk = true
+            for (const topic of oldProj.subTopics) {
+              const res = await window.electron.ipcRenderer.invoke('r:subscribeMqttTopic', {
+                topic: JSON.stringify(topic),
+                mqttMode: 'local',
+                projId: oldProj.id,
+              })
+              if (res.err) isOk = false
+            }
+            if (!isOk) bus.emit("showCustomAlert", { type: "error", msg: "部分主题订阅失败，请重启应用" })
+          } catch (error) {
+            console.error("handleProjModalOk error:", error)
+          }
+        }
+        bus.changeProjInfo()
+      }
     }
     editProjForm.value = null
     return
@@ -368,7 +391,7 @@ function disconnectRemoteMqtt({type="success", msg="已断开连接", projId=act
     console.log("disconnectRemoteMqtt res:", res, type, msg)
     if (res.err) {
       bus.emit("showCustomAlert", { type: "error", msg: res.msg })
-    } else bus.emit("showCustomAlert", { type: type, msg: msg })
+    } else if(activeProj.value.mode === "remote") bus.emit("showCustomAlert", { type: type, msg: msg })
     activeProj.value.connected = 0
   })
 }
@@ -395,7 +418,7 @@ async function handleSubModalOk(newSub) {
     if (editSubIndex.value === -1) {
       const index = activeProj.value.subTopics.findIndex((item) => item.topic === newSub.topic)
       if (index === -1) {
-        const res = await subscribeMqttTopic(JSON.stringify(newSub))
+        const res = await subscribeMqttTopic(newSub)
         if (res.err) {
           bus.emit("showCustomAlert", { type: "error", msg: res.msg })
           return
@@ -425,7 +448,7 @@ async function handleSubModalOk(newSub) {
 // 订阅主题
 function subscribeMqttTopic(topic) {
   return window.electron.ipcRenderer.invoke('r:subscribeMqttTopic', {
-    topic, 
+    topic: JSON.stringify(topic), 
     mqttMode: activeProj.value.mode,
     projId: activeProj.value.id,
   })
@@ -474,7 +497,7 @@ function blurPubTopic() {
   if (pubTopic.value.topic === '') return
   const index = activeProj.value.pubTopics.findIndex((item) => item.topic === pubTopic.value.topic && item.qos === pubTopic.value.qos && item.retain === pubTopic.value.retain)
   if (index === -1) {
-    if (activeProj.value.pubTopics.length > 9) {
+    if (activeProj.value.pubTopics.length > 10) {
       activeProj.value.pubTopics.shift()
     }
     activeProj.value.pubTopics.push(cloneDeep(pubTopic.value))
@@ -485,19 +508,25 @@ function blurPubTopic() {
 /* 发布消息 */
 function handleSend() {
   if (pubTopic.value.topic === '' || pubMsg.value.payload === '' || activeProjID.value === -999) return
+  const mqttMode = activeProj.value.mode
+  if (mqttMode === 'remote' && activeProj.value.connected !== 2) {
+    emit("alert", { type: "warning", msg: "请先连接远程MQTT服务器", time: 1500})
+    return
+  }
   window.electron.ipcRenderer.invoke('r:publishMqtt', {
     packet: {
       ...pubTopic.value,
       payload: pubMsg.value.payload,
     },
-    mqttMode: activeProj.value.mode,
+    mqttMode,
     projId: activeProj.value.id,
   })
   .then((res) => {
     if (res.err) {
       emit("alert", { type: "error", msg: res.msg })
     } else {
-      const time = new Date().toISOString().replace('T', ' ').replace('Z', '')
+      // 转为东8区时间
+      const time = new Date(Date.now() + 8 * 3600000).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
       activeProj.value.cache.push({ type: 1, time, topic: pubTopic.value.topic, qos: pubTopic.value.qos, content: pubMsg.value.payload, color: '#fff' })
       bus.changeProjInfo()
     }

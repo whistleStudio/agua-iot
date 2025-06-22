@@ -44,15 +44,20 @@
           "topic": "sfsdfsdfd/1",
           "qos": 0,
           "retain": false
+        },
+        {
+          "topic": "a",
+          "qos": 0,
+          "retain": false
         }
       ],
       "cache": [
         {
           "type": 1,
-          "time": "2025-05-21 09:22:34.767",
-          "topic": "sfsdfsdfd/1",
+          "time": "2025-06-22 14:11:36",
+          "topic": "ssss",
           "qos": 0,
-          "content": "hello ha",
+          "content": "a",
           "color": "#fff"
         }
       ],
@@ -120,8 +125,39 @@
           "alias": ""
         }
       ],
-      "pubTopics": [],
-      "cache": [],
+      "pubTopics": [
+        {
+          "topic": "test/abc",
+          "qos": 0,
+          "retain": false
+        }
+      ],
+      "cache": [
+        {
+          "type": 1,
+          "time": "2025-06-22 14:36:04",
+          "topic": "test/abc",
+          "qos": 0,
+          "content": "111",
+          "color": "#fff"
+        },
+        {
+          "type": 1,
+          "time": "2025-06-22 14:37:02",
+          "topic": "test/abc",
+          "qos": 0,
+          "content": "111",
+          "color": "#fff"
+        },
+        {
+          "type": 1,
+          "time": "2025-06-22 14:37:21",
+          "topic": "test/abc",
+          "qos": 0,
+          "content": "111",
+          "color": "#fff"
+        }
+      ],
       "canvasCache": {
         "layout": {
           "theme": "light",
@@ -139,20 +175,20 @@
       "mqttMode": "remote"
     },
     {
-      "id": 1750342517828,
-      "name": "bbb",
-      "mode": "local",
-      "clientID": "",
-      "ip": "169.254.108.148",
-      "port": 1883,
-      "username": "",
-      "password": "",
+      "id": 1750570395446,
+      "name": "whistle/12",
+      "mode": "remote",
+      "clientID": "whistle/1",
+      "ip": "iot.cfunworld.com",
+      "port": "1883",
+      "username": "abao",
+      "password": "mlh52S7prq",
       "connected": 0,
       "subTopics": [
         {
-          "topic": "test/ab",
-          "qos": 0,
-          "color": "#C51988",
+          "topic": "test/ccc",
+          "qos": 1,
+          "color": "#AF8558",
           "alias": ""
         }
       ],
@@ -171,7 +207,8 @@
           }
         },
         "rawComponents": []
-      }
+      },
+      "mqttMode": "remote"
     }
   ]
 }

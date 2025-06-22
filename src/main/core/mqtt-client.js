@@ -99,6 +99,7 @@ function disconnectRemoteMqtt ({projId, clientID}) {
     client.removeListener('message', clientGroup[projId].onMessageHandle); // 移除消息监听
     client.removeListener('error', clientGroup[projId].onErrorHandle); // 移除错误监听
     client.end(); // 关闭连接
+    console.log(`remote Client ${clientID} removed`);
   }
   if (clientGroup.hasOwnProperty(projId)) {
     delete clientGroup[projId]; // 从客户端组中删除
@@ -116,10 +117,10 @@ function subscribeRemoteTopic ({projId, topic}) {
       // 订阅新主题
       client.subscribe(topic.topic, {qos: topic.qos}, (err) => {
         if (err) {
-          console.error(`Client failed to subscribe to ${topic.topic} - QOS${topic.qos}:`, err);
+          console.error(`remote Client failed to subscribe to ${topic.topic} - QOS${topic.qos}:`, err);
           rej({err: 1, msg: `订阅主题失败`});
         } else {
-          console.log(`Client subscribed to ${topic.topic} - QOS${topic.qos}`);
+          console.log(`remote Client subscribed to ${topic.topic} - QOS${topic.qos}`);
           rsv({err: 0, msg: '订阅成功'});
         }
       });
@@ -137,20 +138,37 @@ function unsubscribeRemoteTopic ({projId, topic}) {
   if (client) {
     client.unsubscribe(topic, (err) => {
       if (err) {
-        console.log(`Client failed to unsubscribe from ${topic}:`, err);
+        console.log(`remote Client failed to unsubscribe from ${topic}:`, err);
       } else {
-        console.log(`Client unsubscribed from ${topic}`);
+        console.log(`remote Client unsubscribed from ${topic}`);
       }
     });
   } else {
     console.log(`unsubscribeRemoteTopic - Client not found for project ${projId}`);
   }
+}
 
+
+/* 发布主题 */
+function publishRemoteTopic({packet, projId}) {
+  const client = clientGroup[projId]?.client;
+  if (client) {
+    client.publish(packet.topic, packet.payload, {qos: packet.qos, retain: packet.retain}, (err) => {
+      if (err) {
+        console.error(`remote Client failed to publish to ${packet.topic}:`, err);
+      } else {
+        console.log(`remote Client published to ${packet.topic}: ${packet.payload}`);
+      }
+    });
+  } else {
+    console.log(`publishRemoteTopic - Client not found for project ${projId}`);
+  }
 }
 
 export default {
   connectRemoteMqtt,
   disconnectRemoteMqtt,
   subscribeRemoteTopic,
-  unsubscribeRemoteTopic
+  unsubscribeRemoteTopic,
+  publishRemoteTopic  
 }

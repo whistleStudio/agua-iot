@@ -139,6 +139,7 @@ app.whenReady().then(() => {
   ipcMain.handle('r:publishMqtt', (_, payload) => {
     try {
       if (payload.mqttMode == "local") { mqttServer.publishTopic(payload.packet); return {err: 0} }
+      else { mqttClient.publishRemoteTopic(payload); return {err: 0} } 
     } catch (err) { console.log(err); return {err: 1, msg: '发布主题失败'} }
   })
 

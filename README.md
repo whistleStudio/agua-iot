@@ -89,3 +89,12 @@ obj.attr = 2 // watch a 无变化， 因为此时a.value = obj(原先的引用)�
 ## 202506192239
 
 订阅/编辑订阅/删除订阅
+
+## 20250622
+
+项目修改：
+配置变更远程就断开 -> 删除client(自动取消订阅) -> connected重置0；
+remote 变 local -> local增加订阅；
+local 变 remote -> local减少订阅
+
+发布

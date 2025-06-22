@@ -11,11 +11,11 @@ proj.isConnected = 0
 params: projId, clientInfo, subTopics（full）
 local -> remote
 
-- ④ modifySubscription
+- ④ modifySubscription ✔
 modify check topic if already exists
 remote isConnected：add (projId, newTopic, mode) mode - 0删除/1增加/2修改
 
-- ⑤ publish
+- ⑤ publish ✔
 remote isConnected：pub
 
 - ⑥ monitor topic
@@ -39,9 +39,9 @@ remote -> unsubscribeLocal;
 
 - ④ ipcMain handle modifySubscription ✔
 
-- ⑤ ipcMain handle pub
+- ⑤ ipcMain handle pub ✔
 
-- ⑦
+- ⑦ ✔
  # mqttClient
 
  - ① connectRemoteClient ✔
@@ -54,7 +54,9 @@ onMsg: send to renderer
 
 - ④ modifySubscription ✔
 
-- ⑦
+- ⑤ ✔
+
+- ⑦ ✔
 
 
 client异常时断开页面同步

@@ -40,7 +40,7 @@ function subscribeTopic(topic) {
     const deliverfunc = function (packet, cb) {
       console.log('local subscribe: ', packet.topic, packet.qos)
       const topic = packet.topic, qos = packet.qos, payload = packet.payload.toString()
-      const time = new Date().toISOString().replace('T', ' ').replace('Z', '')
+      const time = new Date(Date.now() + 8 * 3600000).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19) // 东8区
       if (mqttCache[topic].dataList.length >= 50) {
         mqttCache[topic].dataList.shift();
       }

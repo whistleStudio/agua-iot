@@ -104,6 +104,12 @@
       font-size: 18px;
       font-weight: 600;
       color: #000;
+      margin-bottom: 0 !important;
+      display: flex;
+      align-items: center;
+      height: 2rem;
+      line-height: 20px !important;
+      img {vertical-align: middle;}
     }
     .header-btns {
       display: flex;

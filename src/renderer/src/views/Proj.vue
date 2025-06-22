@@ -69,8 +69,17 @@
         </h1>
         <div class="header-btns">
           <div @click="clickReadingBtn" class="reading-btn">
-            <img v-if="isReading" :src="getImgPath('stop.svg')" alt="">
-            <img v-else :src="getImgPath('start.svg')" alt="">
+            <!-- <img v-if="isReading" :src="getImgPath('stop.svg')" alt="">
+            <img v-else :src="getImgPath('start.svg')" alt=""> -->
+            <!-- <template v-if="activeProjID !== -999 && activeProj.mode === 'remote'">
+              <img
+                :src="getImgPath(activeProj.connected == 1 ? 'connect_1.gif' : `connect_${activeProj.connected}.svg`)"
+                class="proj-conn-btn"
+                alt="连接状态"
+                @click="toggleRemoteConnection"
+                style="width: 30px; height: 30px; margin-left: 8px; cursor: pointer;"
+              />
+            </template> -->
           </div>
         </div>
       </div>
@@ -161,8 +170,7 @@ import ProjModal from '../components/ProjModal.vue'
 import SubscriptionModal from '../components/SubscriptionModal.vue';
 import bus from '../utils/bus'
 import { cloneDeep } from "lodash-es";
-import mqtt from 'mqtt';
-import { time } from 'echarts';
+
 
 const emit = defineEmits(['alert'])
 

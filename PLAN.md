@@ -60,3 +60,4 @@ onMsg: send to renderer
 
 
 client异常时断开页面同步
+切换proj,chart, actproj保持

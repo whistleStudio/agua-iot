@@ -195,7 +195,7 @@ const initPieDataChangeHandle = () => {
 bus.on('initPieDataChange', initPieDataChangeHandle)
 
 const subTopicDataHandle = ({ topic, qos, payload }) => {
-  if (topic !== props.compProps.topic.topic || qos !== props.compProps.topic.qos) return
+  if (topic !== props.compProps.topic.topic) return
   try {
     const data = payload.replace(/\s+/g, '').split(/,|，/)
     props.compProps.data.forEach((seg, idx) => {

@@ -240,7 +240,7 @@ bus.on('liquidfillChartWHChange', liquidfillChartWHChangeHandle)
 
 // 订阅数据：每次接收一个数值，覆盖value
 const subTopicDataHandle = ({ topic, qos, payload, time }) => {
-  if (topic !== props.compProps.topic.topic || qos !== props.compProps.topic.qos) return
+  if (topic !== props.compProps.topic.topic) return
   try {
     let val = parseFloat(payload)
     if (!isNaN(val)) {

@@ -4,7 +4,7 @@
     <a-layout-header v-show="!isFullscreen" class="visual-editor__header">
       <div class="visual-editor__header-left">
         <a-dropdown>
-          <a class="ant-dropdown-link" @click.prevent>
+          <a class="ant-dropdown-link" @click.prevent style="font-size: 18px; margin-left: 2px;">
             {{ activeProj.name }} ▼
           </a>
           <template #overlay>
@@ -19,10 +19,19 @@
       <div class="visual-editor__header-right">
         <!-- <a-badge status="error" />
         <span class="visual-editor__header-connection">连接失败</span> -->
-        <div @click="clickReadingBtn" class="reading-btn">
+        <!-- <div @click="clickReadingBtn" class="reading-btn">
           <img v-if="isStart" :src="getImgPath('stop.svg')" alt="">
           <img v-else :src="getImgPath('start.svg')" alt="">
-        </div> 
+        </div>  -->
+        <template v-if="activeProjIdx !== -1 && activeProj.mode === 'remote'">
+          <img
+            :src="getImgPath(activeProj.connected == 1 ? 'connect_1.gif' : `connect_${activeProj.connected}.svg`)"
+            class="proj-conn-btn"
+            alt="连接状态"
+            @click="toggleRemoteConnection"
+            style="width: 40px; height: 40px; margin-right: 8px; cursor: pointer;"
+          />
+        </template>
         <a-button type="primary" shape="round" class="visual-editor__header-fullscreen"
         @click="isFullscreen ? exitFullscreen() : enterFullscreen()">
           <template #icon></template>
@@ -135,7 +144,7 @@ const componentMap = {
   // ...可继续扩展其它组件
 };
 
-const isStart = ref(false), isWindowscreen = ref(true);
+// const isStart = ref(false);
 const menu = ref(chartCfg.menu);
 const projList = reactive(bus.projList);
 // 直接从 bus 中获取和设置 activeProjIdx
@@ -315,24 +324,24 @@ function getImgPath(imgName) {
   return new URL(`../assets/img/${imgName}`, import.meta.url).href
 }
 
-function clickReadingBtn() {
-  isStart.value = !isStart.value;
-  bus.emit("showCustomAlert", { type: "info", msg: isStart.value ? "开始监听消息" : "暂停监听消息", time: 1500 });
-}
+// function clickReadingBtn() {
+//   isStart.value = !isStart.value;
+//   bus.emit("showCustomAlert", { type: "info", msg: isStart.value ? "开始监听消息" : "暂停监听消息", time: 1500 });
+// }
 
-// 监听mqtt数据
-window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
-  const { topic, qos, payload, time } = data
-  if (!isStart.value) return
-  bus.emit('subTopicData', data)
-})
+// // 监听mqtt数据
+// window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
+//   const { topic, qos, payload, time } = data
+//   if (!isStart.value) return
+//   bus.emit('subTopicData', data)
+// })
 
 // 新增：全屏状态
 const isFullscreen = ref(false);
 
 // 全屏切换
 function enterFullscreen() {
-  bus.emit("showCustomAlert", { type: "info", msg: "ESC键或双击画布区域 退出全屏模式; Ctrl+P开始/暂停监听消息", time: 3000 });
+  bus.emit("showCustomAlert", { type: "info", msg: "ESC键或双击画布区域 退出全屏模式; Ctrl+P连接/断开远程服务端", time: 3000 });
   isFullscreen.value = true;
   bus.emit('enterFullscreen'); // 通知总线进入全屏状态
   // 监听esc退出
@@ -359,13 +368,85 @@ function onEscExitFullscreen(e) {
 // 开始/暂停接收消息快捷键
 function onToggleReading(e) {
   if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
-    e.preventDefault();
-    isStart.value = !isStart.value;
-    bus.emit("showCustomAlert", { type: "info", msg: isStart.value ? "开始监听消息" : "暂停监听消息", time: 1500 });
+    e.preventDefault()
+    toggleRemoteConnection()
+    // isStart.value = !isStart.value;
+    // bus.emit("showCustomAlert", { type: "info", msg: isStart.value ? "开始监听消息" : "暂停监听消息", time: 1500 });
   }
 }
 
 document.addEventListener('keydown', onToggleReading);
+
+
+/* 切换remote项目连接状态 */
+function toggleRemoteConnection() {
+  if (activeProjIdx.value === -1) return
+  if (activeProj.value.mode !== 'remote') return
+  if (activeProj.value.connected === 1) return 
+  if (activeProj.value.connected < 2) {
+    window.electron.ipcRenderer.invoke('r:connectRemoteMqtt', JSON.stringify({
+      projId: activeProj.value.id,
+      clientID: activeProj.value.clientID,
+      ip: activeProj.value.ip,
+      port: activeProj.value.port,
+      username: activeProj.value.username,
+      password: activeProj.value.password,
+      subTopics: activeProj.value.subTopics
+    }))
+    .then((res) => {
+      if (res.err) {
+        bus.emit("showCustomAlert", { type: "error", msg: res.msg, time: 1500 })
+        activeProj.value.connected = 0
+      } else {
+        activeProj.value.connected = 2
+        bus.emit("showCustomAlert", { type: "success", msg: "连接成功" })
+      }
+    })
+    return
+  } else {
+    disconnectRemoteMqtt()
+  }
+}
+
+// 断开连接
+function disconnectRemoteMqtt({type="success", msg="已断开连接", projId=activeProj.value.id, clientID=activeProj.value.clientID}={}) {
+  // 断开连接
+  window.electron.ipcRenderer.invoke('r:disconnectRemoteMqtt', {
+    projId,
+    clientID,
+  })
+  .then((res) => {
+    console.log("disconnectRemoteMqtt res:", res, type, msg)
+    if (res.err) {
+      bus.emit("showCustomAlert", { type: "error", msg: res.msg })
+    } else if(activeProj.value.mode === "remote") bus.emit("showCustomAlert", { type: type, msg: msg })
+    activeProj.value.connected = 0
+  })
+}
+
+
+/* 开始/暂停监听 */
+// 处理本地服务订阅消息内容, 仅激活项目
+window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
+  if (activeProjIdx.value === -1 || activeProj.value.mode === "remote") return
+  bus.emit('subTopicData', data)
+})
+// 处理远程服务订阅消息内容
+window.electron.ipcRenderer.on("m:mqttRemoteData", (_, data) => {
+  if (activeProjIdx.value === -1) return
+  const proj = projList.find((item) => item.id === data.projId)
+  if (!proj || proj.mode !== 'remote' || proj.connected !== 2) return
+  bus.emit('subTopicData', data)
+})
+
+/* 处理异常断开 */
+window.electron.ipcRenderer.on("m:mqttRemoteErrDisconnected", (_, {projId}) => {
+  const proj = projList.find((item) => item.id === projId)
+  if (!proj || proj.mode !== 'remote' || proj.connected === 0) return
+  proj.connected = 0 // 设置为连接中状态
+  bus.emit("showCustomAlert", { type: "error", msg: `项目${proj.name}-clientID:${proj.clientID}异常断开` })
+  bus.changeProjInfo()
+})
 
 
 /* ----------------------------------------------------- */
@@ -421,7 +502,9 @@ onBeforeUnmount(() => {
   document.removeEventListener('mousemove', onDrag);
   document.removeEventListener('mouseup', stopDrag);
   // 清理mqtt数据监听
-  window.electron.ipcRenderer.removeAllListeners("m:mqttData");
+  window.electron.ipcRenderer.removeAllListeners("m:mqttData")
+  window.electron.ipcRenderer.removeAllListeners("m:mqttRemoteData")
+  window.electron.ipcRenderer.removeAllListeners("m:mqttRemoteErrDisconnected")
   // 清理全屏监听
   document.removeEventListener('keydown', onEscExitFullscreen);
   isFullscreen.value = false; // 重置全屏状态
@@ -473,6 +556,10 @@ function showLayoutSettings() {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     z-index: 2;
     flex-shrink: 0;
+    &-left {
+      display: flex;
+      align-items: center;
+    }
     &-right {
       display: flex;
       align-items: center;

@@ -223,7 +223,7 @@ const initDataChangeHandle = () => {
 bus.on('initDataChange', initDataChangeHandle)
 
 const subTopicDataHandle = ({ topic, qos, payload }) => {
-  if (topic != props.compProps.topic.topic || qos != props.compProps.topic.qos) return
+  if (topic != props.compProps.topic.topic) return
   if (props.compProps.isInit) {
     props.compProps.time = []
     props.compProps.data.forEach(line => {

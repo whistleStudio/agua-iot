@@ -247,7 +247,7 @@ const initRadarDataChangeHandle = () => {
 bus.on('initRadarDataChange', initRadarDataChangeHandle)
 
 const subTopicDataHandle = ({ topic, qos, payload, time }) => {
-  if (topic != props.compProps.topic.topic || qos != props.compProps.topic.qos) return
+  if (topic != props.compProps.topic.topic) return
   try {
     const data = processPayload(payload)
     option.value.series[0].data[0].value = data.slice(0, (props.compProps.categories || []).length)

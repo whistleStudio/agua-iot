@@ -227,15 +227,14 @@ const gaugeChartWHChangeHandle = ({ id, newWidth, newHeight }) => {
 bus.on('gaugeChartWHChange', gaugeChartWHChangeHandle)
 
 const subTopicDataHandle = ({ topic, qos, payload }) => {
-  if (topic != props.compProps.topic.topic || qos != props.compProps.topic.qos) return
+  if (topic != props.compProps.topic.topic) return
   try {
     if (props.compProps.isInit) {
       props.compProps.value = 0
       props.compProps.isInit = false
-    } else {
-      const value = parseFloat(payload)
-      props.compProps.value = isNaN(value) ? 0 : value
-    }
+    }       
+    const value = parseFloat(payload)
+    props.compProps.value = isNaN(value) ? 0 : value
     updateOptionData()
   } catch (e) { console.log("gauge sub data err", e); }
 }

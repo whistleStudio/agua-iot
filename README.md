@@ -98,3 +98,9 @@ remote 变 local -> local增加订阅；
 local 变 remote -> local减少订阅
 
 发布
+
+## 202506232226
+
+订阅收到消息后的分发，修正qos，部份图表数据同步问题
+
+废掉isReading, isStart

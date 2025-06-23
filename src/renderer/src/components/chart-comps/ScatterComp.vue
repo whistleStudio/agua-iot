@@ -229,7 +229,7 @@ bus.on('scatterChartWHChange', scatterChartWHChangeHandle)
 
 // 业务数据订阅逻辑（保留原有）
 const subTopicDataHandle = ({ topic, qos, payload, time }) => {
-  if (topic !== props.compProps.topic.topic || qos !== props.compProps.topic.qos) return
+  if (topic !== props.compProps.topic.topic) return
   try {
     if (props.compProps.isInit) {
       // 清空数据
@@ -237,7 +237,7 @@ const subTopicDataHandle = ({ topic, qos, payload, time }) => {
       props.compProps.isInit = false
     }
     // 订阅数据格式：x,y
-    const vals = payload.split(',').map(Number)
+    const vals = payload.split(/,|，/).map(Number)
     if (vals.length === 2 && !vals.some(isNaN)) {
       if (!Array.isArray(props.compProps.value)) props.compProps.value = []
       props.compProps.value.push(vals)

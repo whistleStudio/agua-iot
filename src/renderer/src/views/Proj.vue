@@ -57,7 +57,7 @@
             @click="openEditProjModal"
             style="width: 20px; height: 20px; margin-left: 8px; cursor: pointer;"
           />
-          <template v-if="activeProjID !== -999 && activeProj.mode === 'remote'">
+          <!-- <template v-if="activeProjID !== -999 && activeProj.mode === 'remote'">
             <img
               :src="getImgPath(activeProj.connected == 1 ? 'connect_1.gif' : `connect_${activeProj.connected}.svg`)"
               class="proj-conn-btn"
@@ -65,22 +65,22 @@
               @click="toggleRemoteConnection"
               style="width: 30px; height: 30px; margin-left: 8px; cursor: pointer;"
             />
-          </template>
+          </template> -->
         </h1>
         <div class="header-btns">
-          <div @click="clickReadingBtn" class="reading-btn">
-            <!-- <img v-if="isReading" :src="getImgPath('stop.svg')" alt="">
-            <img v-else :src="getImgPath('start.svg')" alt=""> -->
-            <!-- <template v-if="activeProjID !== -999 && activeProj.mode === 'remote'">
-              <img
-                :src="getImgPath(activeProj.connected == 1 ? 'connect_1.gif' : `connect_${activeProj.connected}.svg`)"
-                class="proj-conn-btn"
-                alt="连接状态"
-                @click="toggleRemoteConnection"
-                style="width: 30px; height: 30px; margin-left: 8px; cursor: pointer;"
-              />
-            </template> -->
-          </div>
+          <template v-if="activeProjID !== -999 && activeProj.mode === 'remote'">
+            <img
+              :src="getImgPath(activeProj.connected == 1 ? 'connect_1.gif' : `connect_${activeProj.connected}.svg`)"
+              class="proj-conn-btn"
+              alt="连接状态"
+              @click="toggleRemoteConnection"
+              style="width: 40px; height: 40px; margin-left: 8px; cursor: pointer;"
+            />
+          </template>
+          <!-- <div @click="clickReadingBtn" class="reading-btn">
+            <img v-if="isReading" :src="getImgPath('stop.svg')" alt="">
+            <img v-else :src="getImgPath('start.svg')" alt="">
+          </div> -->
         </div>
       </div>
       <div class="data-panel">
@@ -187,7 +187,8 @@ const pubMsg = ref({
 
 const messagesRef = ref(null), pubHistoryBtnRef = ref(null)
 
-const isProjModalOpen = ref(false), isSubModalOpen = ref(0), isReading = ref(false)
+const isProjModalOpen = ref(false), isSubModalOpen = ref(0)
+// , isReading = ref(false)
 const activeProjID = ref(-999), hoverSubIndex = ref(-1), hoverPubIndex = ref(-1)
 let projList = reactive([])
 const passform = ref({})
@@ -608,6 +609,8 @@ onBeforeMount(() => {
 
 onBeforeUnmount(() => {
   window.electron.ipcRenderer.removeAllListeners("m:mqttData")
+  window.electron.ipcRenderer.removeAllListeners("m:mqttRemoteData")
+  window.electron.ipcRenderer.removeAllListeners("m:mqttRemoteErrDisconnected")
 })
 </script>
 

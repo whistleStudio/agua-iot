@@ -255,7 +255,7 @@ bus.on('initStackedareaDataChange', initStackedareaDataChangeHandle)
 
 // 监听订阅主题的数据
 const subTopicDataHandle = ({ topic, qos, payload }) => {
-  if (topic != props.compProps.topic.topic || qos != props.compProps.topic.qos) return
+  if (topic != props.compProps.topic.topic) return
   if (props.compProps.isInit) {
     props.compProps.time = []
     props.compProps.categories.forEach(cat => {

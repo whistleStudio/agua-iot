@@ -136,8 +136,7 @@ bus.on('sublabeltextWHChange', sublabeltextWHChangeHandle)
 const subTopicDataHandle = ({ topic, qos, payload }) => {
   if (
     !props.compProps.topic ||
-    topic !== props.compProps.topic.topic ||
-    qos !== props.compProps.topic.qos
+    topic !== props.compProps.topic.topic
   ) return
   props.compProps.value = payload
   value.value = payload

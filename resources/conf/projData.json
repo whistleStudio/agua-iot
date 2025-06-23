@@ -5,7 +5,7 @@
       "name": "aaaa",
       "mode": "local",
       "clientID": "",
-      "ip": "192.168.0.101",
+      "ip": "169.254.108.148",
       "port": 1883,
       "username": "",
       "password": "",
@@ -172,6 +172,29 @@
             },
             "top": 24.84171425064045,
             "left": 225.0141813207174
+          },
+          {
+            "id": 1750684609839.5593,
+            "type": "gauge",
+            "props": {
+              "title": "仪表盘",
+              "topic": {
+                "topic": "testtopic/num1",
+                "qos": 0,
+                "color": "#f2a145",
+                "alias": ""
+              },
+              "width": 300,
+              "height": 250,
+              "hideBg": false,
+              "min": 0,
+              "max": 100,
+              "unit": "",
+              "isInit": true,
+              "value": ""
+            },
+            "top": 167.8543831412925,
+            "left": 179.04898588388232
           }
         ]
       }
@@ -219,13 +242,60 @@
             "primaryColor": "rgb(35, 138, 255)"
           }
         },
-        "rawComponents": []
+        "rawComponents": [
+          {
+            "id": 1750683534428.3574,
+            "type": "sublabeltext",
+            "props": {
+              "title": "标签文本显示",
+              "topic": {
+                "topic": "test/ab",
+                "qos": 2,
+                "color": "#A31B05",
+                "alias": ""
+              },
+              "width": 247,
+              "height": 120,
+              "labelText": "标签",
+              "labelColor": "#d2694a",
+              "unitText": "℃",
+              "unitColor": "#ffd590",
+              "value": "",
+              "isInit": true,
+              "hideBg": false
+            },
+            "top": 30.016669083322995,
+            "left": 161.7849207757655
+          },
+          {
+            "id": 1750687109433.544,
+            "type": "liquidfill",
+            "props": {
+              "title": "水波图",
+              "topic": {
+                "topic": "test/ab",
+                "qos": 2,
+                "color": "#A31B05",
+                "alias": ""
+              },
+              "width": 200,
+              "height": 200,
+              "hideBg": false,
+              "colorMain": "#4caafe",
+              "total": 100,
+              "value": "",
+              "isInit": true
+            },
+            "top": 297.1162214103816,
+            "left": 131.3016289529487
+          }
+        ]
       },
       "mqttMode": "remote"
     },
     {
       "id": 1750570395446,
-      "name": "whistle/12",
+      "name": "whistle/1",
       "mode": "remote",
       "clientID": "whistle/1",
       "ip": "iot.cfunworld.com",

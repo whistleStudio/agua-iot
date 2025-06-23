@@ -109,7 +109,10 @@ function addLine() {
     if (idx2 !== -1) defaultColorList.splice(idx2, 1)
   })
   if (lineList.value.length < 5) {
-    lineList.value.push({name: defaultNameList[0], color: defaultColorList[0], logs: []})
+    const logs = []
+    const times = attrData.value.time || []
+    for(let i = 0; i < times.length; i++) logs.push('NaN')
+    lineList.value.push({name: defaultNameList[0], color: defaultColorList[0], logs})
     bus.emit('initDataChange')
   }
 }

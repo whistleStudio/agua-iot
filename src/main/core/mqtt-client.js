@@ -5,6 +5,7 @@ const clientGroup = {
 }; 
 
 const clientIdList = []
+const browserWindows = [] // 用于存储浏览器窗口引用
 
 // // 连接成功回调
 // client.on('connect', () => {
@@ -71,15 +72,30 @@ function connectRemoteMqtt({projId, ip, port, clientID, username, password, subT
     // 回调：接收消息
     const onMessageHandle = (topic, message, packet) => {
       console.log(`Client ${clientID} received message on ${topic} QOS${packet.qos}: ${message.toString()}`);
+      const time = new Date(Date.now() + 8 * 3600000).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19) // 东8区
+      const payload = message.toString();
       // 这里可以添加处理接收到消息的逻辑
+      if (browserWindows.length) {
+        for (const win of browserWindows) {
+          win.webContents.send('m:mqttRemoteData', { projId, topic, qos: packet.qos, payload, time })
+        }
+      }
     }
 
     // 回调：异常
     const onErrorHandle = (err) => {
       console.error(`Client ${clientID} connection error:`, err);
       console.log(err.message);
-      disconnectRemoteMqtt({projId, clientID, client}); // 断开连接
+      disconnectRemoteMqtt({projId, clientID, initiated: false}); // 断开连接
       rej({err: 1, msg: `连接失败: ${err.message}`});
+    }
+
+    // 回调: 断开
+    const onCloseHandle = () => {
+      console.log(`Client ${clientID} disconnected`);
+      setTimeout(() => {
+        disconnectRemoteMqtt({projId, clientID, initiated: false}); // 断开连接
+      }, 500); // 延时0.5秒后断开连接，避免重复触
     }
         
     clientGroup[projId] = {client, onConnectHandle, onMessageHandle, onErrorHandle}; // 存储客户端
@@ -88,24 +104,30 @@ function connectRemoteMqtt({projId, ip, port, clientID, username, password, subT
     client.on('connect', onConnectHandle);
     client.on('message', onMessageHandle);
     client.on('error', onErrorHandle);
+    client.on('close', onCloseHandle);
   })
 }
 
 // 断开事件
-function disconnectRemoteMqtt ({projId, clientID}) {
+function disconnectRemoteMqtt ({projId, clientID, initiated = true}) {
   const client = clientGroup[projId]?.client;
-  if (client) {
-    client.removeListener('connect', clientGroup[projId].onConnectHandle); // 移除连接成功监听
-    client.removeListener('message', clientGroup[projId].onMessageHandle); // 移除消息监听
-    client.removeListener('error', clientGroup[projId].onErrorHandle); // 移除错误监听
-    client.end(); // 关闭连接
-    console.log(`remote Client ${clientID} removed`);
-  }
+  if (!client) return
+  client.removeListener('connect', clientGroup[projId].onConnectHandle); // 移除连接成功监听
+  client.removeListener('message', clientGroup[projId].onMessageHandle); // 移除消息监听
+  client.removeListener('error', clientGroup[projId].onErrorHandle); // 移除错误监听
+  client.end(); // 关闭连接
+  console.log(`remote Client ${clientID} removed`);
   if (clientGroup.hasOwnProperty(projId)) {
     delete clientGroup[projId]; // 从客户端组中删除
   }
   if (clientIdList.includes(clientID)) {
     clientIdList.splice(clientIdList.indexOf(clientID), 1); // 从客户端ID列表中删除
+  }
+  if (browserWindows.length && !initiated) { // 主动断开不触发异常断开事件
+    for (const win of browserWindows) {
+      console.log("trigger remote disconnect event")
+      win.webContents.send('m:mqttRemoteErrDisconnected', { projId })
+    }
   }
 }
 
@@ -166,6 +188,7 @@ function publishRemoteTopic({packet, projId}) {
 }
 
 export default {
+  browserWindows,
   connectRemoteMqtt,
   disconnectRemoteMqtt,
   subscribeRemoteTopic,

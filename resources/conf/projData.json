@@ -5,7 +5,7 @@
       "name": "aaaa",
       "mode": "local",
       "clientID": "",
-      "ip": "192.168.3.49",
+      "ip": "192.168.0.101",
       "port": 1883,
       "username": "",
       "password": "",
@@ -49,6 +49,11 @@
           "topic": "a",
           "qos": 0,
           "retain": false
+        },
+        {
+          "topic": "testtopic/num1",
+          "qos": 0,
+          "retain": false
         }
       ],
       "cache": [
@@ -58,6 +63,70 @@
           "topic": "ssss",
           "qos": 0,
           "content": "a",
+          "color": "#fff"
+        },
+        {
+          "type": 0,
+          "time": "2025-06-23 17:18:32",
+          "topic": "testtopic/num1",
+          "qos": 0,
+          "content": "a",
+          "color": "#f2a145"
+        },
+        {
+          "type": 1,
+          "time": "2025-06-23 17:18:32",
+          "topic": "testtopic/num1",
+          "qos": 0,
+          "content": "a",
+          "color": "#fff"
+        },
+        {
+          "type": 0,
+          "time": "2025-06-23 17:18:37",
+          "topic": "testtopic/num1",
+          "qos": 0,
+          "content": "b",
+          "color": "#f2a145"
+        },
+        {
+          "type": 1,
+          "time": "2025-06-23 17:18:37",
+          "topic": "testtopic/num1",
+          "qos": 0,
+          "content": "b",
+          "color": "#fff"
+        },
+        {
+          "type": 0,
+          "time": "2025-06-23 17:18:41",
+          "topic": "testtopic/num1",
+          "qos": 1,
+          "content": "b",
+          "color": "#f2a145"
+        },
+        {
+          "type": 1,
+          "time": "2025-06-23 17:18:41",
+          "topic": "testtopic/num1",
+          "qos": 1,
+          "content": "b",
+          "color": "#fff"
+        },
+        {
+          "type": 0,
+          "time": "2025-06-23 17:19:08",
+          "topic": "testtopic/num1",
+          "qos": 0,
+          "content": "b",
+          "color": "#f2a145"
+        },
+        {
+          "type": 1,
+          "time": "2025-06-23 17:19:08",
+          "topic": "testtopic/num1",
+          "qos": 0,
+          "content": "b",
           "color": "#fff"
         }
       ],
@@ -120,7 +189,7 @@
       "subTopics": [
         {
           "topic": "test/ab",
-          "qos": 0,
+          "qos": 2,
           "color": "#A31B05",
           "alias": ""
         }
@@ -130,34 +199,14 @@
           "topic": "test/abc",
           "qos": 0,
           "retain": false
-        }
-      ],
-      "cache": [
-        {
-          "type": 1,
-          "time": "2025-06-22 14:36:04",
-          "topic": "test/abc",
-          "qos": 0,
-          "content": "111",
-          "color": "#fff"
         },
         {
-          "type": 1,
-          "time": "2025-06-22 14:37:02",
-          "topic": "test/abc",
+          "topic": "testtopic/num1",
           "qos": 0,
-          "content": "111",
-          "color": "#fff"
-        },
-        {
-          "type": 1,
-          "time": "2025-06-22 14:37:21",
-          "topic": "test/abc",
-          "qos": 0,
-          "content": "111",
-          "color": "#fff"
+          "retain": false
         }
       ],
+      "cache": [],
       "canvasCache": {
         "layout": {
           "theme": "light",

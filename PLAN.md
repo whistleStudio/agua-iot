@@ -59,5 +59,5 @@ onMsg: send to renderer
 - ⑦ ✔
 
 
-client异常时断开页面同步
+client异常时断开页面同步 ✔
 切换proj,chart, actproj保持

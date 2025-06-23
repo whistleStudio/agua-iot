@@ -549,14 +549,42 @@ function emptyCache() {
 }
 
 /* 开始/暂停监听 */
-function clickReadingBtn() {
-  isReading.value = !isReading.value
-}
+// function clickReadingBtn() {
+//   isReading.value = !isReading.value
+// }
+// 处理本地服务订阅消息内容
 window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
+  // if (activeProjID.value === -999) return
+  const localProjList = projList.filter((item) => item.mode === 'local')
+  if (localProjList.length === 0) return
   const { topic, qos, payload, time } = data
-  if (activeProjID.value === -999 || !isReading.value) return
-  const index = activeProj.value.subTopics.findIndex((item) => item.topic === topic)
-  activeProj.value.cache.push({ type: 0, time, topic, qos, content: payload, color: activeProj.value.subTopics[index].color })
+  localProjList.forEach((proj) => {
+    if (proj.subTopics.some((item) => item.topic === topic)) {
+      proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+    }
+  })
+  bus.changeProjInfo()
+  // if (activeProj.value.mode === 'remote' && activeProj.value.connected !== 2) return
+  // const index = activeProj.value.subTopics.findIndex((item) => item.topic === topic)
+  // activeProj.value.cache.push({ type: 0, time, topic, qos, content: payload, color: activeProj.value.subTopics[index].color })
+  // bus.changeProjInfo()
+})
+// 处理远程服务订阅消息内容
+window.electron.ipcRenderer.on("m:mqttRemoteData", (_, data) => {
+  // if (activeProjID.value === -999) return
+  const proj = projList.find((item) => item.id === data.projId)
+  const { topic, qos, payload, time } = data
+  if (!proj || proj.mode !== 'remote' || proj.connected !== 2) return
+  proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+  bus.changeProjInfo()
+})
+
+/* 处理异常断开 */
+window.electron.ipcRenderer.on("m:mqttRemoteErrDisconnected", (_, {projId}) => {
+  const proj = projList.find((item) => item.id === projId)
+  if (!proj || proj.mode !== 'remote' || proj.connected === 0) return
+  proj.connected = 0 // 设置为连接中状态
+  bus.emit("showCustomAlert", { type: "error", msg: `项目${proj.name}-clientID:${proj.clientID}异常断开` })
   bus.changeProjInfo()
 })
 

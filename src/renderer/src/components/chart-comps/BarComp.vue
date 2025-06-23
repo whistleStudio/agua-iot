@@ -253,7 +253,7 @@ const initBarDataChangeHandle = () => {
 bus.on('initBarDataChange', initBarDataChangeHandle)
 
 const subTopicDataHandle = ({ topic, qos, payload, time }) => {
-  if (topic != props.compProps.topic.topic || qos != props.compProps.topic.qos) return
+  if (topic != props.compProps.topic.topic) return
   if (props.compProps.isInit) {
     props.compProps.time = []
     props.compProps.categories.forEach(cat => {

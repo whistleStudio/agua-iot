@@ -7,7 +7,6 @@ import mqttClient from './core/mqtt-client'
 import configUrl from '../../resources/conf/config.json?commonjs-external&asset'
 import projDataUrl from '../../resources/conf/projData.json?commonjs-external&asset'
 import fs from 'fs'
-import mqtt from 'mqtt'
 
 let config = {}, projData = {}
 init() // 初始化
@@ -47,6 +46,7 @@ function createWindow() {
 
   // 增加mqtt通讯的渲染进程窗口
   mqttServer.browserWindows.push(mainWindow)
+  mqttClient.browserWindows.push(mainWindow)
 
 }
 

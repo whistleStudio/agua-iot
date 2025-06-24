@@ -1,4 +1,3 @@
-import cloneDeep from 'lodash/cloneDeep'
 const events = {}
 
 const bus = {
@@ -59,13 +58,24 @@ const bus = {
   /* 发布数据 */
   pubTopicData(compProps, payload) {
     if (!compProps.topic || !compProps.topic.topic) { this.emit("showCustomAlert", { type: "warning", msg: "请选择一个主题" }); return; }
+    if (this.projList.length === 0 || this.activeProjIdx < 0) return
+    const activeProj = this.projList[this.activeProjIdx]
     window.electron.ipcRenderer.invoke('r:publishMqtt', {
-      ...compProps.topic,
-      payload
+      packet: {
+        ...compProps.topic,
+        payload,
+      },
+      mqttMode: activeProj.mode || "local",
+      projId: activeProj.id
     })
     .then((res) => {
       if (res.err) {
         this.emit("alert", { type: "error", msg: res.msg })
+      } else {
+        // 转为东8区时间
+        const time = new Date(Date.now() + 8 * 3600000).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19);
+        activeProj.cache.push({ type: 1, time, topic: compProps.topic.topic, qos: compProps.topic.qos, content: payload, color: '#fff' })
+        this.changeProjInfo()
       }
     })
   }

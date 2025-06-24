@@ -5,7 +5,7 @@
       "name": "aaaa",
       "mode": "local",
       "clientID": "",
-      "ip": "169.254.108.148",
+      "ip": "192.168.0.104",
       "port": 1883,
       "username": "",
       "password": "",
@@ -56,80 +56,7 @@
           "retain": false
         }
       ],
-      "cache": [
-        {
-          "type": 1,
-          "time": "2025-06-22 14:11:36",
-          "topic": "ssss",
-          "qos": 0,
-          "content": "a",
-          "color": "#fff"
-        },
-        {
-          "type": 0,
-          "time": "2025-06-23 17:18:32",
-          "topic": "testtopic/num1",
-          "qos": 0,
-          "content": "a",
-          "color": "#f2a145"
-        },
-        {
-          "type": 1,
-          "time": "2025-06-23 17:18:32",
-          "topic": "testtopic/num1",
-          "qos": 0,
-          "content": "a",
-          "color": "#fff"
-        },
-        {
-          "type": 0,
-          "time": "2025-06-23 17:18:37",
-          "topic": "testtopic/num1",
-          "qos": 0,
-          "content": "b",
-          "color": "#f2a145"
-        },
-        {
-          "type": 1,
-          "time": "2025-06-23 17:18:37",
-          "topic": "testtopic/num1",
-          "qos": 0,
-          "content": "b",
-          "color": "#fff"
-        },
-        {
-          "type": 0,
-          "time": "2025-06-23 17:18:41",
-          "topic": "testtopic/num1",
-          "qos": 1,
-          "content": "b",
-          "color": "#f2a145"
-        },
-        {
-          "type": 1,
-          "time": "2025-06-23 17:18:41",
-          "topic": "testtopic/num1",
-          "qos": 1,
-          "content": "b",
-          "color": "#fff"
-        },
-        {
-          "type": 0,
-          "time": "2025-06-23 17:19:08",
-          "topic": "testtopic/num1",
-          "qos": 0,
-          "content": "b",
-          "color": "#f2a145"
-        },
-        {
-          "type": 1,
-          "time": "2025-06-23 17:19:08",
-          "topic": "testtopic/num1",
-          "qos": 0,
-          "content": "b",
-          "color": "#fff"
-        }
-      ],
+      "cache": [],
       "canvasCache": {
         "layout": {
           "theme": "light",
@@ -193,8 +120,38 @@
               "isInit": true,
               "value": ""
             },
-            "top": 167.8543831412925,
-            "left": 179.04898588388232
+            "top": 168.8543831412925,
+            "left": 132.04898588388232
+          },
+          {
+            "id": 1750753239115.1658,
+            "type": "pubtext",
+            "props": {
+              "title": "输入框",
+              "topic": {
+                "topic": "abc",
+                "qos": 0,
+                "retain": false
+              },
+              "size": "medium",
+              "hideBg": false
+            },
+            "top": 166.59270046131303,
+            "left": 449.37126887229135
+          },
+          {
+            "id": 1750753584008.893,
+            "type": "button",
+            "props": {
+              "title": "按钮",
+              "topic": {},
+              "size": "medium",
+              "btnText": "按钮",
+              "payload": "喵~",
+              "hideBg": false
+            },
+            "top": 445.05675791746245,
+            "left": 566.1132359133505
           }
         ]
       }
@@ -227,13 +184,18 @@
           "topic": "testtopic/num1",
           "qos": 0,
           "retain": false
+        },
+        {
+          "topic": "test/abcd",
+          "qos": 0,
+          "retain": false
         }
       ],
       "cache": [],
       "canvasCache": {
         "layout": {
           "theme": "light",
-          "background": "default",
+          "background": "upload",
           "bgUrl": "",
           "swatch": {
             "compBgColor": "rgb(255, 255, 255)",
@@ -288,10 +250,43 @@
             },
             "top": 297.1162214103816,
             "left": 131.3016289529487
+          },
+          {
+            "id": 1750753243936.3508,
+            "type": "pubtext",
+            "props": {
+              "title": "输入框",
+              "topic": {
+                "topic": "test/abcd",
+                "qos": 0,
+                "retain": false
+              },
+              "size": "medium",
+              "hideBg": false
+            },
+            "top": 168.82997249466615,
+            "left": 382.559923957513
+          },
+          {
+            "id": 1750753593967.1294,
+            "type": "button",
+            "props": {
+              "title": "按钮",
+              "topic": {
+                "topic": "test/abcd",
+                "qos": 0,
+                "retain": false
+              },
+              "size": "medium",
+              "btnText": "按钮",
+              "payload": "喵~",
+              "hideBg": false
+            },
+            "top": 332.4438508458811,
+            "left": 484.36408606767736
           }
         ]
-      },
-      "mqttMode": "remote"
+      }
     },
     {
       "id": 1750570395446,
@@ -326,8 +321,7 @@
           }
         },
         "rawComponents": []
-      },
-      "mqttMode": "remote"
+      }
     }
   ]
 }

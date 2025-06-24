@@ -12,7 +12,7 @@
       <a-radio-group v-model:value="layoutSettings.background" class="visual-editor__settings-radio" :options="bgOpts" >
       </a-radio-group>
       <div class="visual-editor__cover-box" @click="chooseCover" :style="coverBoxStyle">
-        <span class="visual-editor__cover-placeholder">{{ layoutSettings.background ? "" : "暂无封面" }}</span>
+        <span class="visual-editor__cover-placeholder">{{ layoutSettings.bgUrl ? "" : "暂无背景" }}</span>
       </div>
     </div>
   </a-layout-sider>
@@ -130,6 +130,7 @@ watch(() => layoutSettings.value.theme, (newTheme) => {
   .visual-editor__cover-placeholder {
     color: #bbb;
     font-size: 13px;
+    z-index: 2;
   }
 }
 </style>

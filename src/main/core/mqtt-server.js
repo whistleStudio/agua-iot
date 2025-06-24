@@ -17,6 +17,7 @@ server.listen(PORT, function () {
 
 /* 连接验证，设备管理 */
 aedes.authenticate = function (client, username, password, callback) {
+  console.log(client.id, 'is trying to connect with username:', username, 'and password:', password.toString())
   const config = JSON.parse(fs.readFileSync(configUrl, 'utf8'))
   for (let dev of config.devices) {
     if (dev.clientID === client.id && dev.password == password.toString()) {

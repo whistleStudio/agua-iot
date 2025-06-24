@@ -428,15 +428,27 @@ function disconnectRemoteMqtt({type="success", msg="已断开连接", projId=act
 /* 开始/暂停监听 */
 // 处理本地服务订阅消息内容, 仅激活项目
 window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
-  if (activeProjIdx.value === -1 || activeProj.value.mode === "remote") return
+  // if (activeProjIdx.value === -1 || activeProj.value.mode === "remote") return
+  const localProjList = projList.filter((item) => item.mode === 'local')
+  if (localProjList.length === 0) return
   bus.emit('subTopicData', data)
+  const { topic, qos, payload, time } = data
+  localProjList.forEach((proj) => { // 同步cache
+    if (proj.subTopics.some((item) => item.topic === topic)) {
+      proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+    }
+  })
+  bus.changeProjInfo()
 })
 // 处理远程服务订阅消息内容
 window.electron.ipcRenderer.on("m:mqttRemoteData", (_, data) => {
-  if (activeProjIdx.value === -1) return
+  // if (activeProjIdx.value === -1) return
   const proj = projList.find((item) => item.id === data.projId)
   if (!proj || proj.mode !== 'remote' || proj.connected !== 2) return
   bus.emit('subTopicData', data)
+  const { topic, qos, payload, time } = data // 同步cache
+  proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+  bus.changeProjInfo()
 })
 
 /* 处理异常断开 */
@@ -491,8 +503,10 @@ onBeforeMount(() => {
     emit("alert", { type: "warning", msg: "请先创建一个项目" })
   } else {
     // 初始化时设置第一个项目为激活状态
-    activeProjIdx.value = 0;
-    bus.activeProjIdx = 0;
+    if (activeProjIdx.value < 0) {
+      activeProjIdx.value = 0; // 如果没有设置，默认第一个项目
+      bus.activeProjIdx = 0; // 同步到总线
+    }
     restoreCanvas(); // 恢复画布组件和布局设置
   }
 })

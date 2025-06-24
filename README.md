@@ -104,3 +104,7 @@ local 变 remote -> local减少订阅
 订阅收到消息后的分发，修正qos，部份图表数据同步问题
 
 废掉isReading, isStart
+
+## 20250624
+
+chart发送消息; proj chart收发消息cache同步； 暂时去掉device检索功能

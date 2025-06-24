@@ -155,7 +155,7 @@ app.whenReady().then(() => {
       projData.list.forEach(proj => {
         if (proj.id == projId) {
           proj.connected = 0;
-          proj.mqttMode = "remote";
+          proj.mode = "remote";
           proj.clientID = clientID;
           proj.ip = ip;
           proj.port = port;

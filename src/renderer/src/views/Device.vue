@@ -1,7 +1,7 @@
 <template>
   <div class="device-list-container">
     <!-- 检索工具栏（无密码字段） -->
-    <div class="device-list-toolbar">
+    <!-- <div class="device-list-toolbar">
       <a-input
         v-model:value.trim="filters.name"
         placeholder="设备名称"
@@ -13,7 +13,7 @@
         class="toolbar-item"
       />
       <a-button type="primary" @click="onSearch" class="toolbar-item">查询</a-button>
-    </div>
+    </div> -->
     <!-- 可编辑表格 -->
     <a-table
       :columns="columns"
@@ -75,7 +75,7 @@
       class="add-device-btn"
       @click="addDevice"
     >
-      添加设备（本地服务模式）
+      添加客户端（本地服务模式）
     </a-button>
   </div>
 </template>
@@ -100,7 +100,7 @@ const headerPwdVisible = ref(false);
 
 const columns = [
   {
-    title: "设备名称",
+    title: "客户端名称",
     dataIndex: "name",
     key: "name",
     width: "25%",

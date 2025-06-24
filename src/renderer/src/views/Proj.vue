@@ -57,15 +57,6 @@
             @click="openEditProjModal"
             style="width: 20px; height: 20px; margin-left: 8px; cursor: pointer;"
           />
-          <!-- <template v-if="activeProjID !== -999 && activeProj.mode === 'remote'">
-            <img
-              :src="getImgPath(activeProj.connected == 1 ? 'connect_1.gif' : `connect_${activeProj.connected}.svg`)"
-              class="proj-conn-btn"
-              alt="连接状态"
-              @click="toggleRemoteConnection"
-              style="width: 30px; height: 30px; margin-left: 8px; cursor: pointer;"
-            />
-          </template> -->
         </h1>
         <div class="header-btns">
           <template v-if="activeProjID !== -999 && activeProj.mode === 'remote'">
@@ -77,10 +68,6 @@
               style="width: 40px; height: 40px; margin-left: 8px; cursor: pointer;"
             />
           </template>
-          <!-- <div @click="clickReadingBtn" class="reading-btn">
-            <img v-if="isReading" :src="getImgPath('stop.svg')" alt="">
-            <img v-else :src="getImgPath('start.svg')" alt="">
-          </div> -->
         </div>
       </div>
       <div class="data-panel">
@@ -113,8 +100,13 @@
         <div class="right-panel">
           <!-- Messages List -->
           <div class="messages" ref="messagesRef">
-            <div v-for="(msg, index) in activeProj.cache" :key="index" class="message" :class="{ 'sub-msg': msg.type === 0, 'pub-msg': msg.type === 1 }"
-            :style="{ borderColor: msg.type === 0 ? msg.color : '#fff' }">
+            <div
+              v-for="(msg, index) in activeProj.cache"
+              :key="index"
+              class="message"
+              :class="{ 'sub-msg': msg.type === 0, 'pub-msg': msg.type === 1 }"
+              :style="{ borderColor: msg.type === 0 ? msg.color : '#fff' }"
+            >
               <div class="time">{{ msg.time }}</div>
               <div class="topic">
                 主题: {{ msg.topic }} <span class="qos">QoS: {{ msg.qos }}</span>
@@ -171,7 +163,6 @@ import SubscriptionModal from '../components/SubscriptionModal.vue';
 import bus from '../utils/bus'
 import { cloneDeep } from "lodash-es";
 
-
 const emit = defineEmits(['alert'])
 
 const pubTopic = ref({
@@ -188,7 +179,6 @@ const pubMsg = ref({
 const messagesRef = ref(null), pubHistoryBtnRef = ref(null)
 
 const isProjModalOpen = ref(false), isSubModalOpen = ref(0)
-// , isReading = ref(false)
 const activeProjID = ref(-999), hoverSubIndex = ref(-1), hoverPubIndex = ref(-1)
 let projList = reactive([])
 const passform = ref({})
@@ -373,9 +363,6 @@ function toggleRemoteConnection() {
 function handleDeleteProj(id) {
   const index = bus.projList.findIndex((item) => item.id === id)
   if (index !== -1) {
-    // if (bus.projList[index].connected === 2) {
-    //   disconnectRemoteMqtt({type:"hide", projId: bus.projList[index].id, clientID: bus.projList[index].clientID})
-    // }
     const spliceProj = projList.splice(index, 1)
     window.electron.ipcRenderer.send("r:deleteProj", JSON.stringify(spliceProj[0])) // 删除项目时发送到主进程
     bus.changeProjInfo()
@@ -391,13 +378,11 @@ function handleDeleteProj(id) {
 
 // 断开连接
 function disconnectRemoteMqtt({type="success", msg="已断开连接", projId=activeProj.value.id, clientID=activeProj.value.clientID}={}) {
-  // 断开连接
   window.electron.ipcRenderer.invoke('r:disconnectRemoteMqtt', {
     projId,
     clientID,
   })
   .then((res) => {
-    console.log("disconnectRemoteMqtt res:", res, type, msg)
     if (res.err) {
       bus.emit("showCustomAlert", { type: "error", msg: res.msg })
     } else if(activeProj.value.mode === "remote") bus.emit("showCustomAlert", { type: type, msg: msg })
@@ -423,7 +408,7 @@ async function handleSubModalOk(newSub) {
   try {
     isSubModalOpen.value = 0
     if (newSub.topic === '' || activeProjID.value === -999) return
-    newSub = cloneDeep(newSub) // 深拷贝，避免直接修改传入的对象
+    newSub = cloneDeep(newSub)
     if (editSubIndex.value === -1) {
       const index = activeProj.value.subTopics.findIndex((item) => item.topic === newSub.topic)
       if (index === -1) {
@@ -549,55 +534,35 @@ function emptyCache() {
   bus.changeProjInfo()
 }
 
-/* 开始/暂停监听 */
-// function clickReadingBtn() {
-//   isReading.value = !isReading.value
-// }
-// 处理本地服务订阅消息内容
-window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
-  // if (activeProjID.value === -999) return
-  const localProjList = projList.filter((item) => item.mode === 'local')
-  if (localProjList.length === 0) return
-  const { topic, qos, payload, time } = data
-  localProjList.forEach((proj) => {
-    if (proj.subTopics.some((item) => item.topic === topic)) {
-      proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
-    }
+/* 监听消息数据变化，滚动到底部（最快） */
+function scrollToBottom() {
+  nextTick(() => {
+    // 再包一层 setTimeout，确保 DOM 已完全渲染
+    setTimeout(() => {
+      if (messagesRef.value) {
+        messagesRef.value.scrollTop = messagesRef.value.scrollHeight
+      }
+    }, 0)
   })
-  bus.changeProjInfo()
-  // if (activeProj.value.mode === 'remote' && activeProj.value.connected !== 2) return
-  // const index = activeProj.value.subTopics.findIndex((item) => item.topic === topic)
-  // activeProj.value.cache.push({ type: 0, time, topic, qos, content: payload, color: activeProj.value.subTopics[index].color })
-  // bus.changeProjInfo()
-})
-// 处理远程服务订阅消息内容
-window.electron.ipcRenderer.on("m:mqttRemoteData", (_, data) => {
-  // if (activeProjID.value === -999) return
-  const proj = projList.find((item) => item.id === data.projId)
-  const { topic, qos, payload, time } = data
-  if (!proj || proj.mode !== 'remote' || proj.connected !== 2) return
-  proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
-  bus.changeProjInfo()
-})
-
-/* 处理异常断开 */
-window.electron.ipcRenderer.on("m:mqttRemoteErrDisconnected", (_, {projId}) => {
-  const proj = projList.find((item) => item.id === projId)
-  if (!proj || proj.mode !== 'remote' || proj.connected === 0) return
-  proj.connected = 0 // 设置为连接中状态
-  bus.emit("showCustomAlert", { type: "error", msg: `项目${proj.name}-clientID:${proj.clientID}异常断开` })
-  bus.changeProjInfo()
-})
-
-function getImgPath(imgName) {
-  return new URL(`../assets/img/${imgName}`, import.meta.url).href
 }
 
-watch(() => activeProj.value.cache, (newVal) => {
-  if (messagesRef.value) {
-    messagesRef.value.scrollTop = messagesRef.value.scrollHeight
+// 监听当前项目消息长度变化（收发消息时）
+watch(
+  () => activeProj.value?.cache?.length,
+  () => {
+    scrollToBottom()
   }
-}, { deep: true })
+)
+
+// 监听切换项目
+watch(activeProjID, () => {
+  scrollToBottom()
+})
+
+// 页面mounted时滚动到底部
+onMounted(() => {
+  scrollToBottom()
+})
 
 onBeforeMount(() => {
   projList = reactive(bus.projList)
@@ -612,6 +577,40 @@ onBeforeUnmount(() => {
   window.electron.ipcRenderer.removeAllListeners("m:mqttRemoteData")
   window.electron.ipcRenderer.removeAllListeners("m:mqttRemoteErrDisconnected")
 })
+
+// 处理本地服务订阅消息内容
+window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
+  const localProjList = projList.filter((item) => item.mode === 'local')
+  if (localProjList.length === 0) return
+  const { topic, qos, payload, time } = data
+  localProjList.forEach((proj) => {
+    if (proj.subTopics.some((item) => item.topic === topic)) {
+      proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+    }
+  })
+  bus.changeProjInfo()
+})
+// 处理远程服务订阅消息内容
+window.electron.ipcRenderer.on("m:mqttRemoteData", (_, data) => {
+  const proj = projList.find((item) => item.id === data.projId)
+  const { topic, qos, payload, time } = data
+  if (!proj || proj.mode !== 'remote' || proj.connected !== 2) return
+  proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+  bus.changeProjInfo()
+})
+
+/* 处理异常断开 */
+window.electron.ipcRenderer.on("m:mqttRemoteErrDisconnected", (_, {projId}) => {
+  const proj = projList.find((item) => item.id === projId)
+  if (!proj || proj.mode !== 'remote' || proj.connected === 0) return
+  proj.connected = 0
+  bus.emit("showCustomAlert", { type: "error", msg: `项目${proj.name}-clientID:${proj.clientID}异常断开` })
+  bus.changeProjInfo()
+})
+
+function getImgPath(imgName) {
+  return new URL(`../assets/img/${imgName}`, import.meta.url).href
+}
 </script>
 
 <style scoped lang="scss">

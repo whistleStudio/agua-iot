@@ -1,10 +1,11 @@
 import { contextBridge } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
+import packageJson from '../../package.json'
 
 
 // 自定义属性
 const props = {
-
+  version: packageJson.version
 }
 
 // Custom APIs for renderer

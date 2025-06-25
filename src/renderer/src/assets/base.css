@@ -69,3 +69,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+.update-modal.ant-modal {
+  max-width: calc(100vw - 64px) !important;
+}

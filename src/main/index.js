@@ -8,8 +8,11 @@ import configUrl from '../../resources/conf/config.json?commonjs-external&asset'
 import projDataUrl from '../../resources/conf/projData.json?commonjs-external&asset'
 import fs from 'fs'
 
-let config = {}, projData = {}
+let config = {}, projData = {}, upadteInfo = {err: -1, msg: '获取更新信息失败'};
+// const updateUrl = "http://127.0.0.1:8181/api/home/getHomeData"
+const updateUrl = "http://127.0.0.1:8181/api/info/getInfo?k1=aguato&k2=check_update"
 init() // 初始化
+checkUpdate() // 检查更新
 
 function createWindow() {
   // Create the browser window.
@@ -234,6 +237,11 @@ app.whenReady().then(() => {
     }
   })
 
+  /* 获取更新信息 */
+  ipcMain.handle("r:getUpdateInfo", _ => {
+    return upadteInfo
+  })
+
   createWindow()
 
   app.on('activate', function () {
@@ -264,4 +272,21 @@ function init () {
       }
     });
   } catch (err) { console.log('init error: ', err) }
+}
+
+/* 检查是否存在更新版本 */
+function checkUpdate() {
+  // 判断是否存在新版本
+  fetch(updateUrl)
+    .then(response => response.json())
+    .then(res => {
+      console.log(res)
+      upadteInfo = res || {err: -1, msg: '获取更新信息失败'};
+      // if (latestVersion !== currentVersion) {
+      //   isOpen.value = true
+      // }
+    })
+    .catch(error => {
+      console.error('Error fetching latest version:', error)
+    })
 }

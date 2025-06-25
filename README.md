@@ -108,3 +108,7 @@ local 变 remote -> local减少订阅
 ## 20250624
 
 chart发送消息; proj chart收发消息cache同步； 暂时去掉device检索功能
+
+## 202506252332
+
+增加intro页面更新提示

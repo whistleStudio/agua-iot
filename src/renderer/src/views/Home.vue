@@ -8,7 +8,7 @@
     <!-- Menu -->
     <div v-show="!isFullscreen" class="menu">
       <div class="logo">
-        <img alt="logo" src="../assets/electron.svg" @click="$router.push('/')"/>
+        <img alt="logo" src="../assets/aguato.svg" @click="$router.push('/')"/>
       </div>
       <div class="menu-item">
         <img v-for="(item, index) in menuListInfo" :src="getMenuIconPath(index)" :alt="item.name" :key="index"

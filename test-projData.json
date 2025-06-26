@@ -1,0 +1,327 @@
+{
+  "list": [
+    {
+      "id": 1747714729398,
+      "name": "aaaa",
+      "mode": "local",
+      "clientID": "",
+      "ip": "169.254.108.148",
+      "port": 1883,
+      "username": "",
+      "password": "",
+      "connected": 0,
+      "subTopics": [
+        {
+          "topic": "testtopic/num1",
+          "qos": 0,
+          "color": "#f2a145",
+          "alias": ""
+        },
+        {
+          "topic": "customtopic/#wewqeqw",
+          "qos": 0,
+          "color": "#F97860",
+          "alias": ""
+        }
+      ],
+      "pubTopics": [
+        {
+          "topic": "ssss",
+          "qos": 0,
+          "retain": false
+        },
+        {
+          "topic": "abc",
+          "qos": 0,
+          "retain": false
+        },
+        {
+          "topic": "avc",
+          "qos": 0,
+          "retain": false
+        },
+        {
+          "topic": "sfsdfsdfd/1",
+          "qos": 0,
+          "retain": false
+        },
+        {
+          "topic": "a",
+          "qos": 0,
+          "retain": false
+        },
+        {
+          "topic": "testtopic/num1",
+          "qos": 0,
+          "retain": false
+        }
+      ],
+      "cache": [],
+      "canvasCache": {
+        "layout": {
+          "theme": "light",
+          "background": "default",
+          "bgUrl": "",
+          "swatch": {
+            "compBgColor": "rgb(255, 255, 255)",
+            "compFontColor": "rgb(66, 80, 107)",
+            "compPhColor": "rgb(66, 80, 107, 0.5)",
+            "primaryColor": "rgb(35, 138, 255)"
+          }
+        },
+        "rawComponents": [
+          {
+            "id": 1749901353693.4043,
+            "type": "button",
+            "props": {
+              "title": "按钮",
+              "topic": {},
+              "size": "medium",
+              "btnText": "按钮",
+              "payload": "喵~",
+              "hideBg": false
+            },
+            "top": 17.375097558877883,
+            "left": 51.38092446533989
+          },
+          {
+            "id": 1749901357919.6428,
+            "type": "switch",
+            "props": {
+              "title": "开关",
+              "topic": {},
+              "size": "medium",
+              "onText": "ON",
+              "offText": "OFF",
+              "onPayload": "on",
+              "offPayload": "off",
+              "hideBg": false
+            },
+            "top": 24.84171425064045,
+            "left": 225.0141813207174
+          },
+          {
+            "id": 1750684609839.5593,
+            "type": "gauge",
+            "props": {
+              "title": "仪表盘",
+              "topic": {
+                "topic": "testtopic/num1",
+                "qos": 0,
+                "color": "#f2a145",
+                "alias": ""
+              },
+              "width": 300,
+              "height": 250,
+              "hideBg": false,
+              "min": 0,
+              "max": 100,
+              "unit": "",
+              "isInit": true,
+              "value": ""
+            },
+            "top": 168.8543831412925,
+            "left": 132.04898588388232
+          },
+          {
+            "id": 1750753239115.1658,
+            "type": "pubtext",
+            "props": {
+              "title": "输入框",
+              "topic": {
+                "topic": "abc",
+                "qos": 0,
+                "retain": false
+              },
+              "size": "medium",
+              "hideBg": false
+            },
+            "top": 166.59270046131303,
+            "left": 449.37126887229135
+          },
+          {
+            "id": 1750753584008.893,
+            "type": "button",
+            "props": {
+              "title": "按钮",
+              "topic": {},
+              "size": "medium",
+              "btnText": "按钮",
+              "payload": "喵~",
+              "hideBg": false
+            },
+            "top": 445.05675791746245,
+            "left": 566.1132359133505
+          }
+        ]
+      }
+    },
+    {
+      "id": 1749995603866,
+      "name": "whistle/2",
+      "mode": "remote",
+      "clientID": "whistle/2",
+      "ip": "47.111.165.17",
+      "port": "1883",
+      "username": "agua",
+      "password": "mlh52S7prq",
+      "connected": 0,
+      "subTopics": [
+        {
+          "topic": "test/ab",
+          "qos": 2,
+          "color": "#A31B05",
+          "alias": ""
+        }
+      ],
+      "pubTopics": [
+        {
+          "topic": "test/abc",
+          "qos": 0,
+          "retain": false
+        },
+        {
+          "topic": "testtopic/num1",
+          "qos": 0,
+          "retain": false
+        },
+        {
+          "topic": "test/abcd",
+          "qos": 0,
+          "retain": false
+        }
+      ],
+      "cache": [],
+      "canvasCache": {
+        "layout": {
+          "theme": "light",
+          "background": "upload",
+          "bgUrl": "",
+          "swatch": {
+            "compBgColor": "rgb(255, 255, 255)",
+            "compFontColor": "rgb(66, 80, 107)",
+            "compPhColor": "rgb(66, 80, 107, 0.5)",
+            "primaryColor": "rgb(35, 138, 255)"
+          }
+        },
+        "rawComponents": [
+          {
+            "id": 1750683534428.3574,
+            "type": "sublabeltext",
+            "props": {
+              "title": "标签文本显示",
+              "topic": {
+                "topic": "test/ab",
+                "qos": 2,
+                "color": "#A31B05",
+                "alias": ""
+              },
+              "width": 247,
+              "height": 120,
+              "labelText": "标签",
+              "labelColor": "#d2694a",
+              "unitText": "℃",
+              "unitColor": "#ffd590",
+              "value": "",
+              "isInit": true,
+              "hideBg": false
+            },
+            "top": 30.016669083322995,
+            "left": 161.7849207757655
+          },
+          {
+            "id": 1750687109433.544,
+            "type": "liquidfill",
+            "props": {
+              "title": "水波图",
+              "topic": {
+                "topic": "test/ab",
+                "qos": 2,
+                "color": "#A31B05",
+                "alias": ""
+              },
+              "width": 200,
+              "height": 200,
+              "hideBg": false,
+              "colorMain": "#4caafe",
+              "total": 100,
+              "value": "",
+              "isInit": true
+            },
+            "top": 297.1162214103816,
+            "left": 131.3016289529487
+          },
+          {
+            "id": 1750753243936.3508,
+            "type": "pubtext",
+            "props": {
+              "title": "输入框",
+              "topic": {
+                "topic": "test/abcd",
+                "qos": 0,
+                "retain": false
+              },
+              "size": "medium",
+              "hideBg": false
+            },
+            "top": 168.82997249466615,
+            "left": 382.559923957513
+          },
+          {
+            "id": 1750753593967.1294,
+            "type": "button",
+            "props": {
+              "title": "按钮",
+              "topic": {
+                "topic": "test/abcd",
+                "qos": 0,
+                "retain": false
+              },
+              "size": "medium",
+              "btnText": "按钮",
+              "payload": "喵~",
+              "hideBg": false
+            },
+            "top": 332.4438508458811,
+            "left": 484.36408606767736
+          }
+        ]
+      }
+    },
+    {
+      "id": 1750570395446,
+      "name": "whistle/1",
+      "mode": "remote",
+      "clientID": "whistle/1",
+      "ip": "iot.cfunworld.com",
+      "port": "1883",
+      "username": "abao",
+      "password": "mlh52S7prq",
+      "connected": 0,
+      "subTopics": [
+        {
+          "topic": "test/ccc",
+          "qos": 1,
+          "color": "#AF8558",
+          "alias": ""
+        }
+      ],
+      "pubTopics": [],
+      "cache": [],
+      "canvasCache": {
+        "layout": {
+          "theme": "light",
+          "background": "default",
+          "bgUrl": "",
+          "swatch": {
+            "compBgColor": "rgb(255, 255, 255)",
+            "compFontColor": "rgb(66, 80, 107)",
+            "compPhColor": "rgb(66, 80, 107, 0.5)",
+            "primaryColor": "rgb(35, 138, 255)"
+          }
+        },
+        "rawComponents": []
+      }
+    }
+  ]
+}

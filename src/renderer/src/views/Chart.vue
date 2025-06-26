@@ -1,5 +1,5 @@
 <template>
-  <a-layout class="visual-editor">
+  <a-layout class="visual-editor" v-if="projList.length > 0">
     <!-- Header -->
     <a-layout-header v-show="!isFullscreen" class="visual-editor__header">
       <div class="visual-editor__header-left">
@@ -500,7 +500,7 @@ watch(activeProjIdx, (newIdx) => {
 onBeforeMount(() => {
   if (projList.length === 0) {
     router.push('/home/proj');
-    emit("alert", { type: "warning", msg: "请先创建一个项目" })
+    emit("alert", { type: "warning", msg: "当前图表不可用，请先创建项目", time: 1500 })
   } else {
     // 初始化时设置第一个项目为激活状态
     if (activeProjIdx.value < 0) {

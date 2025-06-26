@@ -1,5 +1,5 @@
 <template>
-  <img alt="logo" class="logo" src="../assets/electron.svg" @click="$router.push('/home/device')" />
+  <img alt="logo" class="logo" src="../assets/aguato.svg" @click="$router.push('/home/device')" />
   <p>AGUA-IOT</p>
   <p class="netInfo"><span></span>:<span></span></p>
   <a-modal v-model:open="isOpen" class="update-modal" :footer="null" :closable="true" title="update available" width="400">
@@ -81,6 +81,8 @@ onBeforeUnmount(() => {
 <style scoped lang="scss">
 .logo {
   cursor: pointer;
+  width: 300px !important;
+  height: 300px !important;
 }
 
 .update-modal{

@@ -1,9 +1,9 @@
 {
-  "name": "agua-iot",
+  "name": "aguato",
   "version": "1.0.0",
   "description": "An Electron application with Vue",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "whistle",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "format": "prettier --write .",
@@ -22,7 +22,8 @@
     "@electron-toolkit/utils": "^4.0.0",
     "aedes": "^0.51.3",
     "electron-updater": "^6.3.9",
-    "mqtt": "^5.13.1"
+    "mqtt": "^5.13.1",
+    "mqtt-packet": "^9.0.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config": "^2.0.0",

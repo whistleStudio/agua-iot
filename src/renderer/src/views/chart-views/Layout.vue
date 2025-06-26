@@ -11,8 +11,20 @@
       <div class="visual-editor__settings-label">背景图片</div>
       <a-radio-group v-model:value="layoutSettings.background" class="visual-editor__settings-radio" :options="bgOpts" >
       </a-radio-group>
-      <div class="visual-editor__cover-box" @click="chooseCover" :style="coverBoxStyle">
-        <span class="visual-editor__cover-placeholder">{{ layoutSettings.bgUrl ? "" : "暂无背景" }}</span>
+      <div class="visual-editor__cover-box"
+           @click="chooseCover"
+           :style="coverBoxStyle"
+           @mouseenter="() => {coverHover = true; console.log('hover')}"
+           @mouseleave="coverHover = false"
+      >
+        <span class="visual-editor__cover-placeholder">{{ layoutSettings?.bgUrl ? "" : "暂无背景" }}</span>
+        <!-- ❌ 删除按钮，仅在有背景且悬浮时显示，阻止冒泡防止触发选择封面 -->
+        <span
+          v-if="layoutSettings?.bgUrl && coverHover"
+          class="visual-editor__cover-remove"
+          @click.stop="removeCover"
+          title="删除背景图"
+        >❌</span>
       </div>
     </div>
   </a-layout-sider>
@@ -28,14 +40,17 @@ const layoutSettings = computed({
   set: (val) => { activeLayoutSettings.set(val); }
 });
 
+const coverHover = ref(false);
+
 const coverBoxStyle = computed(() => {
   return {
     backgroundImage: layoutSettings.value.bgUrl ? `url(${layoutSettings.value.bgUrl})` : 'none',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     opacity: layoutSettings.value.background === 'upload' ? 1 : 0.3,
+    position: 'relative'
   };
-})
+});
 
 const themeOpts = ref([
   { label: '浅色', value: 'light' },
@@ -47,14 +62,11 @@ const bgOpts = ref([
 ]);
 
 function chooseCover() {
-  console.log('选择封面按钮被点击');
-  // 触发封面选择逻辑
-  window.electron.ipcRenderer.invoke('r:chooseCover', bus.projList[bus.activeProjIdx].id)
+  window.electron.ipcRenderer.invoke('r:chooseCover', bus.activeProjIdx)
     .then((res) => {
       if (res && res.destPath) {
-        res.destPath = res.destPath.replace(/\\/g, '/'); // 替换反斜杠为正斜杠
-        // console.log('选择的封面路径:', res.destPath);
-        layoutSettings.value.bgUrl = res.destPath; // 更新布局设置中的封面路径
+        res.destPath = res.destPath.replace(/\\/g, '/');
+        layoutSettings.value.bgUrl = res.destPath;
       }
     })
     .catch((err) => {
@@ -62,8 +74,21 @@ function chooseCover() {
     });
 }
 
-/* --------------------- */
-// 监听主题变化
+// 删除背景图
+function removeCover() {
+  // 如果你需要在主进程删除文件，可以额外调用ipcRenderer.invoke('r:removeCover', projId)
+  // ipcRenderer.invoke('r:removeCover', bus.projList[bus.activeProjIdx].id)
+  //   .then(() => {
+  //     console.log('背景图删除成功');
+  //   })
+  //   .catch((err) => {
+  //     console.error('删除背景图失败:', err);
+  //   });
+  layoutSettings.value.bgUrl = '';
+  layoutSettings.value.background = 'default'; // 重置背景选项
+  coverHover.value = false; // 取消悬浮状态 
+}
+
 watch(() => layoutSettings.value.theme, (newTheme) => {
   switch (newTheme) {
     case 'dark':
@@ -83,7 +108,6 @@ watch(() => layoutSettings.value.theme, (newTheme) => {
       }
   }
 });
-
 </script>
 
 <style lang="scss" scoped>
@@ -127,10 +151,33 @@ watch(() => layoutSettings.value.theme, (newTheme) => {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  position: relative;
   .visual-editor__cover-placeholder {
     color: #bbb;
     font-size: 13px;
     z-index: 2;
+  }
+  /* 删除按钮样式 */
+  .visual-editor__cover-remove {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    font-size: 16px;
+    color: #fff;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0.85;
+    transition: background 0.2s;
+    // &:hover {
+    //   background: rgba(255,0,0,0.8);
+    //   color: #fff;
+    //   opacity: 1;
+    // }
   }
 }
 </style>

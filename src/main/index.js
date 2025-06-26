@@ -4,9 +4,25 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import mqttServer from './core/mqtt-server'
 import mqttClient from './core/mqtt-client'
-import configUrl from '../../resources/conf/config.json?commonjs-external&asset'
-import projDataUrl from '../../resources/conf/projData.json?commonjs-external&asset'
+// import configUrl from '../../resources/conf/config.json?commonjs-external&asset'
+// import projDataUrl from '../../resources/conf/projData.json?commonjs-external&asset'
 import fs from 'fs'
+/* 建立/获取本地目录 */
+const userDataPath = app.getPath('userData') // 获取用户数据目录
+const confDir = join(userDataPath, 'conf')
+if (!fs.existsSync(confDir)) fs.mkdirSync(confDir, { recursive: true })
+const configUrl = join(confDir, 'config.json')
+const projDataUrl = join(confDir, 'projData.json') 
+
+function ensureFileExists(filePath, defaultResource) {
+  if (!fs.existsSync(filePath)) {
+    fs.copyFileSync(defaultResource, filePath)
+  }
+}
+const defaultConfig = join(__dirname, '../../resources/conf/config.json')
+const defaultProjData = join(__dirname, '../../resources/conf/projData.json')
+ensureFileExists(configUrl, defaultConfig)
+ensureFileExists(projDataUrl, defaultProjData)
 
 let config = {}, projData = {}, upadteInfo = {err: -1, msg: '获取更新信息失败'};
 // const updateUrl = "http://127.0.0.1:8181/api/home/getHomeData"
@@ -21,7 +37,7 @@ function createWindow() {
     height: 900,
     show: false,
     autoHideMenuBar: true,
-    ...(process.platform === 'linux' ? { icon } : {}),
+    icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
@@ -56,7 +72,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('com.whistlestudio.aguato')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
@@ -236,6 +252,16 @@ app.whenReady().then(() => {
       } catch (err) {console.log(err); return { err: 1, msg: '文件读取失败' } }
     }
   })
+
+  /* 删除背景图片 */
+  // ipcMain.handle("r:deleteCover", (_, idx) => {
+  //   try {
+  //     if (idx < 0 || idx >= projData.list.length) return { err: 1, msg: '项目索引错误' }
+  //     projData.list[idx].canvasCache.layout = '' // 清空背景图片
+  //     fs.writeFileSync(projDataUrl, JSON.stringify(projData, null, 2))
+  //     return { err: 0 }
+  //   } catch (err) { console.log(err); return { err: 1, msg: '删除失败' } }
+  // })
 
   /* 获取更新信息 */
   ipcMain.handle("r:getUpdateInfo", _ => { return upadteInfo })

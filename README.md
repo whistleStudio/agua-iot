@@ -112,3 +112,14 @@ chart发送消息; proj chart收发消息cache同步； 暂时去掉device检索
 ## 202506252332
 
 增加intro页面更新提示
+
+## 20250626
+
+打包测试，mqtt-packet另行直接生产环境安装；为提供读写能力，resources文件加相关config文件转移至app.getPath('userData') C:\Users\用户名\AppData\Roaming\你的应用名\
+
+*Electron 官方推荐：所有运行时生成或需要写入的数据，应该放在 app.getPath('userData') 目录下*
+
+https://nodejs.org/api/modules.html#loading-from-node_modules-folders
+Electron 在 require 时通常只去 app.asar.unpacked/node_modules/{模块} 找包，不会自动递归进 mqtt/node_modules
+
+问题：本地订阅修改报错；本地主题同名；背景图片数据存储

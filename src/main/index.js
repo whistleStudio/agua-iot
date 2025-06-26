@@ -238,8 +238,11 @@ app.whenReady().then(() => {
   })
 
   /* 获取更新信息 */
-  ipcMain.handle("r:getUpdateInfo", _ => {
-    return upadteInfo
+  ipcMain.handle("r:getUpdateInfo", _ => { return upadteInfo })
+
+  /* 打开更新网页 */
+  ipcMain.on("r:openExternal", (_, url) => {
+    shell.openExternal(url)
   })
 
   createWindow()

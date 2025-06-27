@@ -66,7 +66,7 @@ function subscribeTopic(topic) {
 function modifyTopic({newTopic, oldTopic}) {
   if (mqttCache[oldTopic]) {
     mqttCache[oldTopic].subCount--
-    console.log(`mqttCache[${topic}].subCount:`, mqttCache[topic].subCount)
+    console.log(`mqttCache[${oldTopic}].subCount:`, mqttCache[oldTopic].subCount)
     if (mqttCache[oldTopic].subCount <= 0) {  
       aedes.unsubscribe(
         oldTopic,

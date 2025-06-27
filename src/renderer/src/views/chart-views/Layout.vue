@@ -35,6 +35,7 @@ import { computed, inject, ref, watch } from 'vue';
 import bus from '../../utils/bus';
 
 const activeLayoutSettings = inject('activeLayoutSettings');
+const activeBgData = inject('activeBgData');
 const layoutSettings = computed({
   get: () => activeLayoutSettings.get(),
   set: (val) => { activeLayoutSettings.set(val); }
@@ -44,7 +45,7 @@ const coverHover = ref(false);
 
 const coverBoxStyle = computed(() => {
   return {
-    backgroundImage: layoutSettings.value.bgUrl ? `url(${layoutSettings.value.bgUrl})` : 'none',
+    backgroundImage: layoutSettings.value.bgUrl ? `url(${activeBgData.value})` : 'none',
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     opacity: layoutSettings.value.background === 'upload' ? 1 : 0.3,
@@ -62,7 +63,7 @@ const bgOpts = ref([
 ]);
 
 function chooseCover() {
-  window.electron.ipcRenderer.invoke('r:chooseCover', bus.activeProjIdx)
+  window.electron.ipcRenderer.invoke('r:chooseCover', bus.projList[bus.activeProjIdx].id)
     .then((res) => {
       if (res && res.destPath) {
         res.destPath = res.destPath.replace(/\\/g, '/');
@@ -76,19 +77,19 @@ function chooseCover() {
 
 // 删除背景图
 function removeCover() {
-  // 如果你需要在主进程删除文件，可以额外调用ipcRenderer.invoke('r:removeCover', projId)
-  // ipcRenderer.invoke('r:removeCover', bus.projList[bus.activeProjIdx].id)
-  //   .then(() => {
-  //     console.log('背景图删除成功');
-  //   })
-  //   .catch((err) => {
-  //     console.error('删除背景图失败:', err);
-  //   });
+  window.electron.ipcRenderer.invoke('r:removeCover', layoutSettings.value.bgUrl)
+    .then(() => {
+      console.log('背景图删除成功');
+    })
+    .catch((err) => {
+      console.error('删除背景图失败:', err);
+    });
   layoutSettings.value.bgUrl = '';
-  layoutSettings.value.background = 'default'; // 重置背景选项
+  // layoutSettings.value.background = 'default'; // 重置背景选项
   coverHover.value = false; // 取消悬浮状态 
 }
 
+/* --------------------------- */
 watch(() => layoutSettings.value.theme, (newTheme) => {
   switch (newTheme) {
     case 'dark':

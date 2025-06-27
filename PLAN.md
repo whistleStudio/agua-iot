@@ -60,4 +60,6 @@ onMsg: send to renderer
 
 
 client异常时断开页面同步 ✔
-切换proj,chart, actproj保持
+切换proj,chart, actproj保持✔
+
+更新服务远程部署

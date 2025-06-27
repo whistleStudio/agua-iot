@@ -163,9 +163,10 @@ const canvasRawComponents = computed({
 })
 const editorContentStyle = computed(() => ({ backgroundColor: activeProj.value?.canvasCache?.layout?.theme == 'dark' ? '#a8a8a8' : '#f5f5f5' }))
 
+const activeBgData = ref("")
 const canvasStyle = computed(() => {
   return { 
-    backgroundImage: (activeProj.value?.canvasCache?.layout?.bgUrl && activeProj.value.canvasCache.layout?.background == 'upload') ? `url(${activeProj.value.canvasCache.layout.bgUrl})` : 'none',
+    backgroundImage: (activeProj.value?.canvasCache?.layout?.bgUrl && activeProj.value.canvasCache.layout?.background == 'upload') ? `url(${activeBgData.value})` : 'none',
     backgroundColor: (activeProj.value?.canvasCache?.layout?.theme == 'dark') ? '#444' : '#f0f2f5',
   };
 });
@@ -461,6 +462,25 @@ window.electron.ipcRenderer.on("m:mqttRemoteErrDisconnected", (_, {projId}) => {
 })
 
 
+
+/* 获取当前项目背景图片base64数据 */
+provide('activeBgData', activeBgData) // 向布局组件注入
+function getBgData() {
+  if (!canvasLayout.value?.bgUrl) return
+  window.electron.ipcRenderer.invoke('r:getBgData', canvasLayout.value.bgUrl)
+    .then((res) => {
+      if (res.err) {
+        bus.emit("showCustomAlert", { type: "error", msg: res.msg, time: 1500 })
+      } else {
+        activeBgData.value = res.bgData || "";
+        console.log("获取背景图片数据成功", activeBgData.value);
+      }
+    })
+    .catch((err) => {
+      bus.emit("showCustomAlert", { type: "error", msg: err.message, time: 1500 })
+    });
+}
+
 /* ----------------------------------------------------- */
 // 同步canvasComponents到bus
 watch(canvasComponents, (newVal) => {
@@ -485,6 +505,14 @@ watch(canvasLayout, (newVal, oldVal) => {
     bus.changeProjInfo();
   }
 }, { deep: true });
+
+watch(() => canvasLayout.value.bgUrl, (newVal, oldVal) => {
+  if (newVal !== oldVal) {
+    getBgData();
+    console.log("背景图片更新:", newVal);
+  }
+})
+
 // 监听activeProjIdx变化，自动更新canvasComponents和canvasLayout
 watch(activeProjIdx, (newIdx) => {
   console.log('Active project changed:', newIdx);
@@ -507,6 +535,8 @@ onBeforeMount(() => {
       activeProjIdx.value = 0; // 如果没有设置，默认第一个项目
       bus.activeProjIdx = 0; // 同步到总线
     }
+    // 获取背景图片数据
+    getBgData();
     restoreCanvas(); // 恢复画布组件和布局设置
   }
 })

@@ -424,6 +424,14 @@ async function handleSubModalOk(newSub) {
       }
     } else {
       const sub = activeProj.value.subTopics[editSubIndex.value]
+      // 校验新旧主题是否相同
+      let isChangeFlag = false
+      Object.keys(newSub).forEach(key => {
+        if (newSub[key] !== sub[key]) {
+          isChangeFlag = true
+        }
+      })
+      if (!isChangeFlag) { editSubIndex.value = -1; return}
       const res = await modifyMqttTopic({newTopic: JSON.stringify(newSub), oldTopic: JSON.stringify(sub)})
       editSubIndex.value = -1
       if (res.err) {

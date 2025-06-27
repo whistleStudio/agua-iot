@@ -122,4 +122,4 @@ chart发送消息; proj chart收发消息cache同步； 暂时去掉device检索
 https://nodejs.org/api/modules.html#loading-from-node_modules-folders
 Electron 在 require 时通常只去 app.asar.unpacked/node_modules/{模块} 找包，不会自动递归进 mqtt/node_modules
 
-问题：本地订阅修改报错；本地主题同名；背景图片数据存储
+问题：本地订阅修改报错✔；本地主题同名；背景图片数据存储√

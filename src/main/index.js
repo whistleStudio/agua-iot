@@ -9,8 +9,9 @@ import mqttClient from './core/mqtt-client'
 import fs from 'fs'
 /* 建立/获取本地目录 */
 const userDataPath = app.getPath('userData') // 获取用户数据目录
-const confDir = join(userDataPath, 'conf')
+const confDir = join(userDataPath, 'conf'), bgDir = join(userDataPath, 'conf/bg') // conf目录和背景图片目录
 if (!fs.existsSync(confDir)) fs.mkdirSync(confDir, { recursive: true })
+if (!fs.existsSync(bgDir)) fs.mkdirSync(bgDir, { recursive: true })
 const configUrl = join(confDir, 'config.json')
 const projDataUrl = join(confDir, 'projData.json') 
 
@@ -19,6 +20,7 @@ function ensureFileExists(filePath, defaultResource) {
     fs.copyFileSync(defaultResource, filePath)
   }
 }
+console.log(__dirname)
 const defaultConfig = join(__dirname, '../../resources/conf/config.json')
 const defaultProjData = join(__dirname, '../../resources/conf/projData.json')
 ensureFileExists(configUrl, defaultConfig)
@@ -141,6 +143,7 @@ app.whenReady().then(() => {
   ipcMain.handle('r:modifyMqttTopic', async (_, {newTopic, oldTopic, mqttMode, projId}) => {
     newTopic = JSON.parse(newTopic)
     oldTopic = JSON.parse(oldTopic)
+    console.log("new:",newTopic, "old:", oldTopic, "mqttMode:", mqttMode, "projId:", projId)
     try {
       if (mqttMode == "local") {
         mqttServer.modifyTopic({newTopic: newTopic.topic, oldTopic: oldTopic.topic}) // 本地订阅为服务器broker订阅，不需要qos
@@ -246,22 +249,46 @@ app.whenReady().then(() => {
       return { err: 1, msg: '未选择文件' }
     } else {
       const filePath = result.filePaths[0]
+      // 将图片拷贝至背景图片目录
+      const fileName = `${projId}_${new Date().getTime()}.jpg` // 使用项目ID
+      const destPath = join(bgDir, fileName)
       try {
-        const data = fs.readFileSync(filePath);
-        return { err: 0, destPath: `data:image/jpeg;base64,${data.toString('base64')}` }
+        // 删除原先所有projId开头的背景图片
+        const files = fs.readdirSync(bgDir)
+        files.forEach(file => {
+          if (file.startsWith(`${projId}`)) {
+            fs.unlinkSync(join(bgDir, file)) // 删除旧的背景图片
+          }
+        })
+        fs.copyFileSync(filePath, destPath)
+        // const data = fs.readFileSync(filePath);
+        // return { err: 0, destPath: `data:image/jpeg;base64,${data.toString('base64')}` }
+        return { err: 0, destPath }
       } catch (err) {console.log(err); return { err: 1, msg: '文件读取失败' } }
     }
   })
 
+  /* 获取背景图片数据 */
+  ipcMain.handle("r:getBgData", async (_, bgUrl) => {
+    try {
+      if (!fs.existsSync(bgUrl)) { return { err: 0 } }
+      const data = fs.readFileSync(bgUrl);
+      return { err: 0, bgData: `data:image/jpeg;base64,${data.toString('base64')}` }
+    } catch (err) {
+      console.log(err);
+      return { err: 1, msg: '获取背景图片失败' }
+    }
+  })
+
   /* 删除背景图片 */
-  // ipcMain.handle("r:deleteCover", (_, idx) => {
-  //   try {
-  //     if (idx < 0 || idx >= projData.list.length) return { err: 1, msg: '项目索引错误' }
-  //     projData.list[idx].canvasCache.layout = '' // 清空背景图片
-  //     fs.writeFileSync(projDataUrl, JSON.stringify(projData, null, 2))
-  //     return { err: 0 }
-  //   } catch (err) { console.log(err); return { err: 1, msg: '删除失败' } }
-  // })
+  ipcMain.handle("r:removeCover", (_, bgUrl) => {
+    try {
+      // const bgPath = join(bgDir, `bg_${projId}.jpg`)
+      if (!fs.existsSync(bgUrl)) { return { err: 0 } }
+      fs.unlinkSync(bgUrl) // 删除背景图片文件
+      return { err: 0 }
+    } catch (err) { console.log(err); return { err: 1, msg: '删除失败' } }
+  })
 
   /* 获取更新信息 */
   ipcMain.handle("r:getUpdateInfo", _ => { return upadteInfo })

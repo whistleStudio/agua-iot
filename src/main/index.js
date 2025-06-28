@@ -26,11 +26,18 @@ const defaultProjData = join(__dirname, '../../resources/conf/projData.json')
 ensureFileExists(configUrl, defaultConfig)
 ensureFileExists(projDataUrl, defaultProjData)
 
-let config = {}, projData = {}, upadteInfo = {err: -1, msg: '获取更新信息失败'};
+let config = {}, projData = {}, upadteInfo = {err: -1, msg: '请求更新信息失败'};
 // const updateUrl = "http://127.0.0.1:8181/api/home/getHomeData"
 const updateUrl = "http://127.0.0.1:8181/api/info/getInfo?k1=aguato&k2=check_update"
 init() // 初始化
-checkUpdate() // 检查更新
+
+;(async () => {
+  for (let v of Array(5)) {
+    if (upadteInfo.err !== -1) return; // 如果已经获取到更新信息，则不再重复请求
+    await checkUpdate()
+  }
+})()
+// checkUpdate() // 检查更新
 
 function createWindow() {
   // Create the browser window.
@@ -330,19 +337,20 @@ function init () {
   } catch (err) { console.log('init error: ', err) }
 }
 
+
 /* 检查是否存在更新版本 */
 function checkUpdate() {
-  // 判断是否存在新版本
+  return new Promise(rsv => {
   fetch(updateUrl)
     .then(response => response.json())
     .then(res => {
       console.log(res)
-      upadteInfo = res || {err: -1, msg: '获取更新信息失败'};
-      // if (latestVersion !== currentVersion) {
-      //   isOpen.value = true
-      // }
+      upadteInfo = res || {err: 1, msg: '返回更新信息错误'};
+      rsv(upadteInfo)
     })
     .catch(error => {
-      console.error('Error fetching latest version:', error)
+      console.error('Error fetching latest version')
+      rsv()
     })
+  })
 }

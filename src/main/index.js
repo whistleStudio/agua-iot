@@ -1,7 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
+import icon from '../../resources/aguato.ico?asset'
 import mqttServer from './core/mqtt-server'
 import mqttClient from './core/mqtt-client'
 // import configUrl from '../../resources/conf/config.json?commonjs-external&asset'
@@ -28,7 +28,7 @@ ensureFileExists(projDataUrl, defaultProjData)
 
 let config = {}, projData = {}, upadteInfo = {err: -1, msg: '请求更新信息失败'};
 // const updateUrl = "http://127.0.0.1:8181/api/home/getHomeData"
-const updateUrl = "http://127.0.0.1:8181/api/info/getInfo?k1=aguato&k2=check_update"
+const updateUrl = "https://www.whistlestudio.cn/api/info/getInfo?k1=aguato&k2=check_update"
 init() // 初始化
 
 ;(async () => {
@@ -37,7 +37,6 @@ init() // 初始化
     await checkUpdate()
   }
 })()
-// checkUpdate() // 检查更新
 
 function createWindow() {
   // Create the browser window.

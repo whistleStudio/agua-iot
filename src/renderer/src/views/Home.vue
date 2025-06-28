@@ -8,11 +8,11 @@
     <!-- Menu -->
     <div v-show="!isFullscreen" class="menu">
       <div class="logo">
-        <img alt="logo" src="../assets/aguato.svg" @click="$router.push('/')"/>
+        <img alt="logo" src="../assets/aguato2.svg" @click="$router.push('/')"/>
       </div>
       <div class="menu-item">
         <img v-for="(item, index) in menuListInfo" :src="getMenuIconPath(index)" :alt="item.name" :key="index"
-        @click="() => $router.push(item.href)" />
+        @click="menuTo(index)" />
       </div>
     </div> 
     <router-view @alert="showCustomAlert"/>
@@ -22,6 +22,7 @@
 
 <script setup>
 import { ref, reactive, onBeforeMount, onBeforeUnmount } from 'vue'
+import { useRouter } from 'vue-router'
 // import ConnectionModal from '../components/ProjModal.vue'
 import bus from '../utils/bus'
 
@@ -35,17 +36,22 @@ const alertInfo = reactive({
 const menuListInfo = reactive([
   { name: 'Device', href: "/home/device"},
   { name: 'Proj'  , href: "/home/proj"},
-  { name: 'Chart', href: "/home/chart/layout"}
+  { name: 'Chart', href: "/home/chart/layout"},
+  { name: 'Info'}
 ])
 
 function getMenuIconPath(index) {
   return new URL(`../assets/img/menu_${index}.svg`, import.meta.url).href
 }
-// const connectionModalInfo = reactive({
-//   title: '设备列表',
-//   content: 'Connection content',
-//   isOpen: false
-// })
+
+const router = useRouter()
+function menuTo(index) {
+  if (index <= 2) {
+    router.push(menuListInfo[index].href)
+  } else {
+    window.electron.ipcRenderer.send('r:openExternal', 'https://www.whistlestudio.cn')
+  }
+}
 
 /* 显示自定义提示框 */
 const showCustomAlert = ({msg, type, time=1000}) => {

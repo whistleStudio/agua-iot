@@ -75,13 +75,13 @@
       class="add-device-btn"
       @click="addDevice"
     >
-      添加客户端（本地服务模式）
+      添加客户端（本地服务模式<span ref="serverIpRef"></span>）
     </a-button>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from "vue";
+import { onMounted, reactive, ref } from "vue";
 import { cloneDeep } from "lodash-es";
 import bus from "../utils/bus";
 
@@ -96,7 +96,7 @@ const filters = ref({
 const dataSource = ref([...bus.devices]);
 const fullData = ref([...bus.devices]);
 
-const headerPwdVisible = ref(false);
+const headerPwdVisible = ref(false), serverIpRef = ref(null);
 
 const columns = [
   {
@@ -204,6 +204,14 @@ function changeDevInfo({successMsg, errMsg, preDataSource}) {
 const toggleHeaderPwdVisible = () => {
   headerPwdVisible.value = !headerPwdVisible.value;
 };
+
+/* --------------------------------- */
+onMounted(() => {
+  setTimeout(() => {
+    // 获取本地服务IP
+    serverIpRef.value.innerText = `${bus.mqttServer.localIP}:${bus.mqttServer.port}`;
+  }, 50);
+})
 
 </script>
 

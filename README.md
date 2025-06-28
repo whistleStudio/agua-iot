@@ -123,3 +123,9 @@ https://nodejs.org/api/modules.html#loading-from-node_modules-folders
 Electron 在 require 时通常只去 app.asar.unpacked/node_modules/{模块} 找包，不会自动递归进 mqtt/node_modules
 
 问题：本地订阅修改报错✔；本地主题同名；背景图片数据存储√
+
+## 20250628
+
+intro页面增加部分交互；main index-checkUpdate尝试多次请求更新数据；图表部分替换
+
+更新远程服务

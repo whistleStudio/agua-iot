@@ -75,7 +75,7 @@
       class="add-device-btn"
       @click="addDevice"
     >
-      添加客户端（本地服务模式<span ref="serverIpRef"></span>）
+      注册客户端（本地服务模式<span ref="serverIpRef"></span>）
     </a-button>
   </div>
 </template>

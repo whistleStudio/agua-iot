@@ -111,15 +111,36 @@ function publishTopic(packet) {
 /* -------------------------------- */
 /* 获取ip地址 */
 function getLocalIPAddress() {
-  const interfaces = os.networkInterfaces()
+  const interfaces = os.networkInterfaces();
+  const lanIps = [];
+
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name]) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        return iface.address
+      if (
+        iface.family === 'IPv4' &&
+        !iface.internal &&
+        (
+          iface.address.startsWith('10.') ||
+          iface.address.startsWith('192.168.') ||
+          (iface.address >= '172.16.0.0' && iface.address <= '172.31.255.255')
+        )
+      ) {
+        lanIps.push(iface.address);
       }
     }
   }
-  return '127.0.0.1'
+
+  // 优先返回局域网 IP，否则返回第一个非内网 IP，否则 127.0.0.1
+  if (lanIps.length > 0) return lanIps[0];
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+
+  return '127.0.0.1';
 }
 
 const localIP = getLocalIPAddress()

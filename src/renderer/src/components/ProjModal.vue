@@ -112,7 +112,7 @@ function handleOk() {
       });
       return;
     }
-    if (!form.port.trim()) {
+    if (!form.port.toString().trim()) {
       bus.emit("showCustomAlert", {
         type: "warning",
         msg: "请输入端口号",

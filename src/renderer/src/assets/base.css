@@ -23,6 +23,12 @@
   --ev-button-alt-hover-border: transparent;
   --ev-button-alt-hover-text: var(--ev-c-text-1);
   --ev-button-alt-hover-bg: var(--ev-c-gray-2);
+
+  --mainColor: #756363;
+  --mainColor60: rgba(117, 99, 99, 0.6);
+  --mainColorHover: #a58c8c;
+  --mainColorActive: #5c4a4a; 
+  --secondaryColor: #e3b8b8;
 }
 
 :root {

@@ -1,0 +1,27 @@
+%theme-override {
+  .ant-btn-primary {
+    background-color: var(--mainColor) !important;
+    border-color: var(--mainColor) !important;
+  }
+  .ant-btn-primary:hover, .ant-btn-primary:focus {
+    background-color: var(--mainColorHover) !important;
+    border-color: var(--mainColorHover) !important;
+  }
+  .ant-btn-primary:active {
+    background-color: var(--mainColorActive) !important;
+    border-color: var(--mainColorActive) !important;
+  }
+  .ant-btn-default {
+    color: var(--mainColor) !important;
+    border-color: var(--mainColor) !important;
+  }
+  .ant-btn-default:hover, .ant-btn-default:focus {
+    color: var(--mainColorHover) !important;
+    border-color: var(--mainColorHover) !important;
+  }
+  .ant-btn-default:active {
+    color: var(--mainColorActive) !important;
+    border-color: var(--mainColorActive) !important;
+  }  
+}
+

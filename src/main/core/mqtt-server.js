@@ -17,16 +17,22 @@ server.listen(PORT, function () {
 
 /* 连接验证，设备管理 */
 aedes.authenticate = function (client, username, password, callback) {
-  console.log(client.id, 'is trying to connect with username:', username, 'and password:', password.toString())
-  const config = JSON.parse(fs.readFileSync(configUrl, 'utf8'))
-  for (let dev of config.devices) {
-    if (dev.clientID === client.id && dev.password == password.toString()) {
-      callback(null, true)
-      console.log(`${new Date()} - ${client.id} connect`)
-      return
+  console.log("device connecting...:", client.id, username, password)
+  try {
+    console.log(client.id, 'is trying to connect with username:', username, 'and password:', password.toString())
+    const config = JSON.parse(fs.readFileSync(configUrl, 'utf8'))
+    for (let dev of config.devices) {
+      if (dev.clientID === client.id && dev.password == password.toString()) {
+        callback(null, true)
+        console.log(`${new Date()} - ${client.id} connect`)
+        return
+      }
     }
+    callback(new Error('not authorized'), false)
+  } catch (err) {
+    // console.error('Error in aedes.authenticate:', err)
+    callback(err, false)
   }
-  callback(new Error('not authorized'), false)
 }
 
 const browserWindows = []

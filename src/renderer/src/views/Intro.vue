@@ -32,6 +32,7 @@
       <a-button type="primary" @click="handleOk">{{ updateInfo.okText || "更新" }}</a-button>
     </div>
   </a-modal>
+  <div class="version">v{{ curVersion }}</div>
   <audio :src="getAudioPath('aguato.mp3')" ref="audioRef"></audio>
 </template>
 
@@ -39,6 +40,8 @@
 import { onMounted, ref, onBeforeMount, onBeforeUnmount } from 'vue'
 import bus from '../utils/bus'
 
+const curVersion = window?.props?.version || ''
+console.log("version:", window.props.version)
 const isOpen = ref(false), audioRef = ref(null)
 const updateInfo = ref({
   title: '',
@@ -111,6 +114,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped lang="scss">
+@use "../assets/css/theme-override.scss" as *;
 .logo {
   cursor: pointer;
   width: 300px !important;
@@ -123,7 +127,7 @@ onBeforeUnmount(() => {
   p {
     &:nth-of-type(1) {
       font-size: 32px;
-      color: #756363;
+      color: var(--mainColor);
       font-weight: bold;
       font: bold 32px/1 'Microsoft YaHei', 'Heiti', '微软雅黑', '黑体', sans-serif;
       letter-spacing: 3px;
@@ -131,7 +135,7 @@ onBeforeUnmount(() => {
     }
     &:nth-of-type(2) {
       font-size: 64px;
-      color: #e3b8b8;
+      color: var(--SecondaryColor);
       font-weight: bold;
       font: bold 19px/1 'Microsoft YaHei', 'Heiti', '微软雅黑', '黑体', sans-serif;
       letter-spacing: 5px;
@@ -203,7 +207,16 @@ onBeforeUnmount(() => {
   padding: 0 22px;
   padding-top: 10px;
   gap: 10px;
+  @extend %theme-override;
 }
 
+.version {
+  position: absolute;
+  bottom: 20px;
+  right: 30px;
+  font-size: 19px;
+  color: var(--mainColor);
+  font-weight: bold;
+}
 
 </style>

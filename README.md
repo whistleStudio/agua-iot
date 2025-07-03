@@ -129,3 +129,7 @@ Electron 在 require 时通常只去 app.asar.unpacked/node_modules/{模块} 找
 intro页面增加部分交互；main index-checkUpdate尝试多次请求更新数据；图表部分替换
 
 更新远程服务
+
+## 202507031713
+
+v1.0.0版本

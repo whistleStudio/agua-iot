@@ -17,6 +17,17 @@
     </div> 
     <router-view @alert="showCustomAlert"/>
   </div>
+  <a-modal v-model:open="isInfoModalOpen" title="关于" @ok="handleOk" class="info-modal">
+    <p>
+      阿瓜物联(Aguato)文档：<br><a href="https://blog.whistlestudio.cn/essay/App/aguato-docs" target="_blank">https://blog.whistlestudio.cn/essay/App/aguato-docs</a>
+    </p>
+    <p>
+      开发者博客：<br><a href="https://www.whistlestudio.cn" target="_blank">https://whistlestudio.cn</a>
+    </p>
+    <template #footer>
+      <!-- <a-button type="primary" @click="handleOk">取消</a-button> -->
+    </template>
+  </a-modal>
 </template>
 
 
@@ -49,7 +60,8 @@ function menuTo(index) {
   if (index <= 2) {
     router.push(menuListInfo[index].href)
   } else {
-    window.electron.ipcRenderer.send('r:openExternal', 'https://www.whistlestudio.cn')
+    isInfoModalOpen.value = true
+    // window.electron.ipcRenderer.send('r:openExternal', 'https://www.whistlestudio.cn')
   }
 }
 
@@ -72,6 +84,15 @@ const enterFullscreen = () => { isFullscreen.value = true }
 bus.on('enterFullscreen', enterFullscreen)
 const exitFullscreen = () => { isFullscreen.value = false }
 bus.on('exitFullscreen', exitFullscreen)
+
+/* infoModal */
+const isInfoModalOpen = ref(false)
+const handleOk = () => {
+  isInfoModalOpen.value = false
+  // 处理确认逻辑
+  console.log('Modal confirmed')
+}
+
 
 /* ------------------------ */
 onBeforeMount(() => {

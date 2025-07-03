@@ -19,7 +19,7 @@
   </div>
   <a-modal v-model:open="isInfoModalOpen" title="关于" @ok="handleOk" class="info-modal">
     <p>
-      阿瓜物联(Aguato)文档：<br><a href="https://blog.whistlestudio.cn/essay/App/aguato-docs" target="_blank">https://blog.whistlestudio.cn/essay/App/aguato-docs</a>
+      阿瓜物联(Aguato)文档：<br><a href="https://blog.whistlestudio.cn/essay/App/aguato-docs/index.html" target="_blank">https://blog.whistlestudio.cn/essay/App/aguato-docs/index.html</a>
     </p>
     <p>
       开发者博客：<br><a href="https://www.whistlestudio.cn" target="_blank">https://whistlestudio.cn</a>

@@ -46,7 +46,7 @@ function subscribeTopic(topic) {
     // 保存deliverfunc以便后续unsubscribe
     const deliverfunc = function (packet, cb) {
       console.log('local subscribe: ', packet.topic, packet.qos)
-      const topic = packet.topic, qos = packet.qos, payload = packet.payload.toString()
+      const  qos = packet.qos, payload = packet.payload.toString()
       const time = new Date(Date.now() + 8 * 3600000).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19) // 东8区
       if (mqttCache[topic].dataList.length >= 50) {
         mqttCache[topic].dataList.shift();
@@ -54,7 +54,7 @@ function subscribeTopic(topic) {
       mqttCache[topic].dataList.push({ time, qos, payload })
       if (browserWindows.length) {
         for (const win of browserWindows) {
-          win.webContents.send('m:mqttData', { topic, qos, payload, time })
+          win.webContents.send('m:mqttData', { topic, qos, payload, time, realTopic: packet.topic })
         }
       }
       cb()
@@ -110,7 +110,7 @@ function publishTopic(packet) {
     qos: packet.qos,
     retain: packet.retain
     }, () => {
-    console.log('publish success: ', packet.topic, packet.payload)
+    console.log('publish success: ', packet.topic, packet.payload, packet.retain)
   })
 }
 

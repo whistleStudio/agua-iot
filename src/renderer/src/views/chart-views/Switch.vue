@@ -64,7 +64,7 @@ const selectTopic = ref()
 
 const opts = computed(() => pubTopics.value.map(v => {
   return {
-    label: `${v.topic}${'\u00A0'.repeat(Math.max(0, 25 - v.topic.length))} qos:${v.qos} retain:${v.retain}`,
+    label: bus.projList[bus.activeProjIdx].mode === "remote" ? `${v.topic}${'\u00A0'.repeat(Math.max(0, 25 - v.topic.length))} qos:${v.qos} retain:${v.retain}` : v.topic,
     value: JSON.stringify(v)
   }
 }))

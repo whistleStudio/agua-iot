@@ -109,7 +109,7 @@
             >
               <div class="time">{{ msg.time }}</div>
               <div class="topic">
-                主题: {{ msg.topic }} <span class="qos">QoS: {{ msg.qos }}</span>
+                主题: {{ msg.topic }} <span class="qos" v-show="activeProj.mode === 'remote'">QoS: {{ msg.qos }}</span>
               </div>
               <div class="content">{{ msg.content }}</div>
             </div>
@@ -121,11 +121,11 @@
               <a-select v-model:value="pubMsg.format">
                 <a-select-option value="plaintext">Plaintext</a-select-option>
               </a-select>
-              <a-select v-model:value="pubTopic.qos">
+              <a-select v-model:value="pubTopic.qos" v-show="activeProj.mode === 'remote'">
                 <a-select-option v-for="(v, i) in Array(3)" :value="i">QoS {{ i }}</a-select-option>
               </a-select>
-              <a-checkbox v-model:checked="pubTopic.retain" class="retain-checkbox">Retain</a-checkbox>
-              <a-button type="primary" @click="handleSend">发布</a-button>
+              <a-checkbox v-model:checked="pubTopic.retain" class="retain-checkbox" v-show="activeProj.mode==='remote'">Retain</a-checkbox>
+              <a-button type="primary" @click="handleSend" style="margin-left: auto;">发布</a-button>
             </div>
             <a-input v-model:value.trim="pubTopic.topic" class="text-sm" placeholder="请输入主题名称..."
             @blur="blurPubTopic">
@@ -136,8 +136,8 @@
                       <p v-for="(v, i) in activeProj.pubTopics" class="pubhistory" @click="{pubTopic.topic = v.topic; pubHistoryBtnRef.click()}"
                       @mouseover="hoverPubIndex = i" @mouseleave="hoverPubIndex = -1" :key="v.topic+v.qos+v.retain">
                         <span>{{ v.topic }}</span>
-                        <span>QoS: {{ v.qos }} </span>
-                        <span>retain: {{ Number(v.retain) }}</span>
+                        <span v-show="activeProj.mode==='remote'">QoS: {{ v.qos }} </span>
+                        <span v-show="activeProj.mode==='remote'">retain: {{ Number(v.retain) }}</span>
                         <span class="delete" :class="{display: i==hoverPubIndex}" @click.stop="clickDeletePub(i)">❌</span>
                       </p>
                     </template>
@@ -162,6 +162,7 @@ import ProjModal from '../components/ProjModal.vue'
 import SubscriptionModal from '../components/SubscriptionModal.vue';
 import bus from '../utils/bus'
 import { cloneDeep } from "lodash-es";
+import { time } from 'echarts';
 
 const emit = defineEmits(['alert'])
 
@@ -207,6 +208,29 @@ const projModalTitle = computed(() =>
 const subModalTitle = computed(() =>
   isSubModalOpen.value === 2 ? '编辑' : '新建'
 )
+
+// 订阅主题仅校验不为空、唯一性、只允许ASCII、不能有\0，允许+和#
+function isTopicNameValid(topic, topics, editingIdx = -1) {
+  if (!topic || !topic.trim()) return { valid: false, msg: "主题名称不能为空" }
+  if (!/^[\x00-\x7F]+$/.test(topic)) return { valid: false, msg: "主题仅支持ASCII字符" }
+  if (topic.includes('\0')) return { valid: false, msg: "主题名称不能包含空字符（\\0）" }
+  const idx = topics.findIndex((item) => item.topic === topic)
+  if (idx !== -1 && idx !== editingIdx) return { valid: false, msg: "主题名称已存在" }
+  return { valid: true }
+}
+// 发布主题禁止包含+和#，禁止有非ASCII和\0
+function isPublishTopicValid(topic) {
+  if (!/^[\x00-\x7F]+$/.test(topic)) {
+    return { valid: false, msg: "主题仅支持ASCII字符" }
+  }
+  if (topic.includes('\0')) {
+    return { valid: false, msg: "主题名称不能包含空字符（\\0）" }
+  }
+  if (/[#+]/.test(topic)) {
+    return { valid: false, msg: "主题通配符+、#，仅可用于订阅" }
+  }
+  return { valid: true }
+}
 
 /* 新增项目-确定 或 编辑项目-确定 */
 async function handleProjModalOk(newProj) {
@@ -407,23 +431,30 @@ function clickDeleteSub(index) {
 async function handleSubModalOk(newSub) {
   try {
     isSubModalOpen.value = 0
-    if (newSub.topic === '' || activeProjID.value === -999) return
+    if (activeProjID.value === -999) return
     newSub = cloneDeep(newSub)
+    // 校验主题名称
+    const topics = activeProj.value.subTopics
+    const check = isTopicNameValid(newSub.topic, topics, editSubIndex.value)
+    if (!check.valid) {
+      bus.emit("showCustomAlert", { type: "warning", msg: check.msg, time: 1500 })
+      return
+    }
     if (editSubIndex.value === -1) {
-      const index = activeProj.value.subTopics.findIndex((item) => item.topic === newSub.topic)
+      const index = topics.findIndex((item) => item.topic === newSub.topic)
       if (index === -1) {
         const res = await subscribeMqttTopic(newSub)
         if (res.err) {
-          bus.emit("showCustomAlert", { type: "error", msg: res.msg })
+          bus.emit("showCustomAlert", { type: "error", msg: res.msg, time: 1500 })
           return
         }
-        activeProj.value.subTopics.push(newSub)
+        topics.push(newSub)
       } else { 
         bus.emit("showCustomAlert", { type: "warning", msg: "主题已存在" })
         return
       }
     } else {
-      const sub = activeProj.value.subTopics[editSubIndex.value]
+      const sub = topics[editSubIndex.value]
       // 校验新旧主题是否相同
       let isChangeFlag = false
       Object.keys(newSub).forEach(key => {
@@ -498,6 +529,13 @@ function clickDeletePub(index) {
 function blurPubTopic() {
   if (pubTopic.value.topic === '') return
   const index = activeProj.value.pubTopics.findIndex((item) => item.topic === pubTopic.value.topic && item.qos === pubTopic.value.qos && item.retain === pubTopic.value.retain)
+    // 校验发布主题
+  const check = isPublishTopicValid(pubTopic.value.topic)
+  if (!check.valid) {
+    pubTopic.value.topic = ''
+    emit("alert", { type: "error", msg: check.msg, time: 1500 })
+    return
+  }
   if (index === -1) {
     if (activeProj.value.pubTopics.length > 10) {
       activeProj.value.pubTopics.shift()
@@ -510,6 +548,13 @@ function blurPubTopic() {
 /* 发布消息 */
 function handleSend() {
   if (pubTopic.value.topic === '' || pubMsg.value.payload === '' || activeProjID.value === -999) return
+  // 校验发布主题
+  const check = isPublishTopicValid(pubTopic.value.topic)
+  if (!check.valid) {
+    pubTopic.value.topic = ''
+    emit("alert", { type: "error", msg: check.msg, time: 1500 })
+    return
+  }
   const mqttMode = activeProj.value.mode
   if (mqttMode === 'remote' && activeProj.value.connected !== 2) {
     emit("alert", { type: "warning", msg: "请先连接远程MQTT服务器", time: 1500})
@@ -545,7 +590,6 @@ function emptyCache() {
 /* 监听消息数据变化，滚动到底部（最快） */
 function scrollToBottom() {
   nextTick(() => {
-    // 再包一层 setTimeout，确保 DOM 已完全渲染
     setTimeout(() => {
       if (messagesRef.value) {
         messagesRef.value.scrollTop = messagesRef.value.scrollHeight
@@ -590,10 +634,10 @@ onBeforeUnmount(() => {
 window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
   const localProjList = projList.filter((item) => item.mode === 'local')
   if (localProjList.length === 0) return
-  const { topic, qos, payload, time } = data
+  const { topic, qos, payload, time, realTopic } = data
   localProjList.forEach((proj) => {
     if (proj.subTopics.some((item) => item.topic === topic)) {
-      proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+      proj.cache.push({ type: 0, time, topic: realTopic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
     }
   })
   bus.changeProjInfo()

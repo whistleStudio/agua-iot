@@ -122,6 +122,35 @@ const columns = [
     key: "action",
   },
 ];
+
+// 生成唯一的“本地测试X”名称
+function generateUniqueName(dataSource) {
+  const base = '本地测试';
+  let max = 1;
+  dataSource.forEach(item => {
+    const match = String(item.name).match(/^本地测试(\d+)$/);
+    if (match) {
+      max = Math.max(max, Number(match[1]));
+    }
+  });
+  // 下一个编号
+  return `${base}${max + 1}`;
+}
+
+// 生成唯一的8位客户端ID（首字母为英文字母，后7位为英文字母或数字）
+function generateUniqueClientID(dataSource) {
+  const exists = new Set(dataSource.map(item => item.clientID));
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+  const charsAll = chars + '0123456789';
+  while (true) {
+    let id = chars[Math.floor(Math.random() * chars.length)];
+    for (let i = 0; i < 7; i++) {
+      id += charsAll[Math.floor(Math.random() * charsAll.length)];
+    }
+    if (!exists.has(id)) return id;
+  }
+}
+
 // 获取图片路径
 function getImgPath(imgName) {
   return new URL(`../assets/img/${imgName}`, import.meta.url).href
@@ -154,6 +183,15 @@ const edit = (key) => {
 };
 
 const save = key => {
+  const newClientID = editableData[key]?.clientID;
+  // 校验客户端ID唯一性
+  if (
+    newClientID &&
+    dataSource.value.some(item => item.key !== key && item.clientID === newClientID)
+  ) {
+    emit("alert", { type: "error", msg: "客户端ID已存在，请重新输入", time: 1500 });
+    return;
+  }
   const preDataSource = cloneDeep(dataSource.value);
   Object.assign(dataSource.value.filter(item => key === item.key)[0], editableData[key]);
   changeDevInfo({
@@ -170,10 +208,12 @@ const cancel = key => {
 // 添加设备
 const addDevice = () => {
   const preDataSource = cloneDeep(dataSource.value);
+  const name = generateUniqueName(dataSource.value);
+  const clientID = generateUniqueClientID(dataSource.value);
   const newItem = {
     key: new Date().getTime(),
-    name: "undefined",
-    clientID: "undefined",
+    name,
+    clientID,
     password: "123456",
   };
   dataSource.value.push(newItem);

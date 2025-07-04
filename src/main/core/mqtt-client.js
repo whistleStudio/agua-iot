@@ -71,13 +71,25 @@ function connectRemoteMqtt({projId, ip, port, clientID, username, password, subT
 
     // 回调：接收消息
     const onMessageHandle = (topic, message, packet) => {
+      console.log("------------------------\n", topic, packet, "---------------------\n")
       console.log(`Client ${clientID} received message on ${topic} QOS${packet.qos}: ${message.toString()}`);
       const time = new Date(Date.now() + 8 * 3600000).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19) // 东8区
       const payload = message.toString();
+      // 找出所有命中的订阅表达式
+      const matchedSubs = clientGroup[projId].customSubTopics.filter(sub =>
+        matchMqttTopicFilter(sub.topic, topic)
+      );
+
       // 这里可以添加处理接收到消息的逻辑
       if (browserWindows.length) {
         for (const win of browserWindows) {
-          win.webContents.send('m:mqttRemoteData', { projId, topic, qos: packet.qos, payload, time })
+          matchedSubs.forEach(sub => {
+            console.log(`Matched subscription for ${sub.topic} in project ${projId} ${sub.qos} packet.qos ${packet.qos}`);
+            if (sub?.retained?.indexOf(topic)<0) {
+              win.webContents.send('m:mqttRemoteData', { projId, topic: sub.topic, qos: Math.min(packet.qos, sub.qos||0), payload, time })
+              sub.retained.push(topic); // 添加至已retain接收过的列表，避免重复向renderer发送
+            }
+          })
         }
       }
     }
@@ -97,8 +109,8 @@ function connectRemoteMqtt({projId, ip, port, clientID, username, password, subT
         disconnectRemoteMqtt({projId, clientID, initiated: false}); // 断开连接
       }, 500); // 延时0.5秒后断开连接，避免重复触
     }
-        
-    clientGroup[projId] = {client, onConnectHandle, onMessageHandle, onErrorHandle}; // 存储客户端
+    const customSubTopics = subTopics.map(topic => ({...topic, retained: []}))
+    clientGroup[projId] = {client, onConnectHandle, onMessageHandle, onErrorHandle, customSubTopics}; // 存储客户端
     clientIdList.push(clientID); // 存储客户端ID
 
     client.on('connect', onConnectHandle);
@@ -143,6 +155,12 @@ function subscribeRemoteTopic ({projId, topic}) {
           rej({err: 1, msg: `订阅主题失败`});
         } else {
           console.log(`remote Client subscribed to ${topic.topic} - QOS${topic.qos}`);
+          // 更新订阅列表
+          if (!clientGroup[projId].customSubTopics) {
+            clientGroup[projId].customSubTopics = [];
+          }
+          clientGroup[projId].customSubTopics.push({...topic, retained: []}); // 添加到订阅列表中
+          // 如果有浏览器窗口，发送订阅成功事件
           rsv({err: 0, msg: '订阅成功'});
         }
       });
@@ -162,6 +180,10 @@ function unsubscribeRemoteTopic ({projId, topic}) {
       if (err) {
         console.log(`remote Client failed to unsubscribe from ${topic}:`, err);
       } else {
+        if (clientGroup[projId].customSubTopics) {
+          // 从订阅列表中移除主题
+          clientGroup[projId].customSubTopics = clientGroup[projId].customSubTopics.filter(sub => sub.topic !== topic);
+        }
         console.log(`remote Client unsubscribed from ${topic}`);
       }
     });
@@ -179,12 +201,40 @@ function publishRemoteTopic({packet, projId}) {
       if (err) {
         console.error(`remote Client failed to publish to ${packet.topic}:`, err);
       } else {
-        console.log(`remote Client published to ${packet.topic}: ${packet.payload}`);
+        console.log(`remote Client published to ${packet.topic}: ${packet.payload} ${packet.qos}`);
       }
     });
   } else {
     console.log(`publishRemoteTopic - Client not found for project ${projId}`);
   }
+}
+
+
+// 完整支持+和#的MQTT主题匹配
+function matchMqttTopicFilter(filter, topic) {
+  if (typeof filter !== 'string' || typeof topic !== 'string') return false;
+  if (filter.length === 0 || topic.length === 0) return false;
+  if (filter.includes('//') || topic.includes('//')) return false;
+
+  const filterLevels = filter.split('/');
+  const topicLevels = topic.split('/');
+
+  let i = 0;
+  for (; i < filterLevels.length; i++) {
+    const f = filterLevels[i];
+    const t = topicLevels[i];
+    if (f === '#') {
+      // #必须在末尾
+      return i === filterLevels.length - 1;
+    }
+    if (f === '+') {
+      if (typeof t === 'undefined') return false;
+      continue;
+    }
+    if (typeof t === 'undefined') return false;
+    if (f !== t) return false;
+  }
+  return filterLevels.length === topicLevels.length;
 }
 
 export default {

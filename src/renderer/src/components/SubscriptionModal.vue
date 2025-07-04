@@ -3,7 +3,7 @@
     :open="Boolean(open)"
     :title="subModalTitle"
     @ok="handleOk"
-    @cancel="emit('cancel')"
+    @cancel="onCancel"
     width="540px"
     class="subscription-modal"
     :okText="'确定'"
@@ -11,13 +11,13 @@
   >
     <a-form :model="newSub" :rules="rules" ref="subscriptionForm" layout="vertical">
       <!-- Topic -->
-      <a-form-item label="主题" name="topic" required :rules="[{ required: true, message: 'Please input topic!' }]">
+      <a-form-item label="主题" name="topic" required :rules="[{ required: true, message: '主题不能为空' }]">
         <a-input v-model:value.trim="newSub.topic" placeholder="Enter topic" suffix-icon="info-circle" />
       </a-form-item>
 
       <!-- QoS & Color -->
       <div class="row-flex">
-        <a-form-item v-if="mode === 'remote'" label="QoS" name="qos" required :rules="[{ required: true, message: 'Please select QoS!' }]" class="qos-item">
+        <a-form-item v-if="mode === 'remote'" label="QoS" name="qos" required :rules="[{ required: true, message: '请选择qos等级' }]" class="qos-item">
           <a-select v-model:value="newSub.qos">
             <a-select-option :value="0">0 At most once</a-select-option>
             <a-select-option :value="1">1 At least once</a-select-option>
@@ -27,9 +27,11 @@
         <a-form-item label="颜色" name="color" class="color-item">
           <div class="color-inline-group">
             <a-input v-model:value.trim="newSub.color" class="color-input">
-              <template #suffix><span @click="randomColor" style="cursor: pointer;">🎲</span></template>
+              <template #suffix>
+                <span @click="randomColor" style="cursor: pointer;">🎲</span>
+              </template>
             </a-input>
-            <input type="color" v-model="newSub.color" class="color-picker" aria-label="Pick color" />
+            <input type="color" v-model="safeColor" class="color-picker" aria-label="Pick color" />
           </div>
         </a-form-item>
       </div>
@@ -43,8 +45,9 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 
+const subscriptionForm = ref()
 const emit = defineEmits(['ok', 'cancel'])
 const props = defineProps({
   open: { // 0关，1新建，2编辑
@@ -61,7 +64,7 @@ const props = defineProps({
   },
   mode: {
     type: String,
-    default: 'local' // create or edit
+    default: 'local'
   }
 })
 
@@ -74,7 +77,8 @@ const newSub = ref({
 
 const rules = {
   topic: [
-    { required: true, message: 'Please input topic!', trigger: 'blur' }
+    { required: true, message: 'Please input topic!', trigger: 'blur' },
+    { validator: validateTopic, trigger: 'blur' }
   ],
   qos: [
     { required: true, message: 'Please select QoS!', trigger: 'change' }
@@ -87,12 +91,31 @@ function randomColor() {
   newSub.value.color = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0').toUpperCase()
 }
 
-// 弹窗打开时初始化
+// 保证type="color"绑定的值始终合法
+const safeColor = computed({
+  get() {
+    const c = newSub.value.color
+    return /^#[0-9A-Fa-f]{6}$/.test(c) ? c : '#97CE54'
+  },
+  set(val) {
+    newSub.value.color = val
+  }
+})
+
+function validateTopic(rule, value) {
+  if (!value) return Promise.reject('主题不能为空')
+  // 仅允许ASCII
+  if (!/^[\x00-\x7F]+$/.test(value)) return Promise.reject('主题仅支持ASCII字符')
+  // 不能包含\0
+  if (value.includes('\0')) return Promise.reject('主题不能包含空字符（\\0）')
+  return Promise.resolve()
+}
+
+// 关闭modal时，颜色为空赋随机色
 watch(
   () => props.open,
-  (newVal) => {
+  async (newVal, oldVal) => {
     if (newVal === 1) {
-      // 新建订阅
       newSub.value = {
         topic: 'customtopic/#',
         qos: 0,
@@ -101,8 +124,6 @@ watch(
       }
     }
     if (newVal === 2 && props.passform) {
-      // 编辑订阅，初始化表单为当前主题属性
-      // 防止 passform 缺字段
       newSub.value = {
         topic: props.passform.topic ?? '',
         qos: typeof props.passform.qos === 'number' ? props.passform.qos : 0,
@@ -110,12 +131,30 @@ watch(
         alias: props.passform.alias ?? ''
       }
     }
+    await nextTick()
+    subscriptionForm.value?.clearValidate?.()
+    // modal关闭时，颜色为空或不合法赋随机色
+    if ((oldVal === 1 || oldVal === 2) && newVal === 0) {
+      if (!/^#[0-9A-Fa-f]{6}$/.test(newSub.value.color)) {
+        randomColor()
+      }
+    }
   },
   { immediate: true }
 )
 
 function handleOk() {
-  emit('ok', { ...newSub.value })
+  subscriptionForm.value.validate().then(() => {
+    // 提交前再兜底校验颜色
+    if (!/^#[0-9A-Fa-f]{6}$/.test(newSub.value.color)) randomColor()
+    emit('ok', { ...newSub.value })
+  })
+}
+
+function onCancel() {
+  // 关闭时颜色为空或不合法也给随机色
+  if (!/^#[0-9A-Fa-f]{6}$/.test(newSub.value.color)) randomColor()
+  emit('cancel')
 }
 </script>
 
@@ -156,7 +195,6 @@ function handleOk() {
   background: none;
   padding: 0;
   cursor: pointer;
-  // 垂直对齐
   vertical-align: middle;
   appearance: none;
   border-radius: 5px;

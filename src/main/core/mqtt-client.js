@@ -7,34 +7,6 @@ const clientGroup = {
 const clientIdList = []
 const browserWindows = [] // 用于存储浏览器窗口引用
 
-// // 连接成功回调
-// client.on('connect', () => {
-//   console.log('Connected');
-//   // 订阅主题
-//   client.subscribe('iot/test', (err) => {
-//     if (!err) {
-//       console.log('Subscribed to iot/test');
-//       // 发布消息
-//       client.publish('iot/test', 'Hello IoT!');
-//     }
-//   });
-// });
-
-// // 接收到消息回调
-// client.on('message', (topic, message) => {
-//   console.log(`Received message on ${topic}: ${message.toString()}`);
-// });
-
-// // 错误处理
-// client.on('error', (err) => {
-//   console.error('Connection error:', err);
-// });
-
-// // 关闭连接
-// client.on('close', () => {
-//   console.log('Connection closed');
-// });
-
 /* 远程连接（创建客户端） */
 function connectRemoteMqtt({projId, ip, port, clientID, username, password, subTopics}) {
   console.log(`Connecting to remote MQTT server at ${ip}:${port} with clientID: ${clientID}`);
@@ -82,14 +54,17 @@ function connectRemoteMqtt({projId, ip, port, clientID, username, password, subT
 
       // 这里可以添加处理接收到消息的逻辑
       if (browserWindows.length) {
+        if (matchedSubs.length === 0) return 
         for (const win of browserWindows) {
           matchedSubs.forEach(sub => {
             console.log(`Matched subscription for ${sub.topic} in project ${projId} ${sub.qos} packet.qos ${packet.qos}`);
-            if (sub?.retained?.indexOf(topic)<0) {
-              win.webContents.send('m:mqttRemoteData', { projId, topic: sub.topic, qos: Math.min(packet.qos, sub.qos||0), payload, time })
-              sub.retained.push(topic); // 添加至已retain接收过的列表，避免重复向renderer发送
-            }
+            win.webContents.send('m:mqttRemoteData', { projId, topic: sub.topic, qos: Math.min(packet.qos, sub.qos||0), payload, time })
+            // if (sub?.retained?.indexOf(topic)<0) {
+            //   win.webContents.send('m:mqttRemoteData', { projId, topic: sub.topic, qos: Math.min(packet.qos, sub.qos||0), payload, time })
+            //   sub.retained.push(topic); // 添加至已retain接收过的列表，避免重复向renderer发送
+            // }
           })
+          win.webContents.send('m:mqttRemoteProjData', { projId, topic, qos: packet.qos, payload, time }); // 发送到renderer进程Proj.vue
         }
       }
     }

@@ -136,4 +136,4 @@ v1.0.0版本
 
 ## 202507071722
 
-修复qos retain等逻辑问题；更改local下信息显示，删除qos和retain
+修改device页增加客户端时的信息；修复qos retain等逻辑问题；更改local下信息显示，删除qos和retain

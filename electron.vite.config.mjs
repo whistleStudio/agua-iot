@@ -17,13 +17,13 @@ export default defineConfig({
     },
     plugins: [vue()],
     build: {
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true,  // 移除console
-          drop_debugger: true  // 移除debugger
-        }
-      },
+      // minify: 'terser',
+      // terserOptions: {
+      //   compress: {
+      //     drop_console: true,  // 移除console
+      //     drop_debugger: true  // 移除debugger
+      //   }
+      // },
       sourcemap: false, // 生产环境不生成map
       assetsInlineLimit: 4096, // 4kb以下资源内联
       rollupOptions: {

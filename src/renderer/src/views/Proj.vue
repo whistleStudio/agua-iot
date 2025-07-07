@@ -547,7 +547,7 @@ function blurPubTopic() {
 
 /* 发布消息 */
 function handleSend() {
-  if (pubTopic.value.topic === '' || pubMsg.value.payload === '' || activeProjID.value === -999) return
+  if (pubTopic.value.topic === '' || activeProjID.value === -999) return
   // 校验发布主题
   const check = isPublishTopicValid(pubTopic.value.topic)
   if (!check.valid) {
@@ -645,7 +645,7 @@ window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
 // 处理远程服务订阅消息内容
 window.electron.ipcRenderer.on("m:mqttRemoteProjData", (_, data) => {
   const proj = projList.find((item) => item.id === data.projId)
-  const { topic, qos, payload, time, matchedSubs } = data
+  const { topic, qos, payload, time } = data
   if (!proj || proj.mode !== 'remote' || proj.connected !== 2) return
   proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic)?.color || "#a58c8c" })
   bus.changeProjInfo()

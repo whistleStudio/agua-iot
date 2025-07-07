@@ -233,8 +233,9 @@ const subTopicDataHandle = ({ topic, qos, payload }) => {
       props.compProps.value = 0
       props.compProps.isInit = false
     }       
-    const value = parseFloat(payload)
-    props.compProps.value = isNaN(value) ? 0 : value
+    const value = parseFloat(payload).toFixed(2)
+    if (isNaN(value)) return
+    props.compProps.value = value
     updateOptionData()
   } catch (e) { console.log("gauge sub data err", e); }
 }

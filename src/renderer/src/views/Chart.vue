@@ -447,8 +447,17 @@ window.electron.ipcRenderer.on("m:mqttRemoteData", (_, data) => {
   const proj = projList.find((item) => item.id === data.projId)
   if (!proj || proj.mode !== 'remote' || proj.connected !== 2) return
   bus.emit('subTopicData', data)
-  const { topic, qos, payload, time } = data // 同步cache
-  proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+  // const { topic, qos, payload, time } = data // 同步cache
+  // proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+  // bus.changeProjInfo()
+})
+
+// 处理远程服务订阅消息内容
+window.electron.ipcRenderer.on("m:mqttRemoteProjData", (_, data) => {
+  const proj = projList.find((item) => item.id === data.projId)
+  const { topic, qos, payload, time } = data
+  if (!proj || proj.mode !== 'remote' || proj.connected !== 2) return
+  proj.cache.push({ type: 0, time, topic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic)?.color || "#a58c8c" })
   bus.changeProjInfo()
 })
 
@@ -548,6 +557,7 @@ onBeforeUnmount(() => {
   // 清理mqtt数据监听
   window.electron.ipcRenderer.removeAllListeners("m:mqttData")
   window.electron.ipcRenderer.removeAllListeners("m:mqttRemoteData")
+  window.electron.ipcRenderer.removeAllListeners("m:mqttRemoteProjData")
   window.electron.ipcRenderer.removeAllListeners("m:mqttRemoteErrDisconnected")
   // 清理全屏监听
   document.removeEventListener('keydown', onEscExitFullscreen);

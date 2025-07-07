@@ -133,3 +133,7 @@ intro页面增加部分交互；main index-checkUpdate尝试多次请求更新�
 ## 202507031713
 
 v1.0.0版本
+
+## 202507071722
+
+修复qos retain等逻辑问题；更改local下信息显示，删除qos和retain

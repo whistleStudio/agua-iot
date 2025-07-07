@@ -58,7 +58,7 @@ function connectRemoteMqtt({projId, ip, port, clientID, username, password, subT
         for (const win of browserWindows) {
           matchedSubs.forEach(sub => {
             console.log(`Matched subscription for ${sub.topic} in project ${projId} ${sub.qos} packet.qos ${packet.qos}`);
-            win.webContents.send('m:mqttRemoteData', { projId, topic: sub.topic, qos: Math.min(packet.qos, sub.qos||0), payload, time })
+            win.webContents.send('m:mqttRemoteData', { projId, topic: sub.topic, qos: packet.qos, payload, time })
             // if (sub?.retained?.indexOf(topic)<0) {
             //   win.webContents.send('m:mqttRemoteData', { projId, topic: sub.topic, qos: Math.min(packet.qos, sub.qos||0), payload, time })
             //   sub.retained.push(topic); // 添加至已retain接收过的列表，避免重复向renderer发送

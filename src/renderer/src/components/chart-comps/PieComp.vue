@@ -201,6 +201,8 @@ const subTopicDataHandle = ({ topic, qos, payload }) => {
     props.compProps.data.forEach((seg, idx) => {
       if (data[idx] !== undefined) {
         seg.value = parseFloat(data[idx])
+        if (isNaN(seg.value)) seg.value = 0
+        if (seg.value < 0) seg.value = 0 // 确保占比不为负
       } else {
         seg.value = 0
       }

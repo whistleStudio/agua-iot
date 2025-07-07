@@ -50,7 +50,7 @@ function createWindow() {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false
     },
-    alwaysOnTop: true
+    alwaysOnTop: false
   })
 
   mainWindow.on('ready-to-show', () => {

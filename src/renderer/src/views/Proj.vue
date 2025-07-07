@@ -162,7 +162,6 @@ import ProjModal from '../components/ProjModal.vue'
 import SubscriptionModal from '../components/SubscriptionModal.vue';
 import bus from '../utils/bus'
 import { cloneDeep } from "lodash-es";
-import { time } from 'echarts';
 
 const emit = defineEmits(['alert'])
 
@@ -636,8 +635,18 @@ window.electron.ipcRenderer.on("m:mqttData", (_, data) => {
   if (localProjList.length === 0) return
   const { topic, qos, payload, time, realTopic } = data
   localProjList.forEach((proj) => {
-    if (proj.subTopics.some((item) => item.topic === topic)) {
-      proj.cache.push({ type: 0, time, topic: realTopic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+    if (proj.subTopics.some((item) => item.topic === realTopic)) {
+      if (topic === realTopic) 
+        // 如果是精确匹配的主题
+        proj.cache.push({ type: 0, time, topic: realTopic, qos, content: payload, color: proj.subTopics.find((item) => item.topic === topic).color })
+    } else {
+      // 找出所有命中的订阅表达式
+      const matchedSubs = proj.subTopics.filter(sub =>
+        matchMqttTopicFilter(sub.topic, realTopic)
+      );
+      if (matchedSubs.length > 0 && matchedSubs[0].topic === topic) {
+        proj.cache.push({ type: 0, time, topic: realTopic, qos, content: payload, color: "#a58c8c" })
+      }
     }
   })
   bus.changeProjInfo()
@@ -662,6 +671,33 @@ window.electron.ipcRenderer.on("m:mqttRemoteErrDisconnected", (_, {projId}) => {
 
 function getImgPath(imgName) {
   return new URL(`../assets/img/${imgName}`, import.meta.url).href
+}
+
+// 完整支持+和#的MQTT主题匹配
+function matchMqttTopicFilter(filter, topic) {
+  if (typeof filter !== 'string' || typeof topic !== 'string') return false;
+  if (filter.length === 0 || topic.length === 0) return false;
+  if (filter.includes('//') || topic.includes('//')) return false;
+
+  const filterLevels = filter.split('/');
+  const topicLevels = topic.split('/');
+
+  let i = 0;
+  for (; i < filterLevels.length; i++) {
+    const f = filterLevels[i];
+    const t = topicLevels[i];
+    if (f === '#') {
+      // #必须在末尾
+      return i === filterLevels.length - 1;
+    }
+    if (f === '+') {
+      if (typeof t === 'undefined') return false;
+      continue;
+    }
+    if (typeof t === 'undefined') return false;
+    if (f !== t) return false;
+  }
+  return filterLevels.length === topicLevels.length;
 }
 </script>
 

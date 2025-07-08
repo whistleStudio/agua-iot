@@ -92,29 +92,29 @@
 </template>
 
 <script setup>
-import { ref, markRaw, provide, reactive, computed, onBeforeMount, watch, onBeforeUnmount, nextTick } from 'vue';
+import { ref, markRaw, provide, reactive, computed, onBeforeMount, watch, onBeforeUnmount, nextTick, defineAsyncComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import chartCfg from '../cfg/chart-cfg';
-import { cloneDeep } from 'lodash-es';
+import {cloneDeep} from 'lodash-es';
 import bus from '../utils/bus';
 
 // 引入所有可用的自定义组件
-import PubTextComp from '../components/chart-comps/PubTextComp.vue'
-import ButtonComp from '../components/chart-comps/ButtonComp.vue'
-import SwitchComp from '../components/chart-comps/SwitchComp.vue';
-import SliderComp from '../components/chart-comps/SliderComp.vue';
-import RadioComp from '../components/chart-comps/RadioComp.vue';
-import CheckboxComp from '../components/chart-comps/CheckboxComp.vue';
-import SubcommontextComp from '../components/chart-comps/SubcommontextComp.vue';
-import SublabeltextComp from '../components/chart-comps/SublabeltextComp.vue';
-import LineChartComp from '../components/chart-comps/LineChartComp.vue';
-import GaugeComp from '../components/chart-comps/GaugeComp.vue';
-import PieComp from '../components/chart-comps/PieComp.vue'
-import ScatterComp from '../components/chart-comps/ScatterComp.vue';
-import LiquidfillComp from '../components/chart-comps/LiquidfillComp.vue';
-import BarComp from '../components/chart-comps/BarComp.vue';
-import StackedareaComp from '../components/chart-comps/StackedareaComp.vue';
-import RadarComp from '../components/chart-comps/RadarComp.vue';
+// import PubTextComp from '../components/chart-comps/PubTextComp.vue'
+// import ButtonComp from '../components/chart-comps/ButtonComp.vue'
+// import SwitchComp from '../components/chart-comps/SwitchComp.vue';
+// import SliderComp from '../components/chart-comps/SliderComp.vue';
+// import RadioComp from '../components/chart-comps/RadioComp.vue';
+// import CheckboxComp from '../components/chart-comps/CheckboxComp.vue';
+// import SubcommontextComp from '../components/chart-comps/SubcommontextComp.vue';
+// import SublabeltextComp from '../components/chart-comps/SublabeltextComp.vue';
+// import LineChartComp from '../components/chart-comps/LineChartComp.vue';
+// import GaugeComp from '../components/chart-comps/GaugeComp.vue';
+// import PieComp from '../components/chart-comps/PieComp.vue'
+// import ScatterComp from '../components/chart-comps/ScatterComp.vue';
+// import LiquidfillComp from '../components/chart-comps/LiquidfillComp.vue';
+// import BarComp from '../components/chart-comps/BarComp.vue';
+// import StackedareaComp from '../components/chart-comps/StackedareaComp.vue';
+// import RadarComp from '../components/chart-comps/RadarComp.vue';
 
 
 // 获取路由实例
@@ -124,23 +124,23 @@ const emit = defineEmits(['alert']);
 
 // 组件映射，key要与chart-cfg配置一致
 const componentMap = {
-  pubtext: markRaw(PubTextComp),
-  button: markRaw(ButtonComp),
-  chartPie: markRaw(PieComp),
-  switch: markRaw(SwitchComp),
-  slider: markRaw(SliderComp),
-  radio: markRaw(RadioComp),
-  checkbox: markRaw(CheckboxComp),
-  subcommontext: markRaw(SubcommontextComp),
-  sublabeltext: markRaw(SublabeltextComp),
-  linechart: markRaw(LineChartComp),
-  gauge: markRaw(GaugeComp),
-  pie: markRaw(PieComp),
-  scatter: markRaw(ScatterComp),
-  liquidfill: markRaw(LiquidfillComp),
-  bar: markRaw(BarComp),
-  stackedarea: markRaw(StackedareaComp),
-  radar: markRaw(RadarComp),
+  pubtext: markRaw(defineAsyncComponent(() => import('../components/chart-comps/PubTextComp.vue'))),
+  button: markRaw(defineAsyncComponent(() => import('../components/chart-comps/ButtonComp.vue'))),
+  chartPie: markRaw(defineAsyncComponent(() => import('../components/chart-comps/PieComp.vue'))),
+  switch: markRaw(defineAsyncComponent(() => import('../components/chart-comps/SwitchComp.vue'))),
+  slider: markRaw(defineAsyncComponent(() => import('../components/chart-comps/SliderComp.vue'))),
+  radio: markRaw(defineAsyncComponent(() => import('../components/chart-comps/RadioComp.vue'))),
+  checkbox: markRaw(defineAsyncComponent(() => import('../components/chart-comps/CheckboxComp.vue'))),
+  subcommontext: markRaw(defineAsyncComponent(() => import('../components/chart-comps/SubcommontextComp.vue'))),
+  sublabeltext: markRaw(defineAsyncComponent(() => import('../components/chart-comps/SublabeltextComp.vue'))),
+  linechart: markRaw(defineAsyncComponent(() => import('../components/chart-comps/LineChartComp.vue'))),
+  gauge: markRaw(defineAsyncComponent(() => import('../components/chart-comps/GaugeComp.vue'))),
+  pie: markRaw(defineAsyncComponent(() => import('../components/chart-comps/PieComp.vue'))),
+  scatter: markRaw(defineAsyncComponent(() => import('../components/chart-comps/ScatterComp.vue'))),
+  liquidfill: markRaw(defineAsyncComponent(() => import('../components/chart-comps/LiquidfillComp.vue'))),
+  bar: markRaw(defineAsyncComponent(() => import('../components/chart-comps/BarComp.vue'))),
+  stackedarea: markRaw(defineAsyncComponent(() => import('../components/chart-comps/StackedareaComp.vue'))),
+  radar: markRaw(defineAsyncComponent(() => import('../components/chart-comps/RadarComp.vue'))),
   // ...可继续扩展其它组件
 };
 

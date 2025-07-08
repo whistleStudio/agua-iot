@@ -43,7 +43,6 @@ function connectRemoteMqtt({projId, ip, port, clientID, username, password, subT
 
     // 回调：接收消息
     const onMessageHandle = (topic, message, packet) => {
-      console.log("------------------------\n", topic, packet, "---------------------\n")
       console.log(`Client ${clientID} received message on ${topic} QOS${packet.qos}: ${message.toString()}`);
       const time = new Date(Date.now() + 8 * 3600000).toISOString().replace('T', ' ').replace('Z', '').slice(0, 19) // 东8区
       const payload = message.toString();
@@ -51,8 +50,6 @@ function connectRemoteMqtt({projId, ip, port, clientID, username, password, subT
       const matchedSubs = clientGroup[projId].customSubTopics.filter(sub =>
         matchMqttTopicFilter(sub.topic, topic)
       );
-
-      // 这里可以添加处理接收到消息的逻辑
       if (browserWindows.length) {
         if (matchedSubs.length === 0) return 
         for (const win of browserWindows) {

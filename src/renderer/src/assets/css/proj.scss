@@ -251,6 +251,9 @@
       .topic {
         font-weight: 600;
         margin-bottom: 6px;
+        white-space: pre-wrap; /* 保留换行和空格，自动换行 */
+        word-break: break-all; /* 必要时强制断词换行，适合长字符串 */
+        overflow-wrap: break-word; /* 长单词也强制换行 */
         .qos {
           float: right;
           margin-left: 8px;
@@ -259,7 +262,9 @@
       }
       .content {
         font-size: 14px;
-        white-space: pre-wrap;
+        white-space: pre-wrap; /* 保留换行和空格，自动换行 */
+        word-break: break-all; /* 必要时强制断词换行，适合长字符串 */
+        overflow-wrap: break-word; /* 长单词也强制换行 */
       }
     }
     .trashbin {

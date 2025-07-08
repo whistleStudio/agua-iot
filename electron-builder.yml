@@ -18,6 +18,7 @@ win:
   executableName: aguato
   icon: build/icon.ico
 nsis:
+  include: build/extraInstaller.nsh
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
